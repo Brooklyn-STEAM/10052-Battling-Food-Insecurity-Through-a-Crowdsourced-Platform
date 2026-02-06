@@ -1,9 +1,82 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="shortcut icon" href="J.M Logo.jpg" type="image/x-icon">
 
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="shortcut icon" type="image/x-icon">
+
+</head>
+
+<body style="background-image: linear-gradient(to right, #5CB338, #FFC145);">
+  <br>
+  <br>
+  <form method="post"
+    class="modal-content animate bg-yellow-100 p-6 rounded-lg max-w-4xl mx-auto mt-10 shadow-lg border-4 border-blue-600 items-center">
+    {# Creates a 3px gap with a maximum with of 4xl and makes everything in the div in the center #}
+    <div class="grid gap-2 max-w-2xl mx-auto ">
+      <br>
+      <p style="text-align: center" class="text-3xl font-bold underline">Please fill in this form to create an account.
+      </p>
+      {# The label makes the user write the email#}
+      <label for="name"><b>Name</b></label>
+      <input type="text" placeholder="Enter Name" name="name" style="border:3px solid blue; padding: 5px"
+        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
+      <br><br><br>
+      <label for="email"><b>Email</b></label>
+      <input type="text" placeholder="Enter Email" name="email" style="border:3px solid blue; padding: 5px"
+        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
+      <br><br><br>
+
+      {# The label makes the user write the password #}
+      <label for="psw"><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" name="password" style="border:3px solid blue; padding: 5px"
+        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
+      <br><br><br>
+      {# The label makes the user repeat the password #}
+      <label for="psw-repeat"><b>Repeat Password</b></label>
+      <input type="password" placeholder="Repeat Password" name="repeat_password"
+        style="border:3px solid blue; padding: 5px"
+        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
+      <br><br><br>
+      {# The label makes the user write the address#}
+      <label><b>Address</b></label>
+      <input type="text" placeholder="Enter Mailing Address" name="address" style="border:3px solid blue; padding: 5px"
+        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
+      <br><br><br>
+      <label for="birthdate"><b>Birthdate</b></label>
+      <input type="date" placeholder="Enter Birthday" name="birthdate" style="border:3px solid blue; padding: 5px"
+        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
+      {# Creates buttons for the reset and the submit and the class and style makes the color and alignment #}
+      <div style="text-align: center;">
+        <button
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center"
+          type="reset">
+          Reset
+      </div>
+      </button>
+      <div style="text-align: center;">
+        {# Creates a button that when clicked submits the form #}
+        <button
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center"
+          type="submit">
+          <a href="/login">
+            Submit
+          </a>
+      </div>
+      </button>
+      <br>
+      {# Creates a button that when clicked takes the user to the login page #}
+      <div style="text-align: center;">
+        <button type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center">
+          <a href="/login" style="color: white; text-decoration-line: underline;">
+            Have an account?
+          </a>
+      </div>
+      </button>
+    </div>
+  </form>
+  </div>
+</body>
