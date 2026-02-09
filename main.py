@@ -56,3 +56,8 @@ def load_user(user_id):
 @app.route("/")
 def index():
     return render_template("homepage.html.jinja")
+
+
+@app.route("/donations")
+def donate():
+     return render_template("donations.html.jinja")
