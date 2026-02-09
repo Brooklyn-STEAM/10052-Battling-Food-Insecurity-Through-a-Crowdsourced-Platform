@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@plugin "@iconify/tailwind4";
+
+@theme {
+   
+    --color-reef-50: #f3fde8;
+    --color-reef-100: #e2facd;
+    --color-reef-200: #bcf390;
+    --color-reef-300: #a1ec6a;
+    --color-reef-400: #80de3d;
+    --color-reef-500: #60c41e;
+    --color-reef-600: #489c14;
+    --color-reef-700: #377714;
+    --color-reef-800: #305e16;
+    --color-reef-900: #2a5017;
+    --color-reef-950: #122c07;
+
+    --color-vida-loca-50: #f0fce9;
+    --color-vida-loca-100: #dff8cf;
+    --color-vida-loca-200: #c1f1a5;
+    --color-vida-loca-300: #98e670;
+    --color-vida-loca-400: #74d744;
+    --color-vida-loca-500: #54bd25;
+    --color-vida-loca-600: #3f981a;
+    --color-vida-loca-700: #317318;
+    --color-vida-loca-800: #2b5b19;
+    --color-vida-loca-900: #264e19;
+    --color-vida-loca-950: #102b08;
+
+    --color-apple-50: #f0faeb;
+    --color-apple-100: #dff3d4;
+    --color-apple-200: #c1e9ad;
+    --color-apple-300: #9ad97d;
+    --color-apple-400: #77c754;
+    --color-apple-500: #5cb338;
+    --color-apple-600: #418927;
+    --color-apple-700: #346922;
+    --color-apple-800: #2d5420;
+    --color-apple-900: #28481f;
+    --color-apple-950: #12270c;
+
+    --color-gorse-50: #fefde8;
+    --color-gorse-100: #fffec2;
+    --color-gorse-200: #fff889;
+    --color-gorse-300: #ffec3d;
+    --color-gorse-400: #fddc12;
+    --color-gorse-500: #ecc206;
+    --color-gorse-600: #cc9702;
+    --color-gorse-700: #a36c05;
+    --color-gorse-800: #86540d;
+    --color-gorse-900: #724511;
+    --color-gorse-950: #432405;
+        
+}
