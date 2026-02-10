@@ -14,28 +14,30 @@
     class="modal-content animate bg-yellow-200 p-6 rounded-lg max-w-4xl mx-auto mt-10 shadow-lg border-4 border-blue-600 items-center">
     <div class="grid gap-3 max-w-4xl mx-auto ">
       <br>
-      <p style="text-align: center" class="text-3xl font-bold underline">Login</p>
-
-      <label for="email"><b>Email</b></label>
-      <input type="text" required placeholder="Enter Email" name="email"
-        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600">
+  <h1 class="text-5xl font-extrabold text-center text-red-800 underline uppercase">
+    login
+  </h1>
+      <label for="email"><b class="text-red-700 underline">Email</b><b class="text-red-700"> *</b></label>
+      <input type="text" required placeholder="Enter Email" name="email" style="border:3px solid blue; padding: 5px"
+        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600">
       <br><br><br><br><br><br>
 
 
-      <label for="psw"><b>Password</b></label>
+      <label for="psw"><b class="text-red-700 underline">Password</b><b class="text-red-700"> *</b></label>
       <input type="password" required placeholder="Enter Password" name="psw"
-        class="bg-blue-400 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600">
+        style="border:3px solid blue; padding: 5px"
+        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600"">
       <br><br><br><br><br><br>
 
 
-      <div style="text-align: center;">
-        <button
-          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center">
-          <a href="/signup" style="color: white; text-decoration-line: underline;">
-            No account
-      </div>
-      </a>
-      </button>
+      <div style=" text-align: center;">
+      <button
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center">
+        <a href="/signup" style="color: white; text-decoration-line: underline;">
+          No account?
+    </div>
+    </a>
+    </button>
     </div>
   </form>
   </div>
