@@ -1,0 +1,5 @@
+settings.toml
+
+__pycache__/
+
+secret_key = "jhgdCUOYAVRUYRAVKUYUKYVRKUYVYUVYUOYRUYAVRUYAVRUYAVRUYAVR"
