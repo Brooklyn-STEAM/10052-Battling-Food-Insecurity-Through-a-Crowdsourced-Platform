@@ -57,18 +57,7 @@ def load_user(user_id):
 def index():
     return render_template("homepage.html.jinja")
 
-@app.route("/signup", methods=["GET", "POST"])
-def register():
-    return render_template("signup.html.jinja")
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    return render_template("login.html.jinja")
-
-@app.route("/logout", methods=['GET', 'POST'] )
-@login_required
-def logout():
-    logout_user() # Logs out the current user
-    flash("You have been logged out.") # Notify the user
-    return redirect("/")
-
+@app.route("/donations")
+def donate():
+     return render_template("donations.html.jinja")
