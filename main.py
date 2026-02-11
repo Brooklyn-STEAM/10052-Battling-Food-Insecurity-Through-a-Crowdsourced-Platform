@@ -129,3 +129,30 @@ def signup():
                 return redirect('/login')
         
     return render_template("signup.html.jinja")
+@app.route("/product/<Fridge_id>")
+# Product page route
+def product_page(Fridge_id):
+    connection = connect_db()
+    
+    cursor = connection.cursor()
+    # Execute query to get product by ID
+    cursor.execute("SELECT * FROM `Fridge` WHERE `ID` = %s", (Fridge_id) )
+                
+    result = cursor.fetchone()
+    
+    connection.close()
+    
+    connection = connect_db()
+    
+    cursor = connection.cursor()
+    # Execute query to get reviews for the product
+    cursor.execute("""SELECT * FROM `Review` JOIN `User` ON `Review`.`UserID` = `User`.`ID` WHERE `ProductID` = %s""", (Fridge_id) )
+    
+    reviews = cursor.fetchall()
+    
+    connection.close()
+    # If no product is found, redirect to dashboard
+    if result is None: 
+       return redirect("/dashboard") # If no product is found, return a 404 error
+    
+    return render_template("product.html.jinja", product = result , reviews=reviews)
