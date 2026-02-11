@@ -7,7 +7,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 
-<body class="min-h-screen bg-white">
+<body>
+{% include "components/navbar.html.jinja" %}
+<div class="min-h-screen bg-white">
   <div class="h-72 bg-gradient-to-r from-white to-green-300">
     <h1 class="text-5xl font-extrabold text-center text-red-800">
       Welcome to the FridgeNet!
@@ -20,4 +22,5 @@
       Welcome to the FridgeNet!
     </h1>
   </div>
+</div>
 </body>
