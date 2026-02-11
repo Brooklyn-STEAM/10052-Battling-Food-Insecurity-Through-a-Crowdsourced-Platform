@@ -33,7 +33,7 @@ def connect_db():
         host="db.steamcenter.tech", 
         user="smack",
         password=config.password,
-        database="smack_prime_kicks",
+        database="fridge_net",
         autocommit=True,
         cursorclass=pymysql.cursors.DictCursor
     )
@@ -139,3 +139,8 @@ def signup():
                 return redirect('/login')
         
     return render_template("signup.html.jinja")
+     return render_template("donations.html.jinja")
+
+@app.route("/type_donate")
+def type_donate():
+     return render_template("donateinfo.html.jinja")
