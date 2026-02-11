@@ -58,7 +58,7 @@ def index():
     return render_template("homepage.html.jinja")
 
 
-@app.route("/donations")
+@app.route("/donate")
 def donate():
      return render_template("donations.html.jinja")
 
