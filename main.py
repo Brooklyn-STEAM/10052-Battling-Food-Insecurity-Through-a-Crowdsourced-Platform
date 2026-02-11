@@ -33,7 +33,7 @@ def connect_db():
         host="db.steamcenter.tech", 
         user="smack",
         password=config.password,
-        database="smack_prime_kicks",
+        database="fridge_net",
         autocommit=True,
         cursorclass=pymysql.cursors.DictCursor
     )
