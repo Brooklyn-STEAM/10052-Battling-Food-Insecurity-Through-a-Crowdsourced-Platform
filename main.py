@@ -61,6 +61,7 @@ def index():
 @app.route("/donations")
 def donate():
      return render_template("donations.html.jinja")
+
 @app.route("/type_donate")
 def type_donate():
      return render_template("donateinfo.html.jinja")
