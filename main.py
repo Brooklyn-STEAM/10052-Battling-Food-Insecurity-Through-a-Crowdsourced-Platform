@@ -33,7 +33,7 @@ def connect_db():
         host="db.steamcenter.tech", 
         user="smack",
         password=config.password,
-        database="smack_prime_kicks",
+        database="fridge_net",
         autocommit=True,
         cursorclass=pymysql.cursors.DictCursor
     )
@@ -57,10 +57,20 @@ def load_user(user_id):
 def index():
     return render_template("homepage.html.jinja")
 
-
-@app.route("/donations")
+@app.route("/map")
 def donate():
-     return render_template("donations.html.jinja")
+     return render_template("map.html.jinja")
+
+
+@app.route("/donate")
+def donate():
+     return render_template("donate.html.jinja")
+
+
+@app.route("/report")
+def index():
+    return render_template("report.html.jinja")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -156,3 +166,8 @@ def product_page(Fridge_id):
        return redirect("/dashboard") # If no product is found, return a 404 error
     
     return render_template("product.html.jinja", product = result , reviews=reviews)
+     return render_template("donations.html.jinja")
+
+@app.route("/type_donate")
+def type_donate():
+     return render_template("donateinfo.html.jinja")
