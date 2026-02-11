@@ -5,85 +5,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <link rel="shortcut icon" type="image/x-icon">
-
+  <title>FridgeNet Sign Up</title>
 </head>
 
-<body style="background-image: linear-gradient(to right, #5CB338, #FFC145);">
-  {% include "components/navbar.html.jinja"%}
+<body class="bg-gradient-to-r from-green-100 to-yellow-100 min-h-screen flex flex-col">
 
-  <br>
-  <br>
-  <h1 class="text-5xl font-extrabold text-center text-red-800 underline uppercase">
-    Signup
-  </h1>
-  <form method="post"
-    class="modal-content animate bg-yellow-100 p-6 rounded-lg max-w-4xl mx-auto mt-10 shadow-lg border-4 border-blue-600 items-center">
-    {# Creates a 3px gap with a maximum with of 4xl and makes everything in the div in the center #}
-    <div class="grid gap-2 max-w-2xl mx-auto ">
-      <br>
-      <p style="text-align: center" class="text-3xl font-bold underline">Please fill out this form to create an account.
+  {% include "components/navbar.html.jinja" %}
+
+  <!-- Sign Up Section -->
+  <section class="flex-grow flex items-center justify-center px-4 py-16">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-10">
+
+      <h1 class="text-4xl font-extrabold text-center text-green-800">
+        Create Your <span class="text-yellow-500">FridgeNet</span> Account
+      </h1>
+
+      <p class="text-center text-gray-600 mt-3">
+        Join the community helping reduce food waste and support neighbors in need.
       </p>
-      {# The label makes the user write the email#}
-      <label for="name"><b class="text-red-700 underline">Name</b><b class="text-red-700"> *</b></label>
-      <input type="text" placeholder="Enter Name" name="name" style="border:3px solid blue; padding: 5px"
-        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
-      <br><br><br>
-      <label for="email"><b class="text-red-700 underline">Email</b> <b class="text-red-700"> *</b></label>
-      <input type="text" placeholder="Enter Email" name="email" style="border:3px solid blue; padding: 5px"
-        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
-      <br><br><br>
 
-      {# The label makes the user write the password #}
-      <label for="psw"><b class="text-red-700 underline">Password</b> <b class="text-red-700"> *</b></label>
-      <input type="password" placeholder="Enter Password" name="password" style="border:3px solid blue; padding: 5px"
-        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
-      <br><br><br>
-      {# The label makes the user repeat the password #}
-      <label for="psw-repeat"><b class="text-red-700 underline">Repeat Password</b> <b class="text-red-700">
-          *</b></label>
-      <input type="password" placeholder="Repeat Password" name="repeat_password"
-        style="border:3px solid blue; padding: 5px"
-        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
-      <br><br><br>
-      {# The label makes the user write the address#}
-      <label><b class="text-red-700 underline">Address</b> <b class="text-red-700"> *</b></label>
-      <input type="text" placeholder="Enter Mailing Address" name="address" style="border:3px solid blue; padding: 5px"
-        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
-      <br><br><br>
-      <label for="birthdate"><b class="text-red-700 underline">Birthdate</b> <b class="text-red-700"> *</b></label>
-      <input type="date" placeholder="Enter Birthday" name="birthdate" style="border:3px solid blue; padding: 5px"
-        class="bg-blue-300 p-2 flex items-center justify-between shadow-lg border-b-4 border-blue-600" required>
-      {# Creates buttons for the reset and the submit and the class and style makes the color and alignment #}
-      <div style="text-align: center;">
-        <button
-          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center"
-          type="reset">
-          Reset
-      </div>
-      </button>
-      <br>
-      <div style="text-align: center;">
-        {# Creates a button that when clicked submits the form #}
-        <button
-          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center"
-          type="submit">
-          <a href="/login">
-            Submit
-          </a>
-      </div>
-      </button>
-      <br>
-      {# Creates a button that when clicked takes the user to the login page #}
-      <div style="text-align: center;">
-        <button type="submit"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out justify-center text-center">
-          <a href="/login" style="color: white; text-decoration-line: underline;">
-            Account Already?
-          </a>
-      </div>
-      </button>
+      <form method="post" class="mt-8 space-y-5">
+
+        <!-- Name -->
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Full Name *</label>
+          <input type="text" name="name" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Email *</label>
+          <input type="email" name="email" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Password *</label>
+          <input type="password" name="password" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+        </div>
+
+        <!-- Repeat Password -->
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Repeat Password *</label>
+          <input type="password" name="repeat_password" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+        </div>
+
+        <!-- Address -->
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Address *</label>
+          <input type="text" name="address" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+        </div>
+
+        <!-- Birthdate -->
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Birthdate *</label>
+          <input type="date" name="birthdate" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+          <button type="reset"
+            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-xl transition">
+            Reset
+          </button>
+
+          <button type="submit"
+            class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-xl shadow-md transition">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Login Link -->
+        <p class="text-center text-sm text-gray-600 pt-4">
+          Already have an account?
+          <a href="/login" class="text-green-700 font-semibold hover:underline">Sign in</a>
+        </p>
+
+      </form>
     </div>
-  </form>
-  </div>
+  </section>
+
+  {% include "components/footer.html.jinja" %}
+
 </body>
+
+</html>
