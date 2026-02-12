@@ -48,7 +48,7 @@ def load_user(user_id):
     result = cursor.fetchone()
     connection.close()
 
-    if result is None:
+    if result is None:  
         return None
     
     return User(result)
@@ -60,12 +60,6 @@ def index():
 @app.route("/map")
 def map():
      return render_template("map.html.jinja")
-
-
-@app.route("/donate")
-def donate():
-     return render_template("donate.html.jinja")
-
 
 @app.route("/report")
 def report():
@@ -106,12 +100,11 @@ def logout():
 def signup():
     # Handle POST request for user registration
     if request.method == "POST":
-        name=request.form["name"]
-        email=request.form["email"]
-        password=request.form["password"]
-        password_repeat=request.form["repeat_password"]
-        address=request.form["address"]
-        birthdate=request.form["birthdate"]
+        name = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+        password_repeat = request.form["repeat_password"]
+        address = request.form["address"]
         # Validate password and confirmation
         if password != password_repeat:
             flash("Passwords do not match")
@@ -138,6 +131,12 @@ def signup():
             else:
                 return redirect('/login')
         
+        return render_template("signup.html.jinja")
+    return render_template("donations.html.jinja")
+
+@app.route("/donate")
+def donate():
+     return render_template("donate.html.jinja")
     return render_template("signup.html.jinja")
 
 @app.route("/product/<Fridge_id>")
@@ -171,3 +170,34 @@ def product_page(Fridge_id):
 @app.route("/type_donate")
 def type_donate():
      return render_template("donateinfo.html.jinja")
+
+@app.route("/donate-money", methods=["POST"])
+def donate_money():
+    amount = request.form.get("amount")
+    custom_amount = request.form.get("custom_amount")
+    name = request.form.get("name")
+
+    final_amount = custom_amount if custom_amount else amount
+
+    # Here you would integrate Stripe/PayPal
+    print(f"Money Donation: {name} donated ${final_amount}")
+
+    flash("Thank you for your monetary donation!")
+    return redirect ("type_donate") 
+
+@app.route("/donate-food", methods=["POST"])
+def donate_food():
+    name = request.form.get("food_name")
+    date = request.form.get("dropoff_date")
+
+    print(f"Food Donation scheduled by {name} on {date}")
+
+    flash("Your food drop-off has been scheduled!")
+    return redirect ("type_donate")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+@app.route("/fridge")
+def fridge():
+    return render_template ("fridge.html.jinja")
