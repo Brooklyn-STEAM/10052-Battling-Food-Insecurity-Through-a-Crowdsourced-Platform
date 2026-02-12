@@ -137,7 +137,6 @@ def signup():
 @app.route("/donate")
 def donate():
      return render_template("donate.html.jinja")
-    return render_template("signup.html.jinja")
 
 @app.route("/product/<Fridge_id>")
 # Product page route
