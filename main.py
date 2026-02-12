@@ -58,7 +58,7 @@ def index():
     return render_template("homepage.html.jinja")
 
 @app.route("/map")
-def donate():
+def map():
      return render_template("map.html.jinja")
 
 
@@ -68,7 +68,7 @@ def donate():
 
 
 @app.route("/report")
-def index():
+def report():
     return render_template("report.html.jinja")
 
 
@@ -139,6 +139,7 @@ def signup():
                 return redirect('/login')
         
     return render_template("signup.html.jinja")
+
 @app.route("/product/<Fridge_id>")
 # Product page route
 def product_page(Fridge_id):
@@ -166,7 +167,6 @@ def product_page(Fridge_id):
        return redirect("/dashboard") # If no product is found, return a 404 error
     
     return render_template("product.html.jinja", product = result , reviews=reviews)
-     return render_template("donations.html.jinja")
 
 @app.route("/type_donate")
 def type_donate():
