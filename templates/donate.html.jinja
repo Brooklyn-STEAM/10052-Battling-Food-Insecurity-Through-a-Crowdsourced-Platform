@@ -3,55 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <title>Donate Food Near You</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
-  <body> 
+  <body class="bg-[#FB923C]/90"> 
+  {% include "components/navbar.html.jinja" %}
+  <div class="max-w-7xl mx-auto px-6 py-12">
+  <h1 class="text-5xl text-center p-3 md:text-6xl italic font-extrabold mb-12 tracking-wide">DONATE FOOD NEAR YOU</h1>
+<div class="grid md:grid-cols-2 gap-12 items-start">
   <div>
-  <h1 class="font-bold text-4xl text-center p-3">DONATE FOOD NEAR YOU</h1>
-
-<div class="flex gap-18 mt-8 ml-130">
-  <div class="flex flex-col items-center">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         width="48"
-         height="48"
-         viewBox="0 0 48 48">
-      <g fill="none" stroke-linejoin="round" stroke-width="4">
-        <path fill="#16a839" stroke="#000"
-          d="M24 44C29.5228 44 34.5228 41.7614 38.1421 38.1421C41.7614 34.5228 44 29.5228 44 24C44 18.4772 41.7614 13.4772 38.1421 9.85786C34.5228 6.23858 29.5228 4 24 4C18.4772 4 13.4772 6.23858 9.85786 9.85786C6.23858 13.4772 4 18.4772 4 24C4 29.5228 6.23858 34.5228 9.85786 38.1421C13.4772 41.7614 18.4772 44 24 44Z"/>
-        <path stroke="#fff" stroke-linecap="round" d="M16 24L22 30L34 18"/>
-      </g>
-    </svg>
-
-    <p class="font-semibold mt-2">WE ACCEPT</p>
-    <ul class="list-disc pl-5 text-left space-y-1 text-xl">
-      <li>Packaged Foods</li>
-      <li>Fresh Produce</li>
-      <li>Sealed Drinks</li>
-      <li>Bakery Items (same day)</li>
-    </ul>
+    <img src= /static/products/Donate.png alt="Food Donation" class="rounded-lg shadow-lg w-full h-full object-cover">
   </div>
-<div class="">
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-<g fill="none" stroke-linejoin="round" stroke-width="4"></g>
-<path fill="#16a839" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2"/>
-<path fill="#ffffff" d="M8.478 8.478a1 1 0 0 1 1.414 0l2.154 2.153 l2.153-2.153a1 1 0 1 1 1.414 1.414 l-2.153 2.154l2.153 2.153a1 1 0 0 1-1.414 1.414l-2.153-2.153l-2.154 2.153A1 1 0 0 1 8.478 14.2l2.153-2.153l-2.153-2.154a1 1 0 0 1 0-1.414"/>
-</svg>
-
-
-    <p class="font-semibold mt-2">NOT ACCEPTING</p>
-    <ul class="list-disc pl-5 text-left space-y-1 text-xl">
-      <li>Open Containers</li>
-      <li>Expired Food</li>
-      <li>Alcohol</li>
-      <li>Homemade Meals</li>
-    </ul>
+    
+<div class="space-y-6 text-xl">
+ <div>
+  <div class="flex items-center space-x-3 mb-4">
+   <span class="text-green-600 text-2xl">✔</span>
+   <h2 class="text-4xl italic font-semibold">Accepted Items</h2>
   </div>
-</div> 
-<br>
-<a href="/type_donate" class="bg-green-500 text-decoration-line mt-30 ml-300 text-2xl text-black px-5 py-5">
-Donate</a>
-</div>
-<p class="mt-80 text-3xl whitespace-pre-wrap font-bold p-6 bg-green-200 h-30">  HELP REDUCE FOOD WASTE BY DONATING 
-  SURPLUS FOOD TO COMMUNITY FRIDGES.</p>
+  <ul class="space-y-2 ml-10 text-xl list-disc list-none">
+    <li>Packaged foods</li>
+    <li>Fresh produce</li>
+    <li>Sealed drinks</li>
+    <li>Bakery items (same day)</li>
+   </ul>
+ </div>
+   <div>
+     <div class="flex items-center space-x-3 mb-4">
+        <span class="text-red-600 text-2xl">✖</span>
+          <h2 class="text-4xl italic font-semibold">Not Accepted</h2>
+     </div>
+
+  <ul class="space-y-2 ml-10 list-disc list-none">
+    <li>Open containers</li>
+    <li>Expired food</li>
+    <li>Alcohol</li>
+    <li>Homemade meals</li>
+   </ul>
+              </div>
+
+<a href= "/type_donate" class="inline-block bg-gradient-to-r from-white to-green-900 text-black px-6 py-3 ml-68 rounded-lg font-semibold hover:bg-gray-800 transition-colors duration-200">
+Donate Here
+</a>
+      </div>
+
+        </div>
+
+    </div>
   </body>
 </html>     

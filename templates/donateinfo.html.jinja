@@ -1,4 +1,111 @@
 <!DOCTYPE html>
-<html
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Donate | Community Food Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+{% include "components/navbar.html.jinja" %}
+<div class="max-w-7xl mx-auto px-6 py-12">
 
-<head> </head>
+    <!-- Page Header -->
+    <div class="text-center mb-16">
+        <h1 class="text-5xl font-extrabold tracking-wide mb-4">
+            Help People In Need 
+        </h1>
+        <p class="text-lg text-gray-600">
+            Support families in need by donating money or food.
+        </p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="mb-8">
+                {% for message in messages %}
+                    <div class="bg-green-100 text-orange-400 p-4 rounded-lg mb-2">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Grid -->
+    <div class="grid lg:grid-cols-2 gap-16">
+        <!-- 💳 MONEY DONATION -->
+        <div class="bg-white p-8 rounded-2xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-6">Donate Money</h2>
+        <form method="POST" action="{{ url_for('donate_money') }}" class="space-y-6">
+            <!-- Preset Amounts -->
+             <div>
+                <label class="block font-semibold mb-3">Select Amount</label>
+             <div class="grid grid-cols-3 gap-4">
+                {% for amount in [10, 25, 50] %}
+<label class="cursor-pointer">
+    <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
+
+    <div class="border rounded-lg p-4 text-center transition peer-checked:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50">
+        <span class="text-lg font-semibold">${{ amount }}</span>
+    </div>
+</label>
+{% endfor %}
+
+            </div>
+            </div>
+
+    <!-- Custom Amount -->
+        <div>
+            <label class="block font-semibold mb-2">Or Enter Custom Amount</label>
+            <input type="number" name="custom_amount" placeholder="Enter amount" class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
+        </div>
+
+     <!-- Submit -->
+        <button type="submit" class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition"> Donate Now </button>
+            </form>
+        </div>
+
+            <!-- Drop-off Form -->
+            <form method="post" action="/type_donate" class="space-y-5">
+
+                <h3 class="text-xl font-semibold mb-4">Schedule a Drop-Off</h3>
+
+                <div>
+                    <label class="block font-semibold mb-2">Full Name</label>
+                    <input type="text" name="food_name" required
+                           class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-2">Email</label>
+                    <input type="email" name="food_email" required
+                           class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-2">Preferred Drop-Off Date</label>
+                    <input type="date" name="dropoff_date" required
+                           class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-2">Notes (Optional)</label>
+                    <textarea name="notes" rows="3"
+                              class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none"></textarea>
+                </div>
+
+                <button type="submit" action="/thanks"
+                        class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition">
+                    Schedule Drop-Off
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
