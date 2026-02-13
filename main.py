@@ -132,7 +132,6 @@ def signup():
                 return redirect('/login')
         
         return render_template("signup.html.jinja")
-    return render_template("donations.html.jinja")
 
 @app.route("/donate")
 def donate():
