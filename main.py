@@ -17,22 +17,22 @@ login_manager.login_view = '/login'
 class User:
     is_authenticated = True
     is_active = True
-    is_annoymous = False 
+    is_anonymous = False
 
-def __init__(self, result):
+    def __init__(self, result):
         self.name = result['Name']
         self.email = result['Email']
         self.address = result['Address']
         self.id = result['ID']
 
-def get_id(self):
+    def get_id(self):
         return str(self.id)
     
 def connect_db():
     conn = pymysql.connect(
         host="db.steamcenter.tech", 
         user="smack",
-        password=config.password,
+        password=config.PASSWORD,
         database="fridge_net",
         autocommit=True,
         cursorclass=pymysql.cursors.DictCursor
