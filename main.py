@@ -40,6 +40,10 @@ def connect_db():
 
     return conn
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html.jinja"),404
+
 @login_manager.user_loader
 def load_user(user_id):
     connection = connect_db()
@@ -53,6 +57,9 @@ def load_user(user_id):
     
     return User(result)
 
+if __name__ == "__main__":
+    app.run(debug=True)
+
 @app.route("/")
 def index():
     return render_template("homepage.html.jinja")
@@ -62,6 +69,7 @@ def map():
      return render_template("map.html.jinja")
 
 @app.route("/report")
+@login_required
 def report():
     return render_template("report.html.jinja")
 
@@ -89,12 +97,14 @@ def login():
 
     return render_template("login.html.jinja")
 
+
 @app.route("/logout", methods=['GET', 'POST'] )
 @login_required
 def logout():
     logout_user() # Logs out the current user
     flash("You have been logged out.") # Notify the user
     return redirect("/")
+
 
 @app.route('/signup', methods=["POST", "GET"])# User Registration
 def signup():
@@ -135,19 +145,19 @@ def signup():
     return render_template("signup.html.jinja")
 
 @app.route("/donate")
+@login_required
 def donate():
      return render_template("donate.html.jinja")
 
-@app.route("/product/<Fridge_id>")
+@app.route("/product/<fridge_id>")
 # Product page route
-def product_page(Fridge_id):
+def product_page(fridge_id):
     connection = connect_db()
-    
     cursor = connection.cursor()
     # Execute query to get product by ID
-    cursor.execute("SELECT * FROM `Fridge` WHERE `ID` = %s", (Fridge_id) )
+    cursor.execute() 
                 
-    result = cursor.fetchone()
+    result = cursor.fetchall()
     
     connection.close()
     
@@ -155,7 +165,7 @@ def product_page(Fridge_id):
     
     cursor = connection.cursor()
     # Execute query to get reviews for the product
-    cursor.execute("""SELECT * FROM `Review` JOIN `User` ON `Review`.`UserID` = `User`.`ID` WHERE `ProductID` = %s""", (Fridge_id) )
+    cursor.execute("""SELECT * FROM `Reviews` JOIN `User` ON `Reviews`.`UserID` = `User`.`ID` WHERE `FridgeID` = %s""", (fridge_id) )
     
     reviews = cursor.fetchall()
     
@@ -164,13 +174,15 @@ def product_page(Fridge_id):
     if result is None: 
        return redirect("/dashboard") # If no product is found, return a 404 error
     
-    return render_template("product.html.jinja", product = result , reviews=reviews)
+    return render_template("product.html.jinja", fridge = result , reviews=reviews)
 
 @app.route("/type_donate")
+@login_required
 def type_donate():
      return render_template("donateinfo.html.jinja")
 
 @app.route("/donate-money", methods=["POST"])
+@login_required
 def donate_money():
     amount = request.form.get("amount")
     custom_amount = request.form.get("custom_amount")
@@ -184,7 +196,9 @@ def donate_money():
     flash("Thank you for your monetary donation!")
     return redirect ("type_donate") 
 
+
 @app.route("/donate-food", methods=["POST"])
+@login_required
 def donate_food():
     name = request.form.get("food_name")
     date = request.form.get("dropoff_date")
@@ -194,9 +208,23 @@ def donate_food():
     flash("Your food drop-off has been scheduled!")
     return redirect ("type_donate")
 
-if __name__ == "__main__":
-    app.run(debug=True)
 
-@app.route("/fridge")
-def fridge():
-    return render_template ("fridge.html.jinja")
+@app.route("/fridge/<fridge_id>")
+def fridge(fridge_id):
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM `Fridge` WHERE `ID` = %s", (fridge_id))
+    results = cursor.fetchall
+    if results is None:
+        abort(404)
+    if User.is_authenticated:
+        cursor.execute("""
+        SELECT * FROM `Reviews`
+        JOIN `User` ON `Reviews`.`UserID` = User.ID
+        WHERE `Reviews`.`FridgeID` = %s
+    """, (fridge_id,))
+
+    review = cursor.fetchall()
+
+    connection.close()
+    return render_template ("fridge.html.jinja", fridge=results)
