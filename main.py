@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, flash, abort
+from flask import Flask, render_template, request, flash, abort, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from datetime import datetime
-import pymysql
+import pymysql 
 
 from dynaconf import Dynaconf
 
@@ -200,3 +200,34 @@ if __name__ == "__main__":
 @app.route("/fridge")
 def fridge():
     return render_template ("fridge.html.jinja")
+
+
+@app.route("/get-fridges")
+def get_fridges():
+    # Connect to database
+    connection = connect_db()
+    cursor = connection.cursor()
+    
+    # Query to get all fridges with their latest status
+    cursor.execute("""
+        SELECT 
+            f.ID AS id,
+            f.Name AS name,
+            f.Latitude AS lat,
+            f.Longitude AS lng,
+            (
+                SELECT Status 
+                FROM Fridge_status fs2
+                WHERE fs2.FridgeID = f.ID
+                ORDER BY Last_updated DESC
+                LIMIT 1
+            ) AS status
+        FROM Fridge f;
+    """)
+    
+    # Fetch all results as a list of dictionaries
+    fridges = cursor.fetchall()
+    connection.close()
+    
+    # Return JSON
+    return jsonify(fridges)

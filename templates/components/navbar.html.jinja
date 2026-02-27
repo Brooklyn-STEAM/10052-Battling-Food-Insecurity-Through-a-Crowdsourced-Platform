@@ -1,6 +1,6 @@
 
   <!-- FridgeNet Navbar (Based on Template) -->
-  <nav class="bg-green-600 text-white w-screen shadow-md">
+  <nav class="bg-green-600 text-white w-screen shadow-md top-0">
     <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
 
       <!-- Logo -->
@@ -9,7 +9,7 @@
       </a>
 
       <!-- Desktop Navigation -->
-      <ul class="hidden md:flex mx-auto font-semibold space-x-12">
+      <ul class=" z-[9999] hidden md:flex mx-auto font-semibold space-x-12">
         <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
         <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
       </ul>
@@ -31,7 +31,7 @@
           <!-- Dropdown Menu -->
           <ul class="absolute right-0 mt-2 w-40 bg-green-800 border border-green-700 rounded-md 
                      opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                     transition-all duration-200 text-white">
+                     transition-all duration-200 text-white ">
 
             <li><a href="/login" class="block px-4 py-2 hover:bg-green-700">Sign In</a></li>
             <li><a href="/signup" class="block px-4 py-2 hover:bg-green-700">Register</a></li>
@@ -53,7 +53,7 @@
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden bg-green-800 text-white md:hidden">
       <ul class="flex flex-col px-6 py-4 space-y-4">
-        <li><a class="hover:text-yellow-300 transition" href="/">Map</a></li>
+        <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
         <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
         <li><a class="hover:text-yellow-300 transition" href="/login">Log In</a></li>
         <li><a class="hover:text-yellow-300 transition" href="/signup">Register</a></li>
@@ -62,11 +62,17 @@
 
     <!-- Mobile Menu Script -->
     <script>
-      const menuButton = document.getElementById('mobile-menu-button');
-      const mobileMenu = document.getElementById('mobile-menu');
+      const accountButton = document.querySelector('.account-button');
+      const dropdown = document.querySelector('.account-dropdown');
 
-      menuButton.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
+      accountButton.addEventListener('mouseenter', () => {
+        dropdown.classList.remove('invisible', 'opacity-0');
+        dropdown.classList.add('visible', 'opacity-100');
+      });
+
+      accountButton.addEventListener('mouseleave', () => {
+        dropdown.classList.remove('visible', 'opacity-100');
+        dropdown.classList.add('invisible', 'opacity-0');
       });
     </script>
   </nav>
