@@ -9,10 +9,14 @@ from flask import request, redirect, url_for, render_template
 app = Flask(__name__)
 
 config = Dynaconf(settings_file=["settings.toml"])
- 
+
+app.secret_key = config.secret_key
 
 login_manager = LoginManager(app)
+
 login_manager.login_view = '/login'
+
+
 
 class User:
     is_authenticated = True
