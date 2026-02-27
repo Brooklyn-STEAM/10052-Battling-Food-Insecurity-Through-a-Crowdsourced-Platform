@@ -7,9 +7,62 @@
 </head>
 <body>
 {% include "components/navbar.html.jinja" %}
-    {{ for x in }}
+    {{ for x in fridge}}
+    
+    {{endfor}}
 
+{{endfor}}
+{% if current_user.is_authenticated %}
+    <h3 class="text-xl mb-4">Leave a Review</h3>
+    <form method="post" action="/fridge/{{ fridge['ID'] }}/review" class="space-y-3">
+  <body>
+      <div>
+      {% for review in reviews %}
+    <div class="border-b border-gray-700 pb-4">
+      <div class="flex justify-between items-center mb-2">
+        <p class="font-semibold text-black"> 
+        User: {{review['UserID']}}
+        <br>
+        Comment: {{review['Comment']}}
+        <br>
+        Rating: {{review['Rating']}}★
+        </p>
+        <p class="text-md text-gray-400">
+        {{ review.Timestamp.strftime('%B %d, %Y, %I:%M %p') }}
+          </p>
+        </div>
 
+      
+        
+
+        <p class="text-gray-300">{{ review.comment }}</p>
+      </div>
+      {% endfor %} 
+       <label class="block mb-1">Rating</label>
+        <select name="rating"
+            class="w-full bg-gray-400 border border-gray-600 rounded-lg px-3 py-2 text-white" required>
+          <option value="">Select rating</option>
+          <option value="5">★★★★★ (5)</option>
+          <option value="4">★★★★☆ (4)</option>
+          <option value="3">★★★☆☆ (3)</option>
+          <option value="2">★★☆☆☆ (2)</option>
+          <option value="1">★☆☆☆☆ (1)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1">Comment</label>
+        <textarea name="comment" rows="4" class="w-full bg-gray-400 border border-gray-600 rounded-lg px-3 py-2 text-white" required></textarea>
+      </div>
+
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow">
+        Submit Review
+      </button>
+      {% else %}
+    <p class="mt-6 text-gray-400">
+      <a href="/login" class="underline hover:text-white">Log in</a> to leave a review.
+    </p>
+  {% endif %}
 </body>
 
 
