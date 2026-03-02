@@ -7,7 +7,7 @@ from dynaconf import Dynaconf
 
 from flask import request, redirect, url_for, render_template
 app = Flask(__name__)
-
+app.secret_key = "your"
 config = Dynaconf(settings_file=["settings.toml"])
 
 app.secret_key = config.secret_key
@@ -133,7 +133,7 @@ def signup():
             # Insert new user into the database
             try:
                 cursor.execute("""
-                    INSERT INTO `User` (`Name`, `Password`, `Email`, `Address`)
+                    INSERT INTO `User` (`Name`, `Email` , `Password`, `Address`)
                     VALUES (%s, %s, %s, %s)
                 """, (name, password, email, address))
                 connection.close()
@@ -223,6 +223,18 @@ def get_fridges():
     # Connect to database
     connection = connect_db()
     cursor = connection.cursor()
+    cursor.execute("SELECT * FROM `Fridge` WHERE `ID` = %s", (fridge_id))
+    results = cursor.fetchall
+    if results is None:
+        abort(404)
+    if User.is_authenticated:
+        cursor.execute("""
+        SELECT * FROM `Reviews`
+        JOIN `User` ON `Reviews`.`UserID` = User.ID
+        WHERE `Reviews`.`FridgeID` = %s
+    """, (fridge_id,))
+
+    review = cursor.fetchall()
     
     # Query to get all fridges with their latest status
     cursor.execute("""
