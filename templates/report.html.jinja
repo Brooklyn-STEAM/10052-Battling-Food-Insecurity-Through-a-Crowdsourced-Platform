@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body>
+    {% include "components/navbar.html.jinja" %}
+    <div class=" flex gap-18 mt-8">
+        <div class="p-6 mr-60">
+            <h1 class="font-bold text-4xl text-center p-3 ">REPORT A PROBLEM</h1>
+            <form action="/report" method="post" class="max-w-md mx-auto mt-8 space-y-6">
+                <div class="bg-white p-6 rounded-md shadow-md space-y-4 px-8 max-w-md mx-auto">
+                    <div>
+                        <label for="fridge_id" class="block text-sm font-medium text-gray-700">Fridge ID</label>
+                        <input type="text" name="fridge_id" id="fridge_id" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500">
+                    </div>
+                    <div>
+                        <label for="issue_description" class="block text-sm font-medium text-gray-700">Issue
+                            Description</label>
+                        <textarea name="issue_description" id="issue_description" rows="4" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                    </div>
+                    <div>
+                        <label for="contact_info" class="block text-sm font-medium text-gray-700">Contact Information
+                            (optional)</label>
+                        <input type="text" name="contact_info" id="contact_info"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500">
+                    </div>
+                    <div>
+                        <label for=" priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                        <select name="priority" id="priority" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">Select priority</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="reproducibility"
+                            class="block text-sm font-medium text-gray-700">Reproducibility</label>
+                        <select name="reproducibility" id="reproducibility" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">Select reproducibility</option>
+                            <option value="always">Always</option>
+                            <option value="sometimes">Sometimes</option>
+                            <option value="rarely">Rarely</option>
+                            <option value="unable">Unable to reproduce</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit"
+                            class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-700 transition">
+                            Submit Report
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <div>
+        <p class="text-gray-700 font-medium text-lg text-center mt-4">519 HILLSIDE DRIVE MADISONVILLE, KY 42431</p>
+        </div>
+        <div class="flex-1">
+            <img src="/static/products/Botani.png" alt="Report a problem" class="w-auto h-auto rounded-md shadow-md border-20 border-gray-300">
+    </div>
+</body>
+
+</html>
