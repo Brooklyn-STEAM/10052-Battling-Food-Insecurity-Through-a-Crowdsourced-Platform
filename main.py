@@ -7,7 +7,7 @@ from dynaconf import Dynaconf
 
 from flask import request, redirect, url_for, render_template
 app = Flask(__name__)
-
+app.secret_key = "your"
 config = Dynaconf(settings_file=["settings.toml"])
  
 
@@ -129,7 +129,7 @@ def signup():
             # Insert new user into the database
             try:
                 cursor.execute("""
-                    INSERT INTO `User` (`Name`, `Password`, `Email`, `Address`)
+                    INSERT INTO `User` (`Name`, `Email` , `Password`, `Address`)
                     VALUES (%s, %s, %s, %s)
                 """, (name, password, email, address))
                 connection.close()
@@ -225,6 +225,5 @@ def fridge(fridge_id):
     """, (fridge_id,))
 
     review = cursor.fetchall()
-
     connection.close()
     return render_template ("fridge.html.jinja", fridge=results)
