@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, flash, abort
+from flask import Flask, render_template, request, flash, abort, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from datetime import datetime
-import pymysql
+import pymysql 
 
 from dynaconf import Dynaconf
 
@@ -213,22 +213,37 @@ def donate_food():
     return redirect ("type_donate")
 
 
-@app.route("/fridge/<fridge_id>")
-def fridge(fridge_id):
+@app.route("/fridge")
+def fridge():
+    return render_template ("fridge.html.jinja")
+
+
+@app.route("/get-fridges")
+def get_fridges():
+    # Connect to database
     connection = connect_db()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM `Fridge` WHERE `ID` = %s", (fridge_id))
-    results = cursor.fetchall
-    if results is None:
-        abort(404)
-    if User.is_authenticated:
-        cursor.execute("""
-        SELECT * FROM `Reviews`
-        JOIN `User` ON `Reviews`.`UserID` = User.ID
-        WHERE `Reviews`.`FridgeID` = %s
-    """, (fridge_id,))
-
-    review = cursor.fetchall()
-
+    
+    # Query to get all fridges with their latest status
+    cursor.execute("""
+        SELECT 
+            f.ID AS id,
+            f.Name AS name,
+            f.Latitude AS lat,
+            f.Longitude AS lng,
+            (
+                SELECT Status 
+                FROM Fridge_status fs2
+                WHERE fs2.FridgeID = f.ID
+                ORDER BY Last_updated DESC
+                LIMIT 1
+            ) AS status
+        FROM Fridge f;
+    """)
+    
+    # Fetch all results as a list of dictionaries
+    fridges = cursor.fetchall()
     connection.close()
-    return render_template ("fridge.html.jinja", fridge=results)
+    
+    # Return JSON
+    return jsonify(fridges)
