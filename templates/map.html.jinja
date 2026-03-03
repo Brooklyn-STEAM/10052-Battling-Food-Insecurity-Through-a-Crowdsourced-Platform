@@ -10,6 +10,12 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet"
           href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        #map {
+            height: 100%;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100">
@@ -22,7 +28,6 @@
         <h2 class="text-2xl font-bold mb-4">
             Nearby Community Fridges
         </h2>
-
         <ul id="fridge-list" class="space-y-3"></ul>
     </div>
 
@@ -36,17 +41,31 @@
 
 <script>
 
-// Initialize map (default view NYC)
+// Initialize map (default NYC)
 var map = L.map('map').setView([40.7128, -74.0060], 12);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-let markers = {};
 const list = document.getElementById("fridge-list");
 
-// Haversine distance formula
+// Custom Icons
+const userIcon = L.icon({
+    iconUrl: "/static/images/user-location.png",
+    iconSize: [35, 35],
+    iconAnchor: [17, 35],
+    popupAnchor: [0, -35]
+});
+
+const fridgeIcon = L.icon({
+    iconUrl: "/static/images/fridge.png",
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40]
+});
+
+// Distance calculator
 function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -62,7 +81,68 @@ function getDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// Get user's GPS location
+// Load fridges safely
+function loadFridges(userLat, userLng) {
+
+    fetch('/get-fridges')
+    .then(res => res.json())
+    .then(data => {
+
+        list.innerHTML = "";
+
+        if (!Array.isArray(data)) {
+            console.error("Invalid fridge data:", data);
+            return;
+        }
+
+        data.forEach(fridge => {
+
+            const lat = parseFloat(fridge.lat);
+            const lng = parseFloat(fridge.lng);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                console.warn("Skipping invalid fridge:", fridge);
+                return;
+            }
+
+            const cleanName = (fridge.name || "Unnamed Fridge").trim();
+            const status = fridge.status ? fridge.status : "Unknown";
+
+            const distance = getDistance(userLat, userLng, lat, lng);
+
+            // Add marker
+            const marker = L.marker([lat, lng], { icon: fridgeIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <b>${cleanName}</b>
+                    <br>Status: ${status}
+                    <br>${distance.toFixed(2)} km away
+                `);
+
+            // Add sidebar item
+            const li = document.createElement("li");
+            li.className = "p-3 bg-gray-50 rounded-lg shadow hover:bg-gray-200 cursor-pointer";
+
+            li.innerHTML = `
+                <div class="font-semibold">${cleanName}</div>
+                <div class="text-sm text-gray-600">
+                    ${distance.toFixed(2)} km away
+                </div>
+            `;
+
+            li.addEventListener("click", () => {
+                map.setView([lat, lng], 15);
+                marker.openPopup();
+            });
+
+            list.appendChild(li);
+        });
+
+    })
+    .catch(err => console.error("Fetch error:", err));
+}
+
+// Get user location
 navigator.geolocation.getCurrentPosition(
 
     position => {
@@ -72,8 +152,7 @@ navigator.geolocation.getCurrentPosition(
 
         map.setView([userLat, userLng], 13);
 
-        // User marker
-        L.marker([userLat, userLng])
+        L.marker([userLat, userLng], { icon: userIcon })
             .addTo(map)
             .bindPopup("You are here");
 
@@ -81,68 +160,16 @@ navigator.geolocation.getCurrentPosition(
     },
 
     error => {
-        alert("Location access denied. Showing default area.");
+        console.log("Location denied. Using default NYC.");
         loadFridges(40.7128, -74.0060);
     }
 
 );
 
-function loadFridges(userLat, userLng) {
-
-    fetch('/get-fridges')
-    .then(res => res.json())
-    .then(data => {
-
-        data.forEach(fridge => {
-            fridge.distance = getDistance(
-                userLat,
-                userLng,
-                fridge.lat,
-                fridge.lng
-            );
-        });
-
-        // Sort nearest first
-        data.sort((a, b) => a.distance - b.distance);
-
-        list.innerHTML = "";
-
-        data.forEach(fridge => {
-
-            const marker = L.marker([fridge.lat, fridge.lng])
-                .addTo(map)
-                .bindPopup(`
-                    <b>${fridge.name}</b>
-                    <br>Status: ${fridge.status}
-                    <br>${fridge.distance.toFixed(2)} km away
-                `);
-
-            markers[fridge.id] = marker;
-
-            const li = document.createElement("li");
-            li.className = "p-3 bg-gray-50 rounded-lg shadow hover:bg-gray-200 cursor-pointer";
-
-            li.innerHTML = `
-                <div class="font-semibold">${fridge.name}</div>
-                <div class="text-sm text-gray-600">
-                    ${fridge.distance.toFixed(2)} km away
-                </div>
-            `;
-
-            li.addEventListener("click", () => {
-                map.setView([fridge.lat, fridge.lng], 15);
-                marker.openPopup();
-            });
-
-            list.appendChild(li);
-        });
-
-    });
-}
-
 </script>
-
 
 {% include "components/footer.html.jinja" %}
 </body>
 </html>
+
+

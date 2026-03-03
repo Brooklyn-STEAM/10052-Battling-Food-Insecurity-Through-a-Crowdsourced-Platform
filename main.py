@@ -220,7 +220,6 @@ def fridge():
 
 @app.route("/get-fridges")
 def get_fridges():
-    # Connect to database
     connection = connect_db()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM `Fridge` WHERE `ID` = %s", (fridge_id))
@@ -236,7 +235,7 @@ def get_fridges():
 
     review = cursor.fetchall()
     
-    # Query to get all fridges with their latest status
+    # Query fridges with latest status
     cursor.execute("""
         SELECT 
             f.ID AS id,
@@ -253,9 +252,26 @@ def get_fridges():
         FROM Fridge f;
     """)
     
-    # Fetch all results as a list of dictionaries
-    fridges = cursor.fetchall()
+    rows = cursor.fetchall()
     connection.close()
     
-    # Return JSON
+    # Clean and parse data
+    fridges = []
+    for row in rows:
+        try:
+            lat = float(row['lat'])
+            lng = float(row['lng'])
+            if lat is None or lng is None:
+                continue
+            fridges.append({
+                "id": row['id'],
+                "name": (row['name'].strip() if row['name'] else "Unnamed Fridge"),
+                "lat": lat,
+                "lng": lng,
+                "status": row['status'] if row['status'] else "Unknown"
+            })
+        except Exception as e:
+            print(f"Skipping broken row: {row} ({e})")
+            continue
+
     return jsonify(fridges)
