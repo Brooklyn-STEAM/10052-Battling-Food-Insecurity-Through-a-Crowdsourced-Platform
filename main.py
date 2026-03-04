@@ -244,7 +244,7 @@ def get_fridges():
                 LIMIT 1
             ) AS status
         FROM Fridge f
-        WHERE f.ID = %s""", (fridge,))
+        WHERE f.ID = %s""", (fridge_id,))
 
     fridge = cursor.fetchone()
 
@@ -262,11 +262,10 @@ def get_fridges():
         JOIN User u ON r.UserID = u.ID
         WHERE r.FridgeID = %s
         ORDER BY r.Created_at DESC
-    """, (fridge,))
+    """, (fridge_id,))
 
     reviews = cursor.fetchall()
 
     connection.close()
 
     return render_template("fridge_detail.html.jinja", fridge=fridge, reviews=reviews)
-        
