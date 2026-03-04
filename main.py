@@ -222,20 +222,7 @@ def fridge():
 def get_fridges():
     connection = connect_db()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM `Fridge` WHERE `ID` = %s", (fridge_id))
-    results = cursor.fetchall
-    if results is None:
-        abort(404)
-    if User.is_authenticated:
-        cursor.execute("""
-        SELECT * FROM `Reviews`
-        JOIN `User` ON `Reviews`.`UserID` = User.ID
-        WHERE `Reviews`.`FridgeID` = %s
-    """, (fridge_id,))
 
-    review = cursor.fetchall()
-    
-    # Query fridges with latest status
     cursor.execute("""
         SELECT 
             f.ID AS id,
@@ -251,27 +238,33 @@ def get_fridges():
             ) AS status
         FROM Fridge f;
     """)
-    
+
     rows = cursor.fetchall()
     connection.close()
-    
-    # Clean and parse data
+
     fridges = []
+
     for row in rows:
         try:
             lat = float(row['lat'])
             lng = float(row['lng'])
+
             if lat is None or lng is None:
                 continue
+
             fridges.append({
                 "id": row['id'],
-                "name": (row['name'].strip() if row['name'] else "Unnamed Fridge"),
+                "name": row['name'].strip() if row['name'] else "Unnamed Fridge",
                 "lat": lat,
                 "lng": lng,
                 "status": row['status'] if row['status'] else "Unknown"
             })
         except Exception as e:
-            print(f"Skipping broken row: {row} ({e})")
-            continue
+            print("Skipping row:", row, e)
 
     return jsonify(fridges)
+
+
+@app.route("/thank_you")
+def thank():
+    return render_template("thank_you.html.jinja")

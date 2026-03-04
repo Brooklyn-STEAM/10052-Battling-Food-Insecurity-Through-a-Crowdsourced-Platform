@@ -1,46 +1,73 @@
-  <!-- FridgeNet Navbar (Based on Template) -->
-  <nav class="bg-green-600 text-white w-screen shadow-md top-0">
-    <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+  <nav class="bg-green-600 text-white w-screen shadow-md">
+  <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
 
-      <!-- Logo -->
-      <a class="text-3xl font-bold " href="/">
-        FridgeNet
-      </a>
+    <!-- Logo -->
+    <a class="text-3xl font-bold" href="/">
+      FridgeNet
+    </a>
 
-      <!-- Desktop Navigation -->
-      <ul class=" z-[9999] hidden md:flex mx-auto font-semibold space-x-12">
-        <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
-      </ul>
+    <!-- Desktop Navigation -->
+    <ul class="hidden md:flex mx-auto font-semibold space-x-12">
+      <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
+      <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
+    </ul>
 
-      <!-- Desktop Account Dropdown -->
-      <div class="hidden xl:flex items-center space-x-5">
+    <!-- Desktop Account Dropdown -->
+    <div class="hidden xl:flex items-center space-x-5">
 
-        <!-- Account Dropdown -->
-        <div class="relative group">
-          <button class="hover:text-yellow-300 transition flex items-center space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      <div class="relative group">
+        <button class="hover:text-yellow-300 transition flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+
+          {% if current_user.is_authenticated %}
+            <span class="font-medium">{{ current_user.name }}</span>
+          {% else %}
             <span class="font-medium">Account</span>
-          </button>
+          {% endif %}
+        </button>
 
-          <!-- Dropdown Menu -->
-          <ul class="absolute right-0 mt-2 w-40 bg-green-800 border border-green-700 rounded-md 
-                     opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                     transition-all duration-200 text-white ">
+        <!-- Dropdown -->
+        <ul class="absolute right-0 mt-2 w-40 bg-green-800 border border-green-700 rounded-md 
+                   opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                   transition-all duration-200 text-white">
 
-            <li><a href="/login" class="block px-4 py-2 hover:bg-green-700">Sign In</a></li>
-            <li><a href="/signup" class="block px-4 py-2 hover:bg-green-700">Register</a></li>
+          {% if current_user.is_authenticated %}
+            <li>
+              <a href="/profile" class="block px-4 py-2 hover:bg-green-700">
+                Profile
+              </a>
+            </li>
+            <li>
+              <a href="/logout" class="block px-4 py-2 hover:bg-green-700 text-red-300">
+                Logout
+              </a>
+            </li>
+          {% else %}
+            <li>
+              <a href="/login" class="block px-4 py-2 hover:bg-green-700">
+                Sign In
+              </a>
+            </li>
+            <li>
+              <a href="/register" class="block px-4 py-2 hover:bg-green-700">
+                Register
+              </a>
+            </li>
+          {% endif %}
 
-          </ul>
-        </div>
+        </ul>
       </div>
+    </div>
 
-      <!-- Mobile Menu Toggle -->
-      <button id="mobile-menu-button" class="xl:hidden">
+    <!-- Mobile Section -->
+    <div class="flex xl:hidden items-center space-x-4">
+
+      <!-- Mobile Menu Button -->
+      <button id="mobile-menu-button">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hover:text-yellow-300 transition" fill="none"
           viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -49,32 +76,33 @@
       </button>
     </div>
 
-    <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden bg-green-800 text-white md:hidden">
-      <ul class="flex flex-col px-6 py-4 space-y-4">
-        <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/login">Log In</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/signup">Register</a></li>
-      </ul>
-    </div>
+  </div>
 
-    <!-- Mobile Menu Script -->
-    <script>
-      const accountButton = document.querySelector('.account-button');
-      const dropdown = document.querySelector('.account-dropdown');
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="hidden bg-green-800 text-white md:hidden">
+    <ul class="flex flex-col px-6 py-4 space-y-4">
+      <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
+      <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
 
-      accountButton.addEventListener('mouseenter', () => {
-        dropdown.classList.remove('invisible', 'opacity-0');
-        dropdown.classList.add('visible', 'opacity-100');
+      {% if current_user.is_authenticated %}
+        <li><a class="hover:text-yellow-300 transition" href="/profile">Profile</a></li>
+        <li><a class="hover:text-red-300 transition" href="/logout">Logout</a></li>
+      {% else %}
+        <li><a class="hover:text-yellow-300 transition" href="/login">Sign In</a></li>
+        <li><a class="hover:text-yellow-300 transition" href="/register">Register</a></li>
+      {% endif %}
+    </ul>
+  </div>
+
+  <!-- Safe Mobile Script -->
+  <script>
+    const menuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (menuButton && mobileMenu) {
+      menuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
       });
-
-      accountButton.addEventListener('mouseleave', () => {
-        dropdown.classList.remove('visible', 'opacity-100');
-        dropdown.classList.add('invisible', 'opacity-0');
-      });
-    </script>
-  </nav>
-
-</body>
-</html>
+    }
+  </script>
+</nav>
