@@ -244,7 +244,7 @@ def get_fridges():
                 LIMIT 1
             ) AS status
         FROM Fridge f
-        WHERE f.ID = %s""", (fridge_id,))
+        WHERE f.ID = %s""", (fridge,))
 
     fridge = cursor.fetchone()
 
@@ -262,42 +262,11 @@ def get_fridges():
         JOIN User u ON r.UserID = u.ID
         WHERE r.FridgeID = %s
         ORDER BY r.Created_at DESC
-    """, (fridge_id,))
+    """, (fridge,))
 
     reviews = cursor.fetchall()
 
     connection.close()
 
     return render_template("fridge_detail.html.jinja", fridge=fridge, reviews=reviews)
-        FROM Fridge f;
-    """)
-
-    rows = cursor.fetchall()
-    connection.close()
-
-    fridges = []
-
-    for row in rows:
-        try:
-            lat = float(row['lat'])
-            lng = float(row['lng'])
-
-            if lat is None or lng is None:
-                continue
-
-            fridges.append({
-                "id": row['id'],
-                "name": row['name'].strip() if row['name'] else "Unnamed Fridge",
-                "lat": lat,
-                "lng": lng,
-                "status": row['status'] if row['status'] else "Unknown"
-            })
-        except Exception as e:
-            print("Skipping row:", row, e)
-
-    return jsonify(fridges)
-
-
-@app.route("/thank_you")
-def thank():
-    return render_template("thank_you.html.jinja")
+        
