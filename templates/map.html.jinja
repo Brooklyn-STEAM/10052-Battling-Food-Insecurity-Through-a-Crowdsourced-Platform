@@ -97,20 +97,26 @@ function loadFridges(userLat, userLng) {
             return;
         }
 
-        data.forEach(fridge => {
+        // Build enriched array with distances
+        const fridgesWithDistance = data
+            .map(fridge => {
+                const lat = parseFloat(fridge.lat);
+                const lng = parseFloat(fridge.lng);
+                if (isNaN(lat) || isNaN(lng)) return null;
+                return {
+                    ...fridge,
+                    lat, lng,
+                    distance: getDistance(userLat, userLng, lat, lng)
+                };
+            })
+            .filter(Boolean)                           // remove invalid entries
+            .sort((a, b) => a.distance - b.distance);  // sort nearest first
 
-            const lat = parseFloat(fridge.lat);
-            const lng = parseFloat(fridge.lng);
+        fridgesWithDistance.forEach(fridge => {
 
-            if (isNaN(lat) || isNaN(lng)) {
-                console.warn("Skipping invalid fridge:", fridge);
-                return;
-            }
-
+            const { lat, lng, distance } = fridge;
             const cleanName = (fridge.name || "Unnamed Fridge").trim();
-            const status = fridge.status ? fridge.status : "Unknown";
-
-            const distance = getDistance(userLat, userLng, lat, lng);
+            const status = fridge.status ?? "Unknown";
 
             // Add marker
             const marker = L.marker([lat, lng], { icon: fridgeIcon })
@@ -124,14 +130,10 @@ function loadFridges(userLat, userLng) {
             // Add sidebar item
             const li = document.createElement("li");
             li.className = "p-3 bg-gray-50 rounded-lg shadow hover:bg-gray-200 cursor-pointer";
-
             li.innerHTML = `
                 <div class="font-semibold">${cleanName}</div>
-                <div class="text-sm text-gray-600">
-                    ${distance.toFixed(2)} km away
-                </div>
+                <div class="text-sm text-gray-600">${distance.toFixed(2)} km away</div>
             `;
-
             li.addEventListener("click", () => {
                 map.setView([lat, lng], 15);
                 marker.openPopup();
@@ -143,6 +145,8 @@ function loadFridges(userLat, userLng) {
     })
     .catch(err => console.error("Fetch error:", err));
 }
+
+loadFridges(40.7128, -74.0060);
 
 // Get user location
 navigator.geolocation.getCurrentPosition(
@@ -173,5 +177,3 @@ navigator.geolocation.getCurrentPosition(
 {% include "components/footer.html.jinja" %}
 </body>
 </html>
-
-
