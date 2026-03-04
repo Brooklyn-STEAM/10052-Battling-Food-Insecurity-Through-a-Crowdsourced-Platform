@@ -3,66 +3,149 @@
 <head>
  <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/static/images/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body>
 {% include "components/navbar.html.jinja" %}
-    {{ for x in fridge}}
-    
-    {{endfor}}
+    {% include "components/navbar.html.jinja" %}
 
-{{endfor}}
-{% if current_user.is_authenticated %}
-    <h3 class="text-xl mb-4">Leave a Review</h3>
-    <form method="post" action="/fridge/{{ fridge['ID'] }}/review" class="space-y-3">
-  <body>
-      <div>
-      {% for review in reviews %}
-    <div class="border-b border-gray-700 pb-4">
-      <div class="flex justify-between items-center mb-2">
-        <p class="font-semibold text-black"> 
-        User: {{review['UserID']}}
-        <br>
-        Comment: {{review['Comment']}}
-        <br>
-        Rating: {{review['Rating']}}★
-        </p>
-        <p class="text-md text-gray-400">
-        {{ review.Timestamp.strftime('%B %d, %Y, %I:%M %p') }}
+<div class="min-h-screen bg-white">
+
+  <!-- HEADER / FRIDGE HERO -->
+  <section class="bg-gradient-to-r from-green-100 to-emerald-50 py-16 px-6">
+    <div class="max-w-6xl mx-auto">
+
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+
+        <div>
+          <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 mb-3">
+            {{ fridge.name }}
+          </h1>
+
+          <p class="text-gray-700 text-lg">
+            📍 {{ fridge.address }}
           </p>
         </div>
 
-      
-        
+        <!-- STATUS + REPORT -->
+        <div class="flex flex-col sm:flex-row gap-4">
 
-        <p class="text-gray-300">{{ review.comment }}</p>
+          <!-- Dynamic Status Badge -->
+          {% if fridge.status == "Open" %}
+          <span class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">
+            🟢 Open & Stocked
+          </span>
+          {% elif fridge.status == "Low" %}
+          <span class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">
+            🟡 Low Stock
+          </span>
+          {% else %}
+          <span class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">
+            🔴 Closed / Needs Attention
+          </span>
+          {% endif %}
+
+          <a href="/report/{{ fridge.id }}"
+            class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition text-center">
+            Report Issue
+          </a>
+
+        </div>
+
       </div>
-      {% endfor %} 
-       <label class="block mb-1">Rating</label>
-        <select name="rating"
-            class="w-full bg-gray-400 border border-gray-600 rounded-lg px-3 py-2 text-white" required>
-          <option value="">Select rating</option>
-          <option value="5">★★★★★ (5)</option>
-          <option value="4">★★★★☆ (4)</option>
-          <option value="3">★★★☆☆ (3)</option>
-          <option value="2">★★☆☆☆ (2)</option>
-          <option value="1">★☆☆☆☆ (1)</option>
-        </select>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT -->
+  <section class="py-16 px-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
+
+    <!-- AVAILABLE ITEMS -->
+    <div>
+      <h2 class="text-3xl font-bold text-green-800 mb-6">
+        Available Items
+      </h2>
+
+      <div class="bg-green-50 rounded-2xl p-6 shadow-sm">
+
+        {% if items %}
+        <ul class="space-y-4">
+          {% for item in items %}
+          <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+            <div>
+              <p class="font-semibold text-green-700">{{ item.name }}</p>
+              <p class="text-sm text-gray-500">Added {{ item.created_at }}</p>
+            </div>
+
+            <span class="text-sm font-medium text-gray-600">
+              {{ item.quantity }} available
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-600 italic">
+          No items currently listed. Check back soon or donate to restock!
+        </p>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-green-800">
+          Community Reviews
+        </h2>
+
+        <a href="/fridge/{{ fridge.id }}/review"
+          class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-md text-sm font-semibold transition">
+          Add Review
+        </a>
       </div>
 
-      <div>
-        <label class="block mb-1">Comment</label>
-        <textarea name="comment" rows="4" class="w-full bg-gray-400 border border-gray-600 rounded-lg px-3 py-2 text-white" required></textarea>
-      </div>
+      <div class="space-y-6">
 
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow">
-        Submit Review
-      </button>
-      {% else %}
-    <p class="mt-6 text-gray-400">
-      <a href="/login" class="underline hover:text-white">Log in</a> to leave a review.
-    </p>
-  {% endif %}
+        {% if reviews %}
+        {% for review in reviews %}
+        <div class="bg-white rounded-2xl shadow-md p-6">
+
+          <div class="flex justify-between items-center mb-2">
+            <p class="font-semibold text-green-700">
+              {{ review.user_name }}
+            </p>
+            <span class="text-sm text-gray-500">
+              ⭐ {{ review.rating }}/5
+            </span>
+          </div>
+
+          <p class="text-gray-700">
+            {{ review.comment }}
+          </p>
+
+          <p class="text-xs text-gray-400 mt-3">
+            Posted {{ review.created_at }}
+          </p>
+
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="bg-green-50 rounded-2xl p-6">
+          <p class="text-gray-600 italic">
+            No reviews yet. Be the first to share your experience!
+          </p>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+{% include "components/footer.html.jinja" %}
 </body>
 
 
