@@ -219,6 +219,16 @@ def get_fridge(fridge_id):
     cursor = connection.cursor()
 
     # Get fridge info
+@app.route("/fridge")
+def fridge():
+    return render_template ("fridge.html.jinja")
+
+
+@app.route("/get-fridges")
+def get_fridges():
+    connection = connect_db()
+    cursor = connection.cursor()
+
     cursor.execute("""
         SELECT
             f.ID AS id,
@@ -259,3 +269,35 @@ def get_fridge(fridge_id):
     connection.close()
 
     return render_template("fridge_detail.html.jinja", fridge=fridge, reviews=reviews)
+        FROM Fridge f;
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    fridges = []
+
+    for row in rows:
+        try:
+            lat = float(row['lat'])
+            lng = float(row['lng'])
+
+            if lat is None or lng is None:
+                continue
+
+            fridges.append({
+                "id": row['id'],
+                "name": row['name'].strip() if row['name'] else "Unnamed Fridge",
+                "lat": lat,
+                "lng": lng,
+                "status": row['status'] if row['status'] else "Unknown"
+            })
+        except Exception as e:
+            print("Skipping row:", row, e)
+
+    return jsonify(fridges)
+
+
+@app.route("/thank_you")
+def thank():
+    return render_template("thank_you.html.jinja")
