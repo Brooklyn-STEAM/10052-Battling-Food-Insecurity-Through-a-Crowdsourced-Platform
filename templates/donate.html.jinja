@@ -3,14 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/static/images/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
   <body> 
   {% include "components/navbar.html.jinja" %}
   <div>
-  <h1 class="font-bold text-4xl text-center p-3">DONATE FOOD NEAR YOU</h1>
+  <h1 class="font-bold text-4xl text-center p-6">DONATE FOOD NEAR YOU</h1>
 
-<div class="flex gap-18 mt-8 ml-130">
+<img class="w-full max-w-md sm:max-w-lg lg:max-w-2xl mx-auto mb-12" src="/static/products/Donate.png" >
+
+<div class="flex flex-col md:flex-row justify-center gap-12 mb-12">
   <div class="flex flex-col items-center">
     <svg xmlns="http://www.w3.org/2000/svg"
          width="48"
@@ -39,9 +42,7 @@
          viewBox="0 0 24 24">
       <g fill="#16a839">
         <path d="M8.478 8.478a1 1 0 0 1 1.414 0l2.154 2.153l2.153-2.153a1 1 0 1 1 1.414 1.414l-2.153 2.154l2.153 2.153a1 1 0 0 1-1.414 1.414l-2.153-2.153l-2.154 2.153A1 1 0 0 1 8.478 14.2l2.153-2.153l-2.153-2.154a1 1 0 0 1 0-1.414"/>
-        <path fill-rule="evenodd"
-        d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2"
-        clip-rule="evenodd"/>
+        
       </g>
     </svg>
 
@@ -55,8 +56,17 @@
   </div>
   <div></div>
 </div>
-<a href="/type_donate" class="ml-280 p-6 px-4 py-3 bg-orange-600 text-white rounded-lg shadow-md hover:bg-green-600 transition duration-300">Donate</a>
-<p class="mt-80 text-3xl whitespace-pre-wrap font-bold p-6 bg-green-200 h-34">  HELP REDUCE FOOD WASTE BY DONATING 
-  SURPLUS FOOD TO COMMUNITY FRIDGES.</p>
+<div class="flex justify-center mb-12">
+    <a href="/type_donate"
+       class="px-6 py-3 bg-orange-600 text-white rounded-lg shadow-md hover:bg-green-600 transition duration-300">
+      Donate
+    </a>
+  </div>
+
+<div class="bg-green-200 py-8 text-center">
+  <p class="text-xl sm:text-2xl lg:text-3xl font-bold px-4">
+    HELP REDUCE FOOD WASTE BY DONATING SURPLUS FOOD TO COMMUNITY FRIDGES.
+  </p>
+</div>
   </body>
-</html>       
+</html>         

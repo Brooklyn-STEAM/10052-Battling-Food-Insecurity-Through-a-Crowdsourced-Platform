@@ -159,7 +159,7 @@ def product_page(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
     # Execute query to get product by ID
-    cursor.execute() 
+    cursor.execute("""SELECT * FROM `Fridge` WHERE `ID` = %s""", (fridge_id)) 
                 
     result = cursor.fetchall()
     
@@ -210,9 +210,15 @@ def donate_food():
     print(f"Food Donation scheduled by {name} on {date}")
 
     flash("Your food drop-off has been scheduled!")
-    return redirect ("type_donate")
+    return redirect(url_for("type_donate"))
 
 
+@app.route("/fridge/<fridge_id>")
+def get_fridge(fridge_id):
+    connection = connect_db()
+    cursor = connection.cursor()
+
+    # Get fridge info
 @app.route("/fridge")
 def fridge():
     return render_template ("fridge.html.jinja")
@@ -224,18 +230,45 @@ def get_fridges():
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT 
+        SELECT
             f.ID AS id,
             f.Name AS name,
+            f.Address AS address,
             f.Latitude AS lat,
             f.Longitude AS lng,
             (
-                SELECT Status 
+                SELECT Status
                 FROM Fridge_status fs2
                 WHERE fs2.FridgeID = f.ID
                 ORDER BY Last_updated DESC
                 LIMIT 1
             ) AS status
+        FROM Fridge f
+        WHERE f.ID = %s""", (fridge_id,))
+
+    fridge = cursor.fetchone()
+
+    if fridge is None:
+        abort(404)
+
+    # Get reviews
+    cursor.execute("""
+        SELECT
+            r.Comment AS comment,
+            r.Rating AS rating,
+            r.Created_at AS created_at,
+            u.Name AS user_name
+        FROM Reviews r
+        JOIN User u ON r.UserID = u.ID
+        WHERE r.FridgeID = %s
+        ORDER BY r.Created_at DESC
+    """, (fridge_id,))
+
+    reviews = cursor.fetchall()
+
+    connection.close()
+
+    return render_template("fridge_detail.html.jinja", fridge=fridge, reviews=reviews)
         FROM Fridge f;
     """)
 
