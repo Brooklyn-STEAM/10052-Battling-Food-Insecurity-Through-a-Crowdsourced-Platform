@@ -213,7 +213,7 @@ def donate_food():
     return redirect ("type_donate")
 
 
-@app.route("/individfridge/<int:fridge_id>")
+@app.route("/individfridge/<fridge_id>")
 def personal_fridges(fridge_id):
     # Connect to database
     connection = connect_db()
@@ -231,7 +231,6 @@ def personal_fridges(fridge_id):
         FROM Reviews r
         JOIN User u ON r.UserID = u.ID
         WHERE r.FridgeID = %s
-        ORDER BY r.Created_at DESC
     """, (fridge_id,))
     reviews = cursor.fetchall()
     connection.close()
