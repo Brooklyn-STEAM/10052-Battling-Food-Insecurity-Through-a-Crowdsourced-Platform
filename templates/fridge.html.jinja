@@ -8,7 +8,6 @@
 </head>
 <body>
 {% include "components/navbar.html.jinja" %}
-    {% include "components/navbar.html.jinja" %}
 
 <div class="min-h-screen bg-white">
 
@@ -17,8 +16,8 @@
     <div class="max-w-6xl mx-auto">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 mb-3"> {{ fridge.name }} </h1>
-          <p class="text-gray-700 text-lg"> 📍 {{ fridge.address }} </p>
+          <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 mb-3"> {{ fridge["Name"] }} </h1>
+          <p class="text-gray-700 text-lg"> 📍 {{ fridge ["Address"] }} </p>
         </div>
 
         <!-- STATUS + REPORT -->
@@ -33,7 +32,7 @@
           <span class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md"> 🔴 Closed / Needs Attention </span>
           {% endif %}
 
-          <a href="/report/{{ fridge.id }}"
+          <a href="/report"
             class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition text-center">
             Report Issue
           </a>
@@ -72,7 +71,7 @@
     </div>
 
     <!-- REVIEWS -->
-    <div>
+    <div class="space-y-6 max-h-[600px] overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-green-800">
           Community Reviews
@@ -92,19 +91,19 @@
 
           <div class="flex justify-between items-center mb-2">
             <p class="font-semibold text-green-700">
-              {{ review.user_name }}
+              {{ review["UserID"] }}
             </p>
             <span class="text-sm text-gray-500">
-              ⭐ {{ review.rating }}/5
+              ⭐ {{ review["Rating"] }}/5
             </span>
           </div>
 
           <p class="text-gray-700">
-            {{ review.comment }}
+            {{ review["Comment"]}}
           </p>
 
           <p class="text-xs text-gray-400 mt-3">
-            Posted {{ review.created_at }}
+            Posted {{ review.created_at}}
           </p>
 
         </div>
