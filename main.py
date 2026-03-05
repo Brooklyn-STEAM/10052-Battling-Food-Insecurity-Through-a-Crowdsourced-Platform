@@ -284,4 +284,9 @@ def get_fridges():
             continue
 
     return jsonify(fridges)
+
+@app.route("/thank-you")
+def thank():
+    return render_template("thanks.html.jinja")
+
     
