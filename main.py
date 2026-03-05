@@ -239,5 +239,54 @@ def personal_fridges(fridge_id):
     # Return JSON
     return render_template("fridge.html.jinja", fridge=fridge, reviews=reviews)
 
+@app.route("/get-fridges")
+def get_fridges():
+    connection = connect_db()
+    cursor = connection.cursor()
+
+    # Query to get all fridges with their latest status
+    cursor.execute("""
+        SELECT 
+            f.ID AS id,
+            f.Name AS name,
+            f.Latitude AS lat,
+            f.Longitude AS lng,
+            (
+                SELECT Status 
+                FROM Fridge_status fs2
+                WHERE fs2.FridgeID = f.ID
+                ORDER BY Last_updated DESC
+                LIMIT 1
+            ) AS status
+        FROM Fridge f;
+    """)
+
+    rows = cursor.fetchall()  # Fetch all results once
+    connection.close()
+
+    # Clean and parse data
+    fridges = []
+    for row in rows:
+        try:
+            lat = float(row['lat']) if row['lat'] is not None else None
+            lng = float(row['lng']) if row['lng'] is not None else None
+            if lat is None or lng is None:
+                continue
+            fridges.append({
+                "id": row['id'],
+                "name": row['name'].strip() if row['name'] else "Unnamed Fridge",
+                "lat": lat,
+                "lng": lng,
+                "status": row['status'] if row['status'] else "Unknown"
+            })
+        except Exception as e:
+            print(f"Skipping broken row: {row} ({e})")
+            continue
+
+    return jsonify(fridges)
+
+@app.route("/thank-you")
+def thank():
+    return render_template("thanks.html.jinja")
 
     
