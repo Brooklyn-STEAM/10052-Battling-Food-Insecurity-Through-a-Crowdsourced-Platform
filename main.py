@@ -72,10 +72,19 @@ def index():
 def map():
      return render_template("map.html.jinja")
 
-@app.route("/report")
-@login_required
-def report():
-    return render_template("report.html.jinja")
+@app.route("/report/<int:fridge_id>")
+def report(fridge_id):
+    connection = connect_db()
+    cursor = connection.cursor()
+    # Fetch data for the specific fridge
+    cursor.execute("SELECT * FROM Fridge WHERE ID = %s", (fridge_id,))
+    fridge = cursor.fetchone()
+    connection.close()
+
+    if not fridge:
+        abort(404)
+        
+    return render_template("report.html.jinja", fridge=fridge)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -159,7 +168,7 @@ def product_page(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
     # Execute query to get product by ID
-    cursor.execute() 
+    cursor.execute("SELECT * FROM `maintenance_reports` WHERE `ID` = %s", (fridge_id) )
                 
     result = cursor.fetchall()
     
