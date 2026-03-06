@@ -15,25 +15,53 @@
     <style>
         #map {
             height: 100%;
+            min-height: 500px;
+            z-index:0
+        }
+
+        .leaflet-marker-icon {
+            transition: transform 0.2s;
+        }
+        .leaflet-marker-icon:hover {
+            transform: scale(1.2);
+            z-index: 1000 !important;
+        }
+
+        /* Sidebar scrollbar */
+        #fridge-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        #fridge-list::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 3px;
         }
     </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-sans">
 {% include "components/navbar.html.jinja" %}
 
 <div class="flex h-screen">
 
     <!-- Sidebar -->
-    <div class="w-1/3 bg-white shadow-lg overflow-y-auto p-4">
-        <h2 class="text-2xl font-bold mb-4">
+    <div class="w-1/3 bg-white shadow-lg overflow-y-auto p-6">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">
             Nearby Community Fridges
         </h2>
-        <ul id="fridge-list" class="space-y-3"></ul>
+
+        <!-- Search Bar -->
+        <input 
+            type="text" 
+            id="fridge-search" 
+            placeholder="Search fridges..." 
+            class="w-full p-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+
+        <ul id="fridge-list" class="space-y-4"></ul>
     </div>
 
     <!-- Map -->
-    <div id="map" class="w-2/3"></div>
+    <div id="map" class="w-2/3 rounded-l-lg shadow-inner"></div>
 
 </div>
 
@@ -41,8 +69,7 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-
-// Initialize map (default NYC)
+// Initialize map
 var map = L.map('map').setView([40.7128, -74.0060], 12);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -52,8 +79,9 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 }).addTo(map);
 
 const list = document.getElementById("fridge-list");
+const searchInput = document.getElementById("fridge-search");
 
-// Custom Icons
+// Icons
 const userIcon = L.icon({
     iconUrl: "/static/images/pin.png",
     iconSize: [35, 35],
@@ -63,116 +91,120 @@ const userIcon = L.icon({
 
 const fridgeIcon = L.icon({
     iconUrl: "/static/images/fridge.png",
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
+    iconSize: [45, 45],
+    iconAnchor: [22, 45],
+    popupAnchor: [0, -45]
 });
 
-// Distance calculator
+// Distance function
 function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-
-    const a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
 }
 
-// Load fridges safely
-function loadFridges(userLat, userLng) {
+let allFridges = [];
 
-    fetch('/get-fridges')
+// Load fridges
+function loadFridges(userLat, userLng) {
+    fetch("/get-fridges")
     .then(res => res.json())
     .then(data => {
-
         list.innerHTML = "";
+        allFridges = [];
 
-        if (!Array.isArray(data)) {
-            console.error("Invalid fridge data:", data);
-            return;
-        }
-
-        // Build enriched array with distances
         const fridgesWithDistance = data
             .map(fridge => {
                 const lat = parseFloat(fridge.lat);
                 const lng = parseFloat(fridge.lng);
                 if (isNaN(lat) || isNaN(lng)) return null;
-                return {
-                    ...fridge,
-                    lat, lng,
-                    distance: getDistance(userLat, userLng, lat, lng)
-                };
+                return {...fridge, lat, lng, distance: getDistance(userLat, userLng, lat, lng)};
             })
-            .filter(Boolean)                           // remove invalid entries
-            .sort((a, b) => a.distance - b.distance);  // sort nearest first
+            .filter(Boolean)
+            .sort((a,b)=>a.distance-b.distance);
 
         fridgesWithDistance.forEach(fridge => {
-
-            const { lat, lng, distance } = fridge;
+            const {lat, lng, distance} = fridge;
             const cleanName = (fridge.name || "Unnamed Fridge").trim();
-            const status = fridge.status ?? "Unknown";
+            const status = fridge.status || "Unknown";
 
-            // Add marker
-            const marker = L.marker([lat, lng], { icon: fridgeIcon })
+            // Marker
+            const marker = L.marker([lat, lng], {icon: fridgeIcon})
                 .addTo(map)
                 .bindPopup(`
-                    <b>${cleanName}</b>
-                    <br>Status: ${status}
-                    <br>${distance.toFixed(2)} km away
+                    <div class="text-lg font-semibold">${cleanName}</div>
+                    <div class="text-sm text-gray-600">Status: ${status}</div>
+                    <div class="text-sm text-gray-600">${distance.toFixed(2)} km away</div>
                 `);
 
-            // Add sidebar item
+            marker.on("dblclick", () => {
+                window.location.href = "/individfridge/" + fridge.id;
+            });
+
+            // Sidebar item
             const li = document.createElement("li");
-            li.className = "p-3 bg-gray-50 rounded-lg shadow hover:bg-gray-200 cursor-pointer";
+            li.className = "p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 cursor-pointer transition duration-150";
             li.innerHTML = `
-                <div class="font-semibold">${cleanName}</div>
-                <div class="text-sm text-gray-600">${distance.toFixed(2)} km away</div>
+                <div class="font-semibold text-gray-800">${cleanName}</div>
+                <div class="text-sm text-gray-500">${distance.toFixed(2)} km away</div>
             `;
+
+            // Single click → zoom + popup
             li.addEventListener("click", () => {
                 map.setView([lat, lng], 15);
                 marker.openPopup();
             });
 
-            list.appendChild(li);
-        });
+            // Double click → fridge page
+            li.addEventListener("dblclick", () => {
+                window.location.href = "/individfridge/" + fridge.id;
+            });
 
+            list.appendChild(li);
+
+            // Keep for search filtering
+            allFridges.push({name: cleanName.toLowerCase(), li, marker});
+        });
     })
     .catch(err => console.error("Fetch error:", err));
 }
 
+// Search input
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    allFridges.forEach(fridge => {
+        if (fridge.name.includes(query)) {
+            fridge.li.style.display = "block";
+            fridge.marker.addTo(map);
+        } else {
+            fridge.li.style.display = "none";
+            map.removeLayer(fridge.marker);
+        }
+    });
+});
+
+// Default load
 loadFridges(40.7128, -74.0060);
 
-// Get user location
+// User location
 navigator.geolocation.getCurrentPosition(
-
-    position => {
-
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
-
+    pos => {
+        const userLat = pos.coords.latitude;
+        const userLng = pos.coords.longitude;
         map.setView([userLat, userLng], 13);
-
-        L.marker([userLat, userLng], { icon: userIcon })
+        L.marker([userLat, userLng], {icon: userIcon})
             .addTo(map)
             .bindPopup("You are here");
-
         loadFridges(userLat, userLng);
     },
-
-    error => {
+    err => {
         console.log("Location denied. Using default NYC.");
         loadFridges(40.7128, -74.0060);
     }
-
 );
-
 </script>
 
 {% include "components/footer.html.jinja" %}

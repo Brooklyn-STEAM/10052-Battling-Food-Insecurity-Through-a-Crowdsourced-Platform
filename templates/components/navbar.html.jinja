@@ -1,85 +1,99 @@
-  <!-- FridgeNet Navbar -->
-  <nav class="bg-green-600 text-white w-screen shadow-md">
-  <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+ <!-- FridgeNet Navbar -->
+<nav class="bg-green-600 text-white w-full shadow-md z-[10000]fixed">
+  <div class="max-w-7xl mx-auto px-6 py-6
+  flex items-center justify-between">
 
     <!-- Logo -->
-    <a class="text-3xl font-bold" href="/">
+    <a class="text-2xl font-bold" href="/">
       FridgeNet
     </a>
 
-      <!-- Desktop Navigation -->
-      <ul class=" z-[9999] hidden md:flex mx-auto font-semibold space-x-12">
-        <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
-      </ul>
-  
-      <!-- Desktop Account Dropdown -->
-      <div class="hidden xl:flex items-center space-x-5">
-        <!-- Account Dropdown -->
-    <div class="relative group inline-block"> 
-      <button class="flex items-center gap-2 hover:text-gray-200 cursor-pointer focus:outline-none">
-      {% if not current_user.is_authenticated %}
-         Account
-      {% else %}
-       Hi {{ current_user.name }}
-      {%endif%}
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-  <ul class="absolute right-0 mt-2 w-40 bg-green-800 border border-green-700 rounded-md opacity-0 invisible group-hover:opacity-100 
-    group-hover:visible transition-all duration-200 text-white ">
+    <!-- Desktop Navigation -->
+    <ul class="hidden md:flex items-center font-semibold space-x-10">
+      <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
+      <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
+    </ul>
 
-  {% if not current_user.is_authenticated %}
-      <li><a href="/login" class="block px-4 py-2 hover:bg-green-700">Sign In</a></li>
-      <li><a href="/signup" class="block px-4 py-2 hover:bg-green-700">Register</a></li>
-  {%else%}
-    <li><a href="/profile" class="block px-4 py-2 hover:bg-green-700">Profile</a></li>
-    <li><a href="/logout" class="block px-4 py-2 hover:bg-green-700">Logout</a></li>
-    {%endif%}
+    <!-- Right Side -->
+    <div class="flex items-center space-x-4">
 
-      
-    <!-- Mobile Section -->
-    <div class="flex xl:hidden items-center space-x-4">
+      <!-- Account Dropdown (Desktop) -->
+      <div class="z-[9999] relative group hidden md:block">
+
+        <button class="flex items-center gap-2 hover:text-gray-200 focus:outline-none">
+          <!-- User Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+
+          {% if current_user.is_authenticated %}
+          <span>Hi {{ current_user.name }}</span>
+          {% else %}
+          <span>Account</span>
+          {% endif %}
+
+          <!-- Arrow -->
+          <svg class="w-4 h-4" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+
+        </button>
+
+        <!-- Dropdown -->
+        <ul class="absolute right-0 mt-2 w-40 bg-green-800 border border-green-700 rounded-md z-[9999] 
+                   opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                   transition duration-200">
+
+          {% if not current_user.is_authenticated %}
+          <li><a href="/login" class="block px-4 py-2 hover:bg-green-700">Sign In</a></li>
+          <li><a href="/signup" class="block px-4 py-2 hover:bg-green-700">Register</a></li>
+          {% else %}
+          <li><a href="/profile" class="block px-4 py-2 hover:bg-green-700">Profile</a></li>
+          <li><a href="/logout" class="block px-4 py-2 hover:bg-green-700">Logout</a></li>
+          {% endif %}
+
+        </ul>
+      </div>
+
       <!-- Mobile Menu Button -->
-      <button id="mobile-menu-button">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hover:text-yellow-300 transition" fill="none"
-        viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      <button id="mobile-menu-button" class="md:hidden">
+        <svg xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 hover:text-yellow-300 transition"
+          fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"/>
         </svg>
       </button>
-    </div>
 
-    <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden bg-green-800 text-white md:hidden">
-      <ul class="flex flex-col px-6 py-4 space-y-4">
-        <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/login">Log In</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/signup">Register</a></li>
-      </ul>
     </div>
-    
-  </nav>
   </div>
 
   <!-- Mobile Menu -->
-  <div id="mobile-menu" class="hidden bg-green-800 text-white md:hidden">
+  <div id="mobile-menu" class="hidden md:hidden bg-green-800">
     <ul class="flex flex-col px-6 py-4 space-y-4">
+
       <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
       <li><a class="hover:text-yellow-300 transition" href="/donate">Donate</a></li>
 
       {% if current_user.is_authenticated %}
-        <li><a class="hover:text-yellow-300 transition" href="/profile">Profile</a></li>
-        <li><a class="hover:text-red-300 transition" href="/logout">Logout</a></li>
+      <li><a class="hover:text-yellow-300 transition" href="/profile">Profile</a></li>
+      <li><a class="hover:text-red-300 transition" href="/logout">Logout</a></li>
       {% else %}
-        <li><a class="hover:text-yellow-300 transition" href="/login">Sign In</a></li>
-        <li><a class="hover:text-yellow-300 transition" href="/register">Register</a></li>
+      <li><a class="hover:text-yellow-300 transition" href="/login">Sign In</a></li>
+      <li><a class="hover:text-yellow-300 transition" href="/signup">Register</a></li>
       {% endif %}
+
     </ul>
   </div>
 
-  <!-- Safe Mobile Script -->
+  <!-- Mobile Menu Script -->
   <script>
     const menuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -90,4 +104,5 @@
       });
     }
   </script>
+
 </nav>
