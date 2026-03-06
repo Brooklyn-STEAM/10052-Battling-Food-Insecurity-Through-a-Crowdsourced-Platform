@@ -32,10 +32,11 @@
           <span class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md"> 🔴 Closed / Needs Attention </span>
           {% endif %}
 
-          <a href="/report"
-            class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition text-center">
-            Report Issue
-          </a>
+              <a href="/report/{{ fridge['ID'] }}"
+                class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition text-center">
+                Report Issue
+              </a>
+
         </div>
       </div>
     </div>
