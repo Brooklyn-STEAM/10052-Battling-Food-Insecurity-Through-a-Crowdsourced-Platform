@@ -15,7 +15,7 @@
 
     <main class="max-w-7xl mx-auto px-4 py-12">
         <div class="flex flex-col lg:flex-row items-center lg:items-start gap-12">
-            
+
             <!-- Left Side: Form -->
             <div class="w-full lg:w-1/2">
                 <div class="mb-8">
@@ -33,7 +33,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                        <label for="priority"
+                            <label for="priority"
                                 class="block text-sm font-semibold text-gray-700 mb-1">Priority</label>
                             <select name="priority" id="priority" required
                                 class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
@@ -44,7 +44,7 @@
                             </select>
                         </div>
                         <div>
-                                                        <label for="reproducibility"
+                            <label for="reproducibility"
                                 class="block text-sm font-semibold text-gray-700 mb-1">Reproducibility</label>
                             <select name="reproducibility" id="reproducibility" required
                                 class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
@@ -57,7 +57,7 @@
                     </div>
 
                     <div>
-<label for="issue_description" class="block text-sm font-semibold text-gray-700 mb-1">Issue
+                        <label for="issue_description" class="block text-sm font-semibold text-gray-700 mb-1">Issue
                             Description</label>
                         <textarea name="issue_description" id="issue_description" rows="4" required
                             placeholder="What happened?"
@@ -66,14 +66,19 @@
 
                     <div>
                         <label for="contact_info" class="block text-sm font-semibold text-gray-700 mb-1">Contact Info
-                            <span class="text-gray-400 font-normal">(Optional)</span></label>                        <input type="text" name="contact_info" id="contact_info" placeholder="Email or Phone"
+                            <span class="text-gray-400 font-normal">(Optional)</span></label> <input type="text"
+                            name="contact_info" id="contact_info" placeholder="Email or Phone"
                             class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
                     </div>
 
-                    <button ty                    <button type="submit"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-green-200 transition-all active:scale-[0.98]">pe="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-green-200 transition-all active:scale-[0.98]">
+                    <button type="submit"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-green-200 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-green-500/50">
                         Submit Report
                     </button>
+                    
+                <span class="text-sm font-bold bg-white/20 px-3 py-1 rounded-full">
+                Hi, {{ current_user.name }}!
+            </span>
                 </form>
             </div>
 
@@ -83,10 +88,9 @@
                     <div
                         class="absolute -inset-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000">
                     </div>
-                    <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }} Image"
->
+                    <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }} Image">
                 </div>
-                
+
                 <div class="bg-green-50 p-6 rounded-xl border border-green-100 text-center">
                     <h3 class="text-green-800 font-bold uppercase tracking-widest text-xs mb-2">Location</h3>
                     <p class="text-green-900 font-medium text-lg">519 Hillside Drive<br>Madisonville, KY 42431</p>
