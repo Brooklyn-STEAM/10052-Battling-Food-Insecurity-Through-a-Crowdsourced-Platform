@@ -297,4 +297,30 @@ def get_fridges():
 def thank():
     return render_template("components/thanks.html.jinja")
 
-    
+
+@app.route("/report", methods=["POST"])
+def submit_report():
+    # 1. Get data from the form
+    fridge_id = request.form.get("fridge_id")
+    priority = request.form.get("priority")
+    reproducibility = request.form.get("reproducibility")
+    description = request.form.get("issue_description")
+    contact = request.form.get("contact_info")
+
+    # 2. Insert into the database
+    connection = connect_db()
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO maintenance_reports (FridgeID, Priority, Reproducibility, Description, ContactInfo)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (fridge_id, priority, reproducibility, description, contact))
+        connection.commit() # Save changes
+        flash("Success! Your report has been submitted.") # Feedback message
+    except Exception as e:
+        flash(f"Error: {str(e)}")
+    finally:
+        connection.close()
+
+    # 3. Redirect back to homepage
+    return redirect(url_for("index"))
