@@ -44,6 +44,7 @@
   <!-- MAIN CONTENT -->
   <section class="py-16 px-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
 
+<img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}"> 
     <!-- AVAILABLE ITEMS -->
     <div>
       <h2 class="text-3xl font-bold text-green-800 mb-6"> Available Items </h2>
@@ -53,11 +54,10 @@
           {% for item in items %}
           <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
             <div>
-              <p class="font-semibold text-green-700">{{ item.name }}</p>
-              <p class="text-sm text-gray-500">Added {{ item.created_at }}</p>
+              <p class="font-semibold text-green-700">{{ Fridge_items['Image'] }}</p>
             </div>
 
-            <span class="text-sm font-medium text-gray-600"> {{ item.quantity }} available </span>
+            <span class="text-sm font-medium text-gray-600"> {{ Fridge_items['Quantity'] }} available </span>
           </li>
           {% endfor %}
         </ul>
@@ -68,19 +68,23 @@
         {% endif %}
 
       </div>
-    </div>
+  <br>
+  <br>
 
     <!-- REVIEWS -->
-    <div class="space-y-6 max-h-[600px] overflow-y-auto">
+    <div class="space-y-6 max-h-[600px]overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-green-800">
           Community Reviews
         </h2>
-
-        <a href="/fridge/{{ fridge.id }}/review"
+{%if current_user.is_authenticated%}
+        
+        <button id="open-popup"
           class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-md text-sm font-semibold transition">
           Add Review
-        </a>
+        </button>
+
+        {%endif%}
       </div>
 
       <div class="space-y-6">
@@ -91,7 +95,7 @@
 
           <div class="flex justify-between items-center mb-2">
             <p class="font-semibold text-green-700">
-              {{ review["UserID"] }}
+              {{ review["user_name"] }}
             </p>
             <span class="text-sm text-gray-500">
               ⭐ {{ review["Rating"] }}/5
@@ -103,7 +107,7 @@
           </p>
 
           <p class="text-xs text-gray-400 mt-3">
-            Posted {{ review.created_at}}
+            Posted {{ review["Timestamp"]}}
           </p>
 
         </div>
@@ -122,8 +126,90 @@
   </section>
 
 </div>
+<!-- REVIEW POPUP -->
+<div id="popup"
+     class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center
+            opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+
+  <div id="popup-content"
+       class="relative w-[420px] scale-95 transition-transform duration-300">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg border">
+
+      <h2 class="text-2xl font-bold text-green-800 mb-6">
+        Add Review
+      </h2>
+
+      <form method="POST" action="/individfridge/{{fridge['ID']}}" class="space-y-4">
+
+        <div>
+          <label class="block mb-1 text-sm font-medium">Rating</label>
+          <input
+            type="number"
+            name="Rating"
+            min="1"
+            max="5"
+            required
+            class="w-full border px-3 py-2 rounded"
+          />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-sm font-medium">Comment</label>
+          <textarea
+            name="Comment"
+            required
+            class="w-full border px-3 py-2 rounded"
+          ></textarea>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button
+            type="submit"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+            Submit Review
+          </button>
+
+          <button
+            type="button"
+            id="close-popup"
+            class="text-gray-600 underline">
+            Cancel
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
 
 {% include "components/footer.html.jinja" %}
+
+<script>
+const popup = document.getElementById("popup");
+const popupContent = document.getElementById("popup-content");
+const openBtn = document.getElementById("open-popup");
+const closeBtn = document.getElementById("close-popup");
+
+openBtn.addEventListener("click", () => {
+  popup.classList.remove("opacity-0", "pointer-events-none");
+  popupContent.classList.remove("scale-95");
+});
+
+closeBtn.addEventListener("click", () => {
+  popup.classList.add("opacity-0", "pointer-events-none");
+  popupContent.classList.add("scale-95");
+});
+
+// close when clicking background
+popup.addEventListener("click", (e) => {
+  if (e.target === popup) {
+    popup.classList.add("opacity-0", "pointer-events-none");
+    popupContent.classList.add("scale-95");
+  }
+});
+</script>
 </body>
 
 
