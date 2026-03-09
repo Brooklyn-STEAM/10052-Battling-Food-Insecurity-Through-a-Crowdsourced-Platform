@@ -73,7 +73,7 @@ def map():
      return render_template("map.html.jinja")
 
 @app.route("/report/<int:fridge_id>")
-def report(fridge_id):
+def report_fridge(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
     # Fetch data for the specific fridge
@@ -298,29 +298,55 @@ def thank():
     return render_template("components/thanks.html.jinja")
 
 
-@app.route("/report", methods=["POST"])
-def submit_report():
-    # 1. Get data from the form
-    fridge_id = request.form.get("fridge_id")
-    priority = request.form.get("priority")
-    reproducibility = request.form.get("reproducibility")
-    description = request.form.get("issue_description")
-    contact = request.form.get("contact_info")
-
-    # 2. Insert into the database
+@app.route("/report/<int:fridge_id>", methods=["GET", "POST"])
+def reportfridge(fridge_id):
     connection = connect_db()
-    try:
-        cursor = connection.cursor()
-        cursor.execute("""
-            INSERT INTO maintenance_reports (FridgeID, Priority, Reproducibility, Description, ContactInfo)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (fridge_id, priority, reproducibility, description, contact))
-        connection.commit() # Save changes
-        flash("Success! Your report has been submitted.") # Feedback message
-    except Exception as e:
-        flash(f"Error: {str(e)}")
-    finally:
-        connection.close()
+    cursor = connection.cursor()
 
-    # 3. Redirect back to homepage
-    return redirect(url_for("index"))
+    if request.method == "POST":
+        # 1. Collect form data
+        priority = request.form.get("priority")
+        reproducibility = request.form.get("reproducibility")
+        description = request.form.get("issue_description")
+        
+        # 2. Get User Info
+        u_id = current_user.id if current_user.is_authenticated else None
+        now = datetime.now()
+
+        # 3. Execute INSERT
+        # Using UserID (no underscore) to match your row #7 in the screenshot
+        cursor.execute("""
+            INSERT INTO maintenance_reports 
+            (FridgeID, Reported_by, Description, Status, Timestamp, UserID, Priority, Reproducibility)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (fridge_id, u_id, description, "Open", now, u_id, priority, reproducibility))
+        
+        connection.close()
+        flash("Maintenance report submitted!")
+        return redirect(url_for("index"))
+
+    # GET logic: Display the form
+    cursor.execute("SELECT * FROM Fridge WHERE ID = %s", (fridge_id,))
+    fridge = cursor.fetchone()
+    connection.close()
+
+    if not fridge:
+        abort(404)
+        
+    return render_template("report.html.jinja", fridge=fridge)
+
+
+
+
+
+    # This part handles the GET request (displaying the form)
+    cursor.execute("SELECT * FROM Fridge WHERE ID = %s", (fridge_id,))
+    fridge = cursor.fetchone()
+    connection.close()
+
+    if not fridge:
+        abort(404)
+        
+    return render_template("report.html.jinja", fridge=fridge)
+
+
