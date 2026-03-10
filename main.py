@@ -336,17 +336,3 @@ def reportfridge(fridge_id):
     return render_template("report.html.jinja", fridge=fridge)
 
 
-
-
-
-    # This part handles the GET request (displaying the form)
-    cursor.execute("SELECT * FROM Fridge WHERE ID = %s", (fridge_id,))
-    fridge = cursor.fetchone()
-    connection.close()
-
-    if not fridge:
-        abort(404)
-        
-    return render_template("report.html.jinja", fridge=fridge)
-
-
