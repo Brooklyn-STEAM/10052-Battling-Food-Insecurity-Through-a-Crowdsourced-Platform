@@ -5,6 +5,9 @@
     <title>Donate | Community Food Support</title>
     <link rel="icon" type="image/png" href="/static/images/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="bg-gray-50">
 {% include "components/navbar.html.jinja" %}
@@ -76,6 +79,17 @@
                            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
                 </div>
 
+<label class="block font-semibold mb-2">Type of Donation</label>
+<select id="items" name="item_type" class="w-full">
+{% for item in items %}
+<option value="{{ item.id }}" data-icon="{{ item.icon_path }}">
+{{ item.name }}
+</option>
+{% endfor %}
+
+
+</select>
+
                 <div>
                     <label class="block font-semibold mb-2">Notes (Optional)</label>
                     <textarea name="notes" rows="3"
@@ -93,6 +107,29 @@
 
     </div>
 </div>
+<script>
+$(document).ready(function(){
+
+
+function formatOption(option) {
+   if (!option.id) return option.text;
+
+
+   var icon = $(option.element).data('icon');
+
+
+   return $('<span><img src="'+icon+'" width="20" style="margin-right:8px;"> ' + option.text + '</span>');
+}
+
+
+$("#items").select2({
+   templateResult: formatOption,
+   templateSelection: formatOption
+});
+
+
+});
+</script>
 
 </body>
 </html>
