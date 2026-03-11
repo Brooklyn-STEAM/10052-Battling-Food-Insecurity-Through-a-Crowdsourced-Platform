@@ -44,9 +44,9 @@
         </button>
 
         <!-- Dropdown -->
-        <ul class="absolute right-0 mt-2 w-40 bg-green-800 border border-green-700 rounded-md z-[9999] 
-                   opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                   transition duration-200">
+        <ul class="absolute right-0 w-40 bg-green-800 border border-green-700 rounded-md z-[9999]
+             opacity-0 invisible group-hover:opacity-100 group-hover:visible
+             transition duration-200">
 
           {% if not current_user.is_authenticated %}
           <li><a href="/login" class="block px-4 py-2 hover:bg-green-700">Sign In</a></li>

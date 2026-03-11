@@ -24,13 +24,20 @@
         <div class="flex flex-col sm:flex-row gap-4">
 
           <!-- Dynamic Status Badge -->
-          {% if fridge.status == "Open" %}
-          <span class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md"> 🟢 Open & Stocked </span>
-          {% elif fridge.status == "Low" %}
-          <span class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md"> 🟡 Low Stock </span>
-          {% else %}
-          <span class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md"> 🔴 Closed / Needs Attention </span>
-          {% endif %}
+          {% set status = fridge['Status'] | lower %}
+
+{% if status == "open" %}
+<span class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
+
+{% elif status == "low" %}
+<span class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
+
+{% else %}
+<span class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
+{% endif %}
+
+
+
 
               <a href="/report/{{ fridge['ID'] }}"
                 class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition text-center">
@@ -43,83 +50,68 @@
   </section>
 
   <!-- MAIN CONTENT -->
-  <section class="py-16 px-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
+  <section class="py-16 px-6 max-w-6xl mx-auto">
 
-<img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}"> 
+  <!-- TWO-COLUMN GRID -->
+  <div class="grid md:grid-cols-2 gap-12">
+
+    <!-- IMAGE -->
+    <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
+
     <!-- AVAILABLE ITEMS -->
-    <div>
-      <h2 class="text-3xl font-bold text-green-800 mb-6"> Available Items </h2>
-      <div class="bg-green-50 rounded-2xl p-6 shadow-sm">
-        {% if items %}
-        <ul class="space-y-4">
-          {% for item in items %}
-          <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-            <div>
-              <p class="font-semibold text-green-700">{{ Fridge_items['Image'] }}</p>
-            </div>
+    <ul class="space-y-4">
+      {% for item in Fridge_items %}
+      <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+        <div class="flex items-center space-x-4">
+          <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
+          <p class="font-semibold text-green-700">{{ item['Name'] }}</p>
+        </div>
+        <span class="text-sm font-medium text-gray-600">
+          {{ item['Quantity'] }} available
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
 
-            <span class="text-sm font-medium text-gray-600"> {{ Fridge_items['Quantity'] }} available </span>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="text-gray-600 italic">
-          No items currently listed. Check back soon or donate to restock!
-        </p>
-        {% endif %}
+  </div> <!-- END GRID -->
 
-      </div>
-  <br>
-  <br>
 
-    <!-- REVIEWS -->
-    <div class="space-y-6 max-h-[600px]overflow-y-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-green-800">
-          Community Reviews
-        </h2>
-{%if current_user.is_authenticated%}
-        
-        <button id="open-popup"
-          class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-md text-sm font-semibold transition">
-          Add Review
-        </button>
+  <!-- REVIEWS NOW BELOW ITEMS -->
+  <div class="space-y-6 mt-12 max-h-[600px] overflow-y-auto">
 
-        {%endif%}
-      </div>
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl font-bold text-green-800">Community Reviews</h2>
 
-      <div class="space-y-6">
+      {% if current_user.is_authenticated %}
+      <button id="open-popup"
+        class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-md text-sm font-semibold transition">
+        Add Review
+      </button>
+      {% endif %}
+    </div>
 
-        {% if reviews %}
+    <div class="space-y-6">
+      {% if reviews %}
         {% for review in reviews %}
         <div class="bg-white rounded-2xl shadow-md p-6">
-
           <div class="flex justify-between items-center mb-2">
-            <p class="font-semibold text-green-700">
-              {{ review["user_name"] }}
-            </p>
-            <span class="text-sm text-gray-500">
-              ⭐ {{ review["Rating"] }}/5
-            </span>
+            <p class="font-semibold text-green-700">{{ review["user_name"] }}</p>
+            <span class="text-sm text-gray-500">⭐ {{ review["Rating"] }}/5</span>
           </div>
-
-          <p class="text-gray-700">
-            {{ review["Comment"]}}
-          </p>
-
-          <p class="text-xs text-gray-400 mt-3">
-            Posted {{ review["Timestamp"]}}
-          </p>
-
+          <p class="text-gray-700">{{ review["Comment"] }}</p>
+          <p class="text-xs text-gray-400 mt-3">Posted {{ review["Timestamp"] }}</p>
         </div>
         {% endfor %}
-        {% else %}
-        <div class="bg-green-50 rounded-2xl p-6">
-          <p class="text-gray-600 italic">
-            No reviews yet. Be the first to share your experience!
-          </p>
-        </div>
-        {% endif %}
+      {% else %}
+      <div class="bg-green-50 rounded-2xl p-6">
+        <p class="text-gray-600 italic">No reviews yet. Be the first to share your experience!</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</section>
 
       </div>
     </div>
@@ -141,7 +133,7 @@
         Add Review
       </h2>
 
-      <form method="POST" action="/individfridge/{{fridge['ID']}}" class="space-y-4">
+      <form method="POST" action="/individfridge/{{ fridge['ID'] }}" class="space-y-4">
 
         <div>
           <label class="block mb-1 text-sm font-medium">Rating</label>
@@ -172,7 +164,7 @@
           </button>
 
           <button
-            type="button"
+            type="submit"
             id="close-popup"
             class="text-gray-600 underline">
             Cancel

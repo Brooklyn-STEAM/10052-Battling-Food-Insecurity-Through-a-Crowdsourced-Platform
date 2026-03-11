@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, flash, abort, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from datetime import datetime
 import pymysql 
-
+import random 
+from flask import session
 from dynaconf import Dynaconf
 
 from flask import request, redirect, url_for, render_template
@@ -106,8 +107,6 @@ def login():
         user = User(result)
         login_user(user)
 
-        return redirect(url_for("index"))
-
     return render_template("login.html.jinja")
 
 
@@ -192,7 +191,12 @@ def product_page(fridge_id):
 @app.route("/type_donate")
 @login_required
 def type_donate():
-     return render_template("donateinfo.html.jinja")
+   connection = connect_db()
+   cursor = connection.cursor()
+   cursor.execute("SELECT * FROM `Fridge_items`")
+   items = cursor.fetchall()
+   return render_template("donateinfo.html.jinja", items=items)
+
 
 @app.route("/donate-money", methods=["POST"])
 @login_required
@@ -222,30 +226,68 @@ def donate_food():
     return redirect ("type_donate")
 
 
-@app.route("/individfridge/<fridge_id>")
+@app.route("/individfridge/<fridge_id>", methods=["GET", "POST"])
 def personal_fridges(fridge_id):
-    # Connect to database
     connection = connect_db()
     cursor = connection.cursor()
-    cursor.execute("""
-        SELECT *
-        FROM Fridge
-        WHERE ID = %s
-    """, (fridge_id,))
+
+    # POST: user submits review
+    if request.method == "POST":
+        rating = request.form["Rating"]
+        comment = request.form["Comment"]
+        user_id = session.get("user_id")   # <-- REQUIRED
+        print("SESSION:", session)
+        if user_id is None:
+            cursor.close()
+            connection.close()
+            return "Error: User must be logged in to leave a review", 400
+
+        cursor.execute("""
+            INSERT INTO `Reviews` (fridge_id, rating, comment, UserID)
+            VALUES (%s, %s, %s, %s)
+        """, (fridge_id, rating, comment, user_id))
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+
+    # GET: load fridge + reviews
+    cursor.execute("SELECT * FROM `Fridge` WHERE ID = %s", (fridge_id,))
     fridge = cursor.fetchone()
-    if not fridge:
-        abort(404)
-    cursor.execute("""
-        SELECT r.*, u.Name as user_name
-        FROM Reviews r
-        JOIN User u ON r.UserID = u.ID
-        WHERE r.FridgeID = %s
-    """, (fridge_id,))
+
+    cursor.execute("SELECT * FROM `Reviews` WHERE FridgeID = %s", (fridge_id,))
     reviews = cursor.fetchall()
+
+    # Generate random items
+    Fridge_items = [
+        {"Name": "Protein", "Image": "/static/products/items/barbecue.png"},
+        {"Name": "Canned Food", "Image": "/static/products/items/canned-food.png"},
+        {"Name": "Cereal", "Image": "/static/products/items/cereal.png"},
+        {"Name": "Dairy", "Image": "/static/products/items/dairy-products.png"},
+        {"Name": "Fruits", "Image": "/static/products/items/fruits.png"},
+        {"Name": "Juice", "Image": "/static/products/items/juice.png"},
+        {"Name": "Packaged food", "Image": "/static/products/items/meals.png"},
+        {"Name": "Rice", "Image": "/static/products/items/rice.png"},
+        {"Name": "Vegetables", "Image": "/static/products/items/vegetables.png"},
+        {"Name": "Water", "Image": "/static/products/items/water.png"},
+        {"Name": "Grains", "Image": "/static/products/items/wheat-sack.png"},
+    ]
+
+    random_items = random.sample(Fridge_items, 7)
+    for item in random_items:
+        item["Quantity"] = random.randint(1, 5)
+
+    cursor.close()
     connection.close()
-    
-    # Return JSON
-    return render_template("fridge.html.jinja", fridge=fridge, reviews=reviews)
+
+    return render_template(
+        "fridge.html.jinja",
+        fridge=fridge,
+        reviews=reviews,
+        Fridge_items=random_items
+    )
 
 @app.route("/get-fridges")
 def get_fridges():
