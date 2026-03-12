@@ -63,7 +63,7 @@
 
                 <div>
                     <label class="block font-semibold mb-2">Full Name</label>
-                    <input type="text" name="food_name" required
+                    <input type="text" name="full_name" required
                            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
                 </div>
 
@@ -79,24 +79,49 @@
                            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
                 </div>
 
-<label class="block font-semibold mb-2">Type of Donation</label>
-<select id="items" name="item_type" class="w-full">
-{% for item in items %}
-<option value="{{ item.id }}" data-icon="{{ item.icon_path }}">
-{{ item.name }}
-</option>
-{% endfor %}
+<div class="relative">
+    <label class="block font-semibold mb-2">Type of Donation</label>
 
+    <!-- Hidden input for form submission -->
+    <input type="hidden" name="item_type" id="selectedItem" required>
 
-</select>
+    <!-- Dropdown button -->
+    <button type="button" id="dropdownButton"
+        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white hover:border-orange-400">
 
+        <span id="selectedText" class="text-gray-500">Select donation type</span>
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </button>
+
+    <!-- Dropdown menu -->
+    <div id="dropdownMenu"
+        class="absolute z-10 w-full bg-white border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto">
+
+        {% for item in items %}
+        <div
+            class="flex items-center gap-3 p-3 hover:bg-orange-50 cursor-pointer dropdown-item"
+            data-value="{{ item[Image] }}"
+            data-name="{{ item[Name] }}">
+
+            <img src="{{ item[Image]}}" class="w-6 h-6">
+
+            <span>{{ items.name }}</span>
+
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
                 <div>
                     <label class="block font-semibold mb-2">Notes (Optional)</label>
                     <textarea name="notes" rows="3"
                               class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none"></textarea>
                 </div>
 
-                <button type="submit" action="/thanks"
+                <button type="submit" 
                         class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition">
                     Schedule Drop-Off
                 </button>
@@ -108,26 +133,32 @@
     </div>
 </div>
 <script>
-$(document).ready(function(){
+const button = document.getElementById("dropdownButton");
+const menu = document.getElementById("dropdownMenu");
+const selectedText = document.getElementById("selectedText");
+const hiddenInput = document.getElementById("selectedItem");
 
-
-function formatOption(option) {
-   if (!option.id) return option.text;
-
-
-   var icon = $(option.element).data('icon');
-
-
-   return $('<span><img src="'+icon+'" width="20" style="margin-right:8px;"> ' + option.text + '</span>');
-}
-
-
-$("#items").select2({
-   templateResult: formatOption,
-   templateSelection: formatOption
+button.addEventListener("click", () => {
+    menu.classList.toggle("hidden");
 });
 
+document.querySelectorAll(".dropdown-item").forEach(item => {
+    item.addEventListener("click", () => {
 
+        const value = item.dataset.value;
+        const name = item.dataset.name;
+
+        hiddenInput.value = value;
+        selectedText.textContent = name;
+
+        menu.classList.add("hidden");
+    });
+});
+
+document.addEventListener("click", (e) => {
+    if (!button.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add("hidden");
+    }
 });
 </script>
 
