@@ -378,3 +378,19 @@ def reportfridge(fridge_id):
     return render_template("report.html.jinja", fridge=fridge)
 
 
+app.route("/update/<fridge_id>")
+def update():
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE Fridge_status fs
+        JOIN (
+            SELECT FridgeID, MAX(Last_updated) AS max_time
+            FROM Fridge_status
+            GROUP BY FridgeID
+        ) latest ON fs.FridgeID = latest.FridgeID AND fs.Last_updated = latest.max_time
+        SET fs.Status = 'Updated'
+    """)
+    connection.commit()
+    connection.close()
+    return render_template("update_fridge.html.jinja")
