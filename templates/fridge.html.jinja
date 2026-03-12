@@ -27,23 +27,23 @@
           {% set status = fridge['Status'] | lower %}
 
 {% if status == "open" %}
-<span class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
+<span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
 
 {% elif status == "low" %}
-<span class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
+<span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
 
 {% else %}
-<span class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
+<span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
 {% endif %}
 
-<a href="/update-fridge/{{ fridge['ID'] }}"
-   class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl shadow-md font-semibold transition">
+<a href="/update/{{ fridge['ID'] }}"
+   class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">
     Update Inventory
 </a>
 
 
               <a href="/report/{{ fridge['ID'] }}"
-                class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition text-center">
+                class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">
                 Report Issue
               </a>
 <a href="/route/{{ fridge.ID }}">
@@ -65,7 +65,7 @@
 
     <!-- AVAILABLE ITEMS -->
     <ul class="space-y-4">
-      {% for item in Fridge_items %}
+      {% for item in Items %}
       <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
         <div class="flex items-center space-x-4">
           <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
@@ -125,31 +125,18 @@
 
 </div>
 <!-- REVIEW POPUP -->
-<div id="popup"
-     class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center
-            opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+<div id="open-popup"
+class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+  <div class="bg-white p-8 rounded-xl shadow-lg border relative w-[420px] scale-95 transition-transform duration-300">
+    
+    <h2 class="text-2xl font-bold text-green-800 mb-6">
+      Add Review
+    </h2>
 
-  <div id="popup-content"
-       class="relative w-[420px] scale-95 transition-transform duration-300">
-
-    <div class="bg-white p-8 rounded-xl shadow-lg border">
-
-      <h2 class="text-2xl font-bold text-green-800 mb-6">
-        Add Review
-      </h2>
-
-      <form method="POST" action="/individfridge/{{ fridge['ID'] }}" class="space-y-4">
-
-
+    <form method="POST" action="/individfridge/{{ fridge['ID'] }}" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-green-800 mb-1">
-          Rating
-        </label>
-        <select 
-          name="rating" 
-          required
-          class="w-full rounded-lg border border-green-400 px-3 py-2"
-        >
+        <label class="block text-sm font-medium text-green-800 mb-1">Rating</label>
+        <select name="rating" required class="w-full rounded-lg border border-green-400 px-3 py-2">
           <option value="">Select rating</option>
           <option value="5">★★★★★</option>
           <option value="4">★★★★☆</option>
@@ -160,59 +147,36 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-green-800 mb-1">
-          Comment
-        </label>
-        <textarea 
-          name="comment" 
-          rows="4" 
-          required
-          class="w-full rounded-lg border border-green-400 px-3 py-2"
-        ></textarea>
+        <label class="block text-sm font-medium text-green-800 mb-1">Comment</label>
+        <textarea name="comment" rows="4" required class="w-full rounded-lg border border-green-400 px-3 py-2"></textarea>
       </div>
 
-      <button 
+      <button type="submit"
         class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow transition">
         Submit Review
       </button>
-
     </form>
 
-  </div>
-
-</div>
-</body>
-</html>
-      
-
-    </div>
+    <button id="close-popup" class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl">✕</button>
   </div>
 </div>
 
 {% include "components/footer.html.jinja" %}
 
 <script>
-const popup = document.getElementById("popup");
-const popupContent = document.getElementById("popup-content");
-const openBtn = document.getElementById("open-popup");
-const closeBtn = document.getElementById("close-popup");
+const openPopup = document.getElementById('open-popup');
+const closePopup = document.getElementById('close-popup');
 
-openBtn.addEventListener("click", () => {
-  popup.classList.remove("opacity-0", "pointer-events-none");
-  popupContent.classList.remove("scale-95");
-});
+// Function to open the popup
+function showPopup() {
+  openPopup.classList.remove('opacity-0', 'pointer-events-none');
+  openPopup.classList.add('opacity-100', 'pointer-events-auto');
+}
 
-closeBtn.addEventListener("click", () => {
-  popup.classList.add("opacity-0", "pointer-events-none");
-  popupContent.classList.add("scale-95");
-});
-
-// close when clicking background
-popup.addEventListener("click", (e) => {
-  if (e.target === popup) {
-    popup.classList.add("opacity-0", "pointer-events-none");
-    popupContent.classList.add("scale-95");
-  }
+// Function to close the popup
+closePopup.addEventListener('click', () => {
+  openPopup.classList.add('opacity-0', 'pointer-events-none');
+  openPopup.classList.remove('opacity-100', 'pointer-events-auto');
 });
 </script>
 </body>
