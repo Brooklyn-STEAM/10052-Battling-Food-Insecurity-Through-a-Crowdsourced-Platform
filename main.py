@@ -73,7 +73,7 @@ def index():
 def map():
      return render_template("map.html.jinja")
 
-@app.route("/report/<int:fridge_id>")
+@app.route("/report")
 def report_fridge(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
@@ -101,8 +101,12 @@ def login():
         connection.close()
 
         if result is None:
-            flash("Invalid email or password")
-            return redirect(url_for("login"))
+           flash("No user is found")
+        elif password != result["Password"]:
+           flash("Incorrect password")
+        else:
+            login_user(User(result))
+            return redirect("/")
         
         user = User(result)
         login_user(user)
@@ -115,7 +119,7 @@ def login():
 def logout():
     logout_user() # Logs out the current user
     flash("You have been logged out.") # Notify the user
-    return redirect("/")
+    return redirect("/") 
 
 
 @app.route('/signup', methods=["POST", "GET"])# User Registration
@@ -193,7 +197,7 @@ def product_page(fridge_id):
 def type_donate():
    connection = connect_db()
    cursor = connection.cursor()
-   cursor.execute("SELECT * FROM `Fridge_items`")
+   cursor.execute("SELECT * FROM `Items`")
    items = cursor.fetchall()
    return render_template("donateinfo.html.jinja", items=items)
 
@@ -226,42 +230,22 @@ def donate_food():
     return redirect ("type_donate")
 
 
-@app.route("/individfridge/<fridge_id>", methods=["GET", "POST"])
+@app.route("/individfridge/<int:fridge_id>")
 def personal_fridges(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
 
-    # POST: user submits review
-    if request.method == "POST":
-        rating = request.form["Rating"]
-        comment = request.form["Comment"]
-        user_id = session.get("user_id")   # <-- REQUIRED
-        print("SESSION:", session)
-        if user_id is None:
-            cursor.close()
-            connection.close()
-            return "Error: User must be logged in to leave a review", 400
-
-        cursor.execute("""
-            INSERT INTO `Reviews` (fridge_id, rating, comment, UserID)
-            VALUES (%s, %s, %s, %s)
-        """, (fridge_id, rating, comment, user_id))
-
-        connection.commit()
-        cursor.close()
-        connection.close()
-
-        return redirect(url_for("personal_fridges", fridge_id=fridge_id))
-
-    # GET: load fridge + reviews
-    cursor.execute("SELECT * FROM `Fridge` WHERE ID = %s", (fridge_id,))
+    # Load fridge information
+    cursor.execute("SELECT * FROM Fridge WHERE ID = %s", (fridge_id,))
     fridge = cursor.fetchone()
 
-    cursor.execute("SELECT * FROM `Reviews` WHERE FridgeID = %s", (fridge_id,))
-    reviews = cursor.fetchall()
+    if not fridge:
+        cursor.close()
+        connection.close()
+        abort(404)
 
     # Generate random items
-    Fridge_items = [
+    Items = [
         {"Name": "Protein", "Image": "/static/products/items/barbecue.png"},
         {"Name": "Canned Food", "Image": "/static/products/items/canned-food.png"},
         {"Name": "Cereal", "Image": "/static/products/items/cereal.png"},
@@ -275,19 +259,46 @@ def personal_fridges(fridge_id):
         {"Name": "Grains", "Image": "/static/products/items/wheat-sack.png"},
     ]
 
-    random_items = random.sample(Fridge_items, 7)
+    random_items = random.sample(Items, 7)
+
     for item in random_items:
         item["Quantity"] = random.randint(1, 5)
 
     cursor.close()
     connection.close()
 
-    return render_template(
-        "fridge.html.jinja",
-        fridge=fridge,
-        reviews=reviews,
-        Fridge_items=random_items
-    )
+    return render_template("fridge.html.jinja", fridge=fridge, Items=random_items)
+
+@app.route("/individfridge/<fridge_id>")
+def product(fridge_id):
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM `Fridge` WHERE ID = %s", (fridge_id) )
+
+    result = cursor.fetchone()
+
+    cursor.execute("""
+      SELECT * FROM `Reviews`
+      JOIN User ON User.ID = Review.UserID
+      WHERE FridgeID = %s
+      """, (fridge_id)) 
+    
+    reviews = cursor.fetchall()
+    
+    connection.close()
+    
+    if result is None:
+        abort(404)
+
+    if reviews:
+        average_rating = round(sum(review["Rating"] for review in reviews) / len(reviews), 1)
+    else:
+        average_rating = 0 
+    
+    return render_template("fridge.html.jinja", fridge=result, reviews=reviews, average_rating=average_rating)
+
 
 @app.route("/get-fridges")
 def get_fridges():
@@ -335,9 +346,9 @@ def get_fridges():
 
     return jsonify(fridges)
 
-@app.route("/thank_you")
+@app.route("/thank-you")
 def thank():
-    return render_template("components/thanks.html.jinja")
+    return render_template("thanks.html.jinja")
 
 
 @app.route("/report/<int:fridge_id>", methods=["GET", "POST"])
