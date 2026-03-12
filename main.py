@@ -98,6 +98,14 @@ def map_page():
                 "lat": float(fridge["Latitude"]),
                 "lng": float(fridge["Longitude"])
             }
+@app.route("/report")
+def report_fridge(fridge_id):
+    connection = connect_db()
+    cursor = connection.cursor()
+    # Fetch data for the specific fridge
+    cursor.execute("SELECT * FROM Fridge WHERE ID = %s", (fridge_id,))
+    fridge = cursor.fetchone()
+    connection.close()
 
     return render_template("map.html.jinja", target_fridge=target_fridge)
 
@@ -125,8 +133,13 @@ def login():
         result = cursor.fetchone()
         connection.close()
         if result is None:
-            flash("Invalid email or password")
-            return redirect(url_for("login"))
+           flash("No user is found")
+        elif password != result["Password"]:
+           flash("Incorrect password")
+        else:
+            login_user(User(result))
+            return redirect("/")
+        
         user = User(result)
         login_user(user)
         return redirect(url_for("index"))
@@ -139,9 +152,9 @@ def login():
 @app.route("/logout")
 @login_required
 def logout():
-    logout_user()
-    flash("You have been logged out.")
-    return redirect("/")
+    logout_user() # Logs out the current user
+    flash("You have been logged out.") # Notify the user
+    return redirect("/") 
 
 
 # -----------------------
@@ -188,6 +201,74 @@ def donate():
 # INDIVIDUAL FRIDGE PAGE
 # -----------------------
 @app.route("/individfridge/<fridge_id>", methods=["GET", "POST"])
+     return render_template("donate.html.jinja")
+
+@app.route("/product/<fridge_id>")
+# Product page route
+def product_page(fridge_id):
+    connection = connect_db()
+    cursor = connection.cursor()
+    # Execute query to get product by ID
+    cursor.execute("SELECT * FROM `maintenance_reports` WHERE `ID` = %s", (fridge_id) )
+                
+    result = cursor.fetchall()
+    
+    connection.close()
+    
+    connection = connect_db()
+    
+    cursor = connection.cursor()
+    # Execute query to get reviews for the product
+    cursor.execute("""SELECT * FROM `Reviews` JOIN `User` ON `Reviews`.`UserID` = `User`.`ID` WHERE `FridgeID` = %s""", (fridge_id) )
+    
+    reviews = cursor.fetchall()
+    
+    connection.close()
+    # If no product is found, redirect to dashboard
+    if result is None: 
+       return redirect("/dashboard") # If no product is found, return a 404 error
+    
+    return render_template("product.html.jinja", fridge = result , reviews=reviews)
+
+@app.route("/type_donate")
+@login_required
+def type_donate():
+   connection = connect_db()
+   cursor = connection.cursor()
+   cursor.execute("SELECT * FROM `Items`")
+   items = cursor.fetchall()
+   return render_template("donateinfo.html.jinja", items=items)
+
+
+@app.route("/donate-money", methods=["POST"])
+@login_required
+def donate_money():
+    amount = request.form.get("amount")
+    custom_amount = request.form.get("custom_amount")
+    name = request.form.get("name")
+
+    final_amount = custom_amount if custom_amount else amount
+
+    # Here you would integrate Stripe/PayPal
+    print(f"Money Donation: {name} donated ${final_amount}")
+
+    flash("Thank you for your monetary donation!")
+    return redirect ("type_donate") 
+
+
+@app.route("/donate-food", methods=["POST"])
+@login_required
+def donate_food():
+    name = request.form.get("food_name")
+    date = request.form.get("dropoff_date")
+
+    print(f"Food Donation scheduled by {name} on {date}")
+
+    flash("Your food drop-off has been scheduled!")
+    return redirect ("type_donate")
+
+
+@app.route("/individfridge/<int:fridge_id>")
 def personal_fridges(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
@@ -207,8 +288,70 @@ def personal_fridges(fridge_id):
     fridge = cursor.fetchone()
     cursor.execute("SELECT * FROM Reviews WHERE FridgeID=%s", (fridge_id,))
     reviews = cursor.fetchall()
+    # Load fridge information
+    cursor.execute("SELECT * FROM Fridge WHERE ID = %s", (fridge_id,))
+    fridge = cursor.fetchone()
+
+    if not fridge:
+        cursor.close()
+        connection.close()
+        abort(404)
+
+    # Generate random items
+    Items = [
+        {"Name": "Protein", "Image": "/static/products/items/barbecue.png"},
+        {"Name": "Canned Food", "Image": "/static/products/items/canned-food.png"},
+        {"Name": "Cereal", "Image": "/static/products/items/cereal.png"},
+        {"Name": "Dairy", "Image": "/static/products/items/dairy-products.png"},
+        {"Name": "Fruits", "Image": "/static/products/items/fruits.png"},
+        {"Name": "Juice", "Image": "/static/products/items/juice.png"},
+        {"Name": "Packaged food", "Image": "/static/products/items/meals.png"},
+        {"Name": "Rice", "Image": "/static/products/items/rice.png"},
+        {"Name": "Vegetables", "Image": "/static/products/items/vegetables.png"},
+        {"Name": "Water", "Image": "/static/products/items/water.png"},
+        {"Name": "Grains", "Image": "/static/products/items/wheat-sack.png"},
+    ]
+
+    random_items = random.sample(Items, 7)
+
+    for item in random_items:
+        item["Quantity"] = random.randint(1, 5)
+
+    cursor.close()
     connection.close()
     return render_template("fridge.html.jinja", fridge=fridge, reviews=reviews)
+
+    return render_template("fridge.html.jinja", fridge=fridge, Items=random_items)
+
+@app.route("/individfridge/<fridge_id>")
+def product(fridge_id):
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM `Fridge` WHERE ID = %s", (fridge_id) )
+
+    result = cursor.fetchone()
+
+    cursor.execute("""
+      SELECT * FROM `Reviews`
+      JOIN User ON User.ID = Review.UserID
+      WHERE FridgeID = %s
+      """, (fridge_id)) 
+    
+    reviews = cursor.fetchall()
+    
+    connection.close()
+    
+    if result is None:
+        abort(404)
+
+    if reviews:
+        average_rating = round(sum(review["Rating"] for review in reviews) / len(reviews), 1)
+    else:
+        average_rating = 0 
+    
+    return render_template("fridge.html.jinja", fridge=result, reviews=reviews, average_rating=average_rating)
 
 
 # -----------------------
@@ -281,3 +424,19 @@ def thank():
 # -----------------------
 if __name__ == "__main__":
     app.run(debug=True)
+app.route("/update/<fridge_id>")
+def update():
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE Fridge_status fs
+        JOIN (
+            SELECT FridgeID, MAX(Last_updated) AS max_time
+            FROM Fridge_status
+            GROUP BY FridgeID
+        ) latest ON fs.FridgeID = latest.FridgeID AND fs.Last_updated = latest.max_time
+        SET fs.Status = 'Updated'
+    """)
+    connection.commit()
+    connection.close()
+    return render_template("update_fridge.html.jinja")

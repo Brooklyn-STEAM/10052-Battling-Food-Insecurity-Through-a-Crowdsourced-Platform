@@ -11,19 +11,6 @@
 <body class="bg-white text-gray-800 min-h-screen flex flex-col">
   {% include "components/navbar.html.jinja" %}
 
-  <!-- Flash Messages Container -->
-  <div id="flash-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div id="flash-message" class="bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl font-semibold text-center transition-opacity duration-500">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </div>
-
   <main class="flex-grow">
     <!-- HERO SECTION -->
     <section class="bg-gradient-to-r from-green-100 to-emerald-50 py-20 px-6 text-center">

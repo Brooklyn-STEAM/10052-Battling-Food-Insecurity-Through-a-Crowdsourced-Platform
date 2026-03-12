@@ -36,7 +36,10 @@
 <span class="bg-red-600 text-white px-6 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
 {% endif %}
 
-
+<a href="/update-fridge/{{ fridge['ID'] }}"
+   class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl shadow-md font-semibold transition">
+    Update Inventory
+</a>
 
 
               <a href="/report/{{ fridge['ID'] }}"
@@ -137,43 +140,50 @@
 
       <form method="POST" action="/individfridge/{{ fridge['ID'] }}" class="space-y-4">
 
-        <div>
-          <label class="block mb-1 text-sm font-medium">Rating</label>
-          <input
-            type="number"
-            name="Rating"
-            min="1"
-            max="5"
-            required
-            class="w-full border px-3 py-2 rounded"
-          />
-        </div>
 
-        <div>
-          <label class="block mb-1 text-sm font-medium">Comment</label>
-          <textarea
-            name="Comment"
-            required
-            class="w-full border px-3 py-2 rounded"
-          ></textarea>
-        </div>
+      <div>
+        <label class="block text-sm font-medium text-green-800 mb-1">
+          Rating
+        </label>
+        <select 
+          name="rating" 
+          required
+          class="w-full rounded-lg border border-green-400 px-3 py-2"
+        >
+          <option value="">Select rating</option>
+          <option value="5">★★★★★</option>
+          <option value="4">★★★★☆</option>
+          <option value="3">★★★☆☆</option>
+          <option value="2">★★☆☆☆</option>
+          <option value="1">★☆☆☆☆</option>
+        </select>
+      </div>
 
-        <div class="flex gap-3 pt-2">
-          <button
-            type="submit"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-            Submit Review
-          </button>
+      <div>
+        <label class="block text-sm font-medium text-green-800 mb-1">
+          Comment
+        </label>
+        <textarea 
+          name="comment" 
+          rows="4" 
+          required
+          class="w-full rounded-lg border border-green-400 px-3 py-2"
+        ></textarea>
+      </div>
 
-          <button
-            type="submit"
-            id="close-popup"
-            class="text-gray-600 underline">
-            Cancel
-          </button>
-        </div>
+      <button 
+        class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow transition">
+        Submit Review
+      </button>
 
-      </form>
+    </form>
+
+  </div>
+
+</div>
+</body>
+</html>
+      
 
     </div>
   </div>
