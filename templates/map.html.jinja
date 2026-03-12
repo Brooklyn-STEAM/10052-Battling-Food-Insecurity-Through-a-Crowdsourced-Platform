@@ -9,15 +9,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Leaflet CSS -->
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
     <style>
-        #map {
-            height: 100%;
-            min-height: 500px;
-            z-index:0
-        }
+        #map { height: 100%; min-height: 500px; z-index:0; }
 
         .leaflet-marker-icon {
             transition: transform 0.2s;
@@ -27,14 +27,8 @@
             z-index: 1000 !important;
         }
 
-        /* Sidebar scrollbar */
-        #fridge-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        #fridge-list::-webkit-scrollbar-thumb {
-            background-color: #94a3b8;
-            border-radius: 3px;
-        }
+        #fridge-list::-webkit-scrollbar { width: 6px; }
+        #fridge-list::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 3px; }
     </style>
 </head>
 
@@ -57,6 +51,7 @@
             class="w-full p-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
         />
 
+        <!-- Sidebar fridge list -->
         <ul id="fridge-list" class="space-y-4"></ul>
     </div>
 
@@ -65,10 +60,9 @@
 
 </div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
+const targetFridge = {{ target_fridge|tojson if target_fridge else 'null' }};
+
 // Initialize map
 var map = L.map('map').setView([40.7128, -74.0060], 12);
 
@@ -81,130 +75,107 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 const list = document.getElementById("fridge-list");
 const searchInput = document.getElementById("fridge-search");
 
-// Icons
-const userIcon = L.icon({
-    iconUrl: "/static/images/pin.png",
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35]
-});
+const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35,35], iconAnchor: [17,35], popupAnchor: [0,-35] });
+const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45,45], iconAnchor: [22,45], popupAnchor: [0,-45] });
 
-const fridgeIcon = L.icon({
-    iconUrl: "/static/images/fridge.png",
-    iconSize: [45, 45],
-    iconAnchor: [22, 45],
-    popupAnchor: [0, -45]
-});
+let allFridges = [];
+let userLat = null;
+let userLng = null;
+let routingControl = null;
 
-// Distance function
-function getDistance(lat1, lon1, lat2, lon2) {
+function getDistance(lat1, lon1, lat2, lon2){
     const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
     const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
 }
 
-let allFridges = [];
+function routeToFridge(lat, lng){
+    if(!userLat){ alert("Location not found"); return; }
+    if(routingControl) map.removeControl(routingControl);
 
-// Load fridges
-function loadFridges(userLat, userLng) {
+    routingControl = L.Routing.control({
+        waypoints: [L.latLng(userLat, userLng), L.latLng(lat, lng)],
+        routeWhileDragging: false,
+        showAlternatives: false
+    }).addTo(map);
+}
+
+function loadFridges(userLat, userLng){
     fetch("/get-fridges")
     .then(res => res.json())
     .then(data => {
+
         list.innerHTML = "";
         allFridges = [];
 
-        const fridgesWithDistance = data
-            .map(fridge => {
-                const lat = parseFloat(fridge.lat);
-                const lng = parseFloat(fridge.lng);
-                if (isNaN(lat) || isNaN(lng)) return null;
-                return {...fridge, lat, lng, distance: getDistance(userLat, userLng, lat, lng)};
-            })
-            .filter(Boolean)
-            .sort((a,b)=>a.distance-b.distance);
+        const sortedFridges = data
+            .map(f => ({...f, lat: parseFloat(f.lat), lng: parseFloat(f.lng), distance: getDistance(userLat,userLng,parseFloat(f.lat),parseFloat(f.lng))}))
+            .filter(f => !isNaN(f.lat) && !isNaN(f.lng))
+            .sort((a,b) => a.distance-b.distance);
 
-        fridgesWithDistance.forEach(fridge => {
-            const {lat, lng, distance} = fridge;
-            const cleanName = (fridge.name || "Unnamed Fridge").trim();
-            const status = fridge.status || "Unknown";
-
-            // Marker
-            const marker = L.marker([lat, lng], {icon: fridgeIcon})
+        sortedFridges.forEach(f => {
+            const marker = L.marker([f.lat,f.lng], {icon: fridgeIcon})
                 .addTo(map)
                 .bindPopup(`
-                    <div class="text-lg font-semibold">${cleanName}</div>
-                    <div class="text-sm text-gray-600">Status: ${status}</div>
-                    <div class="text-sm text-gray-600">${distance.toFixed(2)} km away</div>
+                    <div class="text-lg font-semibold">${f.name}</div>
+                    <div class="text-sm text-gray-600">Status: ${f.status}</div>
+                    <div class="text-sm text-gray-600">${f.distance.toFixed(2)} km away</div>
+                    <button onclick="routeToFridge(${f.lat},${f.lng})" class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Route Here</button>
                 `);
 
-            marker.on("dblclick", () => {
-                window.location.href = "/individfridge/" + fridge.id;
-            });
+            marker.on("dblclick", () => window.location.href="/individfridge/"+f.id);
 
-            // Sidebar item
             const li = document.createElement("li");
             li.className = "p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 cursor-pointer transition duration-150";
-            li.innerHTML = `
-                <div class="font-semibold text-gray-800">${cleanName}</div>
-                <div class="text-sm text-gray-500">${distance.toFixed(2)} km away</div>
-            `;
+            li.innerHTML = `<div class="font-semibold text-gray-800">${f.name}</div><div class="text-sm text-gray-500">${f.distance.toFixed(2)} km away</div>`;
 
-            // Single click → zoom + popup
-            li.addEventListener("click", () => {
-                map.setView([lat, lng], 15);
-                marker.openPopup();
-            });
-
-            // Double click → fridge page
-            li.addEventListener("dblclick", () => {
-                window.location.href = "/individfridge/" + fridge.id;
-            });
+            li.addEventListener("click", () => { map.setView([f.lat,f.lng],15); marker.openPopup(); });
+            li.addEventListener("dblclick", () => { window.location.href="/individfridge/"+f.id; });
 
             list.appendChild(li);
-
-            // Keep for search filtering
-            allFridges.push({name: cleanName.toLowerCase(), li, marker});
+            allFridges.push({name:f.name.toLowerCase(), li, marker});
         });
-    })
-    .catch(err => console.error("Fetch error:", err));
+    });
 }
 
-// Search input
-searchInput.addEventListener("input", () => {
+searchInput.addEventListener("input", ()=>{
     const query = searchInput.value.toLowerCase();
-    allFridges.forEach(fridge => {
-        if (fridge.name.includes(query)) {
-            fridge.li.style.display = "block";
-            fridge.marker.addTo(map);
-        } else {
-            fridge.li.style.display = "none";
-            map.removeLayer(fridge.marker);
+    allFridges.forEach(f=>{
+        if(f.name.includes(query)){
+            f.li.style.display="block";
+            f.marker.addTo(map);
+        }else{
+            f.li.style.display="none";
+            map.removeLayer(f.marker);
         }
     });
 });
 
-// Default load
-loadFridges(40.7128, -74.0060);
-
-// User location
 navigator.geolocation.getCurrentPosition(
     pos => {
-        const userLat = pos.coords.latitude;
-        const userLng = pos.coords.longitude;
-        map.setView([userLat, userLng], 13);
-        L.marker([userLat, userLng], {icon: userIcon})
-            .addTo(map)
-            .bindPopup("You are here");
-        loadFridges(userLat, userLng);
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        map.setView([userLat,userLng],13);
+        L.marker([userLat,userLng], {icon:userIcon}).addTo(map).bindPopup("You are here");
+        loadFridges(userLat,userLng);
     },
     err => {
-        console.log("Location denied. Using default NYC.");
-        loadFridges(40.7128, -74.0060);
+        console.log("Location denied, using default.");
+        userLat = 40.7128;
+        userLng = -74.0060;
+        loadFridges(userLat,userLng);
     }
 );
+
+if(targetFridge){
+    setTimeout(()=>{ 
+        routeToFridge(targetFridge.lat,targetFridge.lng); 
+        map.setView([targetFridge.lat,targetFridge.lng],15); 
+    },1000);
+}
 </script>
 
 {% include "components/footer.html.jinja" %}
