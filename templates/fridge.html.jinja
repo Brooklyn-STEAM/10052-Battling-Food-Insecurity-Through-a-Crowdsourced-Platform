@@ -24,17 +24,26 @@
         <div class="flex flex-col sm:flex-row gap-4">
 
           <!-- Dynamic Status Badge -->
-          {% set status = fridge['Status'] | lower %}
+          {% set status = fridge_status['Status'] | lower | trim %}
 
-{% if status == "open" %}
-<span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
+{% if status in ["full", "few", "many"] %}
+    <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+        🟢 Open & Stocked
+    </span>
 
-{% elif status == "low" %}
-<span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
+{% elif status in ["low", "empty", "half"] %}
+    <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+        🟡 Low Stock
+    </span>
 
 {% else %}
-<span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
+    <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+        🔴 Closed / Needs Attention
+    </span>
 {% endif %}
+
+
+
 
 <a href="/update/{{ fridge['ID'] }}"
    class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">
@@ -86,7 +95,7 @@
       <h2 class="text-3xl font-bold text-green-800">Community Reviews</h2>
 
       {% if current_user.is_authenticated %}
-      <button id="open-popup"
+      <button id="open-review-btn"
         class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-md text-sm font-semibold transition">
         Add Review
       </button>
@@ -123,7 +132,7 @@
 
 </div>
 <!-- REVIEW POPUP -->
-<div id="open-popup"
+<div id="review-popup"
 class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
   <div class="bg-white p-8 rounded-xl shadow-lg border relative w-[420px] scale-95 transition-transform duration-300">
     
@@ -131,10 +140,10 @@ class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-cent
       Add Review
     </h2>
 
-    <form method="POST" action="/individfridge/{{ fridge['ID'] }}" class="space-y-4">
+    <form method="POST" action="{{ url_for('personal_fridges', fridge_id=fridge['ID']) }}">
       <div>
         <label class="block text-sm font-medium text-green-800 mb-1">Rating</label>
-        <select name="rating" required class="w-full rounded-lg border border-green-400 px-3 py-2">
+        <select name="Rating" required class="w-full rounded-lg border border-green-400 px-3 py-2">
           <option value="">Select rating</option>
           <option value="5">★★★★★</option>
           <option value="4">★★★★☆</option>
@@ -146,7 +155,7 @@ class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-cent
 
       <div>
         <label class="block text-sm font-medium text-green-800 mb-1">Comment</label>
-        <textarea name="comment" rows="4" required class="w-full rounded-lg border border-green-400 px-3 py-2"></textarea>
+        <textarea name="Comment" rows="4" required class="w-full rounded-lg border border-green-400 px-3 py-2"></textarea>
       </div>
 
       <button type="submit"
@@ -162,20 +171,26 @@ class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-cent
 {% include "components/footer.html.jinja" %}
 
 <script>
-const openPopup = document.getElementById('open-popup');
-const closePopup = document.getElementById('close-popup');
+const openBtn = document.getElementById("open-review-btn");
+const popup = document.getElementById("review-popup");
+const closeBtn = document.getElementById("close-popup");
 
-// Function to open the popup
-function showPopup() {
-  openPopup.classList.remove('opacity-0', 'pointer-events-none');
-  openPopup.classList.add('opacity-100', 'pointer-events-auto');
+if (openBtn) {
+  openBtn.addEventListener("click", () => {
+    popup.classList.remove("opacity-0", "pointer-events-none");
+  });
 }
 
-// Function to close the popup
-closePopup.addEventListener('click', () => {
-  openPopup.classList.add('opacity-0', 'pointer-events-none');
-  openPopup.classList.remove('opacity-100', 'pointer-events-auto');
+closeBtn.addEventListener("click", () => {
+  popup.classList.add("opacity-0", "pointer-events-none");
 });
+
+popup.addEventListener("click", (e) => {
+  if (e.target === popup) {
+    popup.classList.add("opacity-0", "pointer-events-none");
+  }
+});
+
 </script>
 </body>
 
