@@ -75,6 +75,7 @@ def index():
 # MAP PAGE (OPTIONAL TARGET FRIDGE)
 # -----------------------
 @app.route("/map")
+@login_required
 def map_page():
     fridge_id = request.args.get("fridge_id")
     target_fridge = None
@@ -99,6 +100,7 @@ def map_page():
 # ROUTE TO SPECIFIC FRIDGE
 # -----------------------
 @app.route("/route/<int:fridge_id>")
+@login_required
 def route_to_fridge(fridge_id):
     return redirect(url_for("map_page", fridge_id=fridge_id))
 
@@ -196,6 +198,7 @@ def donate_food():
 # INDIVIDUAL FRIDGE PAGE
 # -----------------------
 @app.route("/individfridge/<int:fridge_id>", methods=["GET","POST"])
+@login_required
 def personal_fridges(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
@@ -272,6 +275,7 @@ WHERE Reviews.FridgeID = %s
 # API: GET FRIDGES
 # -----------------------
 @app.route("/get-fridges")
+@login_required
 def get_fridges():
     connection = connect_db()
     cursor = connection.cursor()
@@ -298,6 +302,7 @@ def get_fridges():
 # REPORT FRIDGE ISSUE
 # -----------------------
 @app.route("/report/<int:fridge_id>", methods=["GET","POST"])
+@login_required
 def report_fridge(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
@@ -325,6 +330,7 @@ def report_fridge(fridge_id):
 # THANK YOU PAGE
 # -----------------------
 @app.route("/thank_you")
+@login_required
 def thank():
     return render_template("components/thanks.html.jinja")
 
@@ -332,6 +338,7 @@ def thank():
 # UPDATE FRIDGE STATUS
 # -----------------------
 @app.route("/update/<fridge_id>")
+@login_required
 def update(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
