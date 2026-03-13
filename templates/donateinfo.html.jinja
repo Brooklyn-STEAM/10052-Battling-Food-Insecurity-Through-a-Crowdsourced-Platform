@@ -52,7 +52,7 @@
         </div>
 
      <!-- Submit -->
-        <button type="submit" action="/thanks" class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition"> Donate Now </button>
+        <button type="submit" action="/thank_you" class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition"> Donate Now </button>
             </form>
         </div>
 
@@ -120,10 +120,11 @@
                               class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none"></textarea>
                 </div>
 
-                <button type="submit" 
-                        class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition">
-                    Schedule Drop-Off
-                </button>
+                <button type="submit" class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition">
+    Schedule Drop-Off
+</button>
+
+<p>DEBUG: {{ request.form.get('item_type') }}</p>
 
             </form>
 
@@ -131,35 +132,45 @@
 
     </div>
 </div>
+
 <script>
-const button = document.getElementById("dropdownButton");
-const menu = document.getElementById("dropdownMenu");
-const selectedText = document.getElementById("selectedText");
-const hiddenInput = document.getElementById("selectedItem");
+document.addEventListener("DOMContentLoaded", () => {
+    const dropdownBtn = document.getElementById("dropdownButton");
+    const dropdownMenu = document.getElementById("dropdownMenu");
+    const dropdownItems = document.querySelectorAll(".dropdown-item");
+    const selectedText = document.getElementById("selectedText");
+    const hiddenInput = document.getElementById("selectedItem");
 
-button.addEventListener("click", () => {
-    menu.classList.toggle("hidden");
-});
+    dropdownMenu.classList.add("hidden");
 
-document.querySelectorAll(".dropdown-item").forEach(item => {
-    item.addEventListener("click", () => {
+    dropdownBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle("hidden");
+    });
 
-        const value = item.dataset.value;
-        const name = item.dataset.name;
+    dropdownItems.forEach(item => {
+        item.addEventListener("click", (e) => {
+            e.stopPropagation();
 
-        hiddenInput.value = value;
-        selectedText.textContent = name;
+            const name = item.dataset.name;
+            const value = item.dataset.value;
 
-        menu.classList.add("hidden");
+            selectedText.textContent = name;
+            hiddenInput.value = value;
+
+            dropdownMenu.classList.add("hidden");
+        });
+    });
+
+    document.addEventListener("click", () => {
+        dropdownMenu.classList.add("hidden");
     });
 });
 
-document.addEventListener("click", (e) => {
-    if (!button.contains(e.target) && !menu.contains(e.target)) {
-        menu.classList.add("hidden");
-    }
-});
 </script>
+
+
+
 
 </body>
 </html>
