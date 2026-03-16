@@ -37,7 +37,7 @@ def connect_db():
     return pymysql.connect(
         host="db.steamcenter.tech",
         user="smack",
-        password=config.PASSWORD,
+        password=config.password,
         database="fridge_net",
         autocommit=True,
         cursorclass=pymysql.cursors.DictCursor
