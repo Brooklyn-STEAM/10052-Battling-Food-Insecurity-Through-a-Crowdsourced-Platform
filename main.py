@@ -75,7 +75,6 @@ def index():
 # MAP PAGE (OPTIONAL TARGET FRIDGE)
 # -----------------------
 @app.route("/map")
-@login_required
 def map_page():
     fridge_id = request.args.get("fridge_id")
     target_fridge = None
