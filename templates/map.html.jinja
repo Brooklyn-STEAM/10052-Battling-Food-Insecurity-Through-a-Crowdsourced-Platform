@@ -1,183 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <link rel="icon" type="image/png" href="/static/images/logo.png">
     <meta charset="UTF-8">
+
     <title>Community Fridge Map</title>
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
     <style>
-        #map { height: 100%; min-height: 500px; z-index:0; }
-
-        .leaflet-marker-icon {
-            transition: transform 0.2s;
+        #map {
+            height: 100%;
+            min-height: 500px;
         }
+
         .leaflet-marker-icon:hover {
             transform: scale(1.2);
-            z-index: 1000 !important;
         }
-
-        #fridge-list::-webkit-scrollbar { width: 6px; }
-        #fridge-list::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 3px; }
     </style>
+
 </head>
 
 <body class="bg-gray-100 font-sans">
-{% include "components/navbar.html.jinja" %}
 
-<div class="flex h-screen">
+    {% include "components/navbar.html.jinja" %}
 
-    <!-- Sidebar -->
-    <div class="w-1/3 bg-white shadow-lg overflow-y-auto p-6">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800">
-            Nearby Community Fridges
-        </h2>
+    <div class="flex h-screen">
 
-        <!-- Search Bar -->
-        <input 
-            type="text" 
-            id="fridge-search" 
-            placeholder="Search fridges..." 
-            class="w-full p-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+        <!-- SIDEBAR -->
 
-        <!-- Sidebar fridge list -->
-        <ul id="fridge-list" class="space-y-4"></ul>
+        <div class="w-1/3 bg-white p-6 overflow-y-auto">
+
+            <h2 class="text-2xl font-bold mb-4">
+                Nearby Community Fridges
+            </h2>
+
+            <input type="text" id="fridge-search" placeholder="Search fridges..."
+                class="w-full p-2 border rounded mb-4" />
+
+            <label class="font-semibold text-sm mb-2 block">
+                Transportation
+            </label>
+
+            <div class="space-y-2 mb-4">
+
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="transport" value="train" checked>
+                    🚆 Train
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="transport" value="bus">
+                    🚌 Bus
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="transport" value="bike">
+                    🚲 Bike
+                </label>
+
+            </div>
+
+            <div id="travel-info" class="mb-4 text-sm text-gray-700"></div>
+
+            <ul id="fridge-list" class="space-y-3"></ul>
+
+        </div>
+
+        <!-- MAP -->
+
+        <div id="map" class="w-2/3"></div>
+
     </div>
 
-    <!-- Map -->
-    <div id="map" class="w-2/3 rounded-l-lg shadow-inner"></div>
+    <script>
 
-</div>
+        const targetFridge = {{ target_fridge| tojson if target_fridge else 'null' }};
 
-<script>
-const targetFridge = {{ target_fridge|tojson if target_fridge else 'null' }};
+        var map = L.map('map').setView([40.7128, -74.0060], 12);
 
-// Initialize map
-var map = L.map('map').setView([40.7128, -74.0060], 12);
+        L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+        ).addTo(map);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd',
-    maxZoom: 19
-}).addTo(map);
+        /* TRANSIT OVERLAY LAYERS */
 
-const list = document.getElementById("fridge-list");
-const searchInput = document.getElementById("fridge-search");
+        const trainRoutes = L.tileLayer(
+            'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'
+        );
 
-const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35,35], iconAnchor: [17,35], popupAnchor: [0,-35] });
-const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45,45], iconAnchor: [22,45], popupAnchor: [0,-45] });
+        const busRoutes = L.tileLayer(
+            'https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png'
+        );
 
-let allFridges = [];
-let userLat = null;
-let userLng = null;
-let routingControl = null;
+        const bikeLanes = L.tileLayer(
+            'https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png'
+        );
 
-function getDistance(lat1, lon1, lat2, lon2){
-    const R = 6371;
-    const dLat = (lat2-lat1)*Math.PI/180;
-    const dLon = (lon2-lon1)*Math.PI/180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-}
-
-function routeToFridge(lat, lng){
-    if(!userLat){ alert("Location not found"); return; }
-    if(routingControl) map.removeControl(routingControl);
-
-    routingControl = L.Routing.control({
-        waypoints: [L.latLng(userLat, userLng), L.latLng(lat, lng)],
-        routeWhileDragging: false,
-        showAlternatives: false
-    }).addTo(map);
-}
-
-function loadFridges(userLat, userLng){
-    fetch("/get-fridges")
-    .then(res => res.json())
-    .then(data => {
-
-        list.innerHTML = "";
-        allFridges = [];
-
-        const sortedFridges = data
-            .map(f => ({...f, lat: parseFloat(f.lat), lng: parseFloat(f.lng), distance: getDistance(userLat,userLng,parseFloat(f.lat),parseFloat(f.lng))}))
-            .filter(f => !isNaN(f.lat) && !isNaN(f.lng))
-            .sort((a,b) => a.distance-b.distance);
-
-        sortedFridges.forEach(f => {
-            const marker = L.marker([f.lat,f.lng], {icon: fridgeIcon})
-                .addTo(map)
-                .bindPopup(`
-                    <div class="text-lg font-semibold">${f.name}</div>
-                    <div class="text-sm text-gray-600">Status: ${f.status}</div>
-                    <div class="text-sm text-gray-600">${f.distance.toFixed(2)} km away</div>
-                    <button onclick="routeToFridge(${f.lat},${f.lng})" class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Route Here</button>
-                `);
-
-            marker.on("dblclick", () => window.location.href="/individfridge/"+f.id);
-
-            const li = document.createElement("li");
-            li.className = "p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 cursor-pointer transition duration-150";
-            li.innerHTML = `<div class="font-semibold text-gray-800">${f.name}</div><div class="text-sm text-gray-500">${f.distance.toFixed(2)} km away</div>`;
-
-            li.addEventListener("click", () => { map.setView([f.lat,f.lng],15); marker.openPopup(); });
-            li.addEventListener("dblclick", () => { window.location.href="/individfridge/"+f.id; });
-
-            list.appendChild(li);
-            allFridges.push({name:f.name.toLowerCase(), li, marker});
-        });
-    });
-}
-
-searchInput.addEventListener("input", ()=>{
-    const query = searchInput.value.toLowerCase();
-    allFridges.forEach(f=>{
-        if(f.name.includes(query)){
-            f.li.style.display="block";
-            f.marker.addTo(map);
-        }else{
-            f.li.style.display="none";
-            map.removeLayer(f.marker);
+        const layers = {
+            train: trainRoutes,
+            bus: busRoutes,
+            bike: bikeLanes
         }
-    });
-});
 
-navigator.geolocation.getCurrentPosition(
-    pos => {
-        userLat = pos.coords.latitude;
-        userLng = pos.coords.longitude;
-        map.setView([userLat,userLng],13);
-        L.marker([userLat,userLng], {icon:userIcon}).addTo(map).bindPopup("You are here");
-        loadFridges(userLat,userLng);
-    },
-    err => {
-        console.log("Location denied, using default.");
-        userLat = 40.7128;
-        userLng = -74.0060;
-        loadFridges(userLat,userLng);
-    }
-);
+        function switchLayer(layer) {
 
-if(targetFridge){
-    setTimeout(()=>{ 
-        routeToFridge(targetFridge.lat,targetFridge.lng); 
-        map.setView([targetFridge.lat,targetFridge.lng],15); 
-    },1000);
-}
-</script>
+            Object.values(layers).forEach(l => {
+                map.removeLayer(l)
+            })
 
-{% include "components/footer.html.jinja" %}
+            layers[layer].addTo(map)
+
+        }
+
+        trainRoutes.addTo(map)
+
+        /* ICONS */
+
+        const userIcon = L.icon({
+            iconUrl: "/static/images/pin.png",
+            iconSize: [35, 35]
+        })
+
+        const fridgeIcon = L.icon({
+            iconUrl: "/static/images/fridge.png",
+            iconSize: [45, 45]
+        })
+
+        /* ROUTING */
+
+        let routingControl = null
+        let routingProfile = "walking"
+        let userLat = null
+        let userLng = null
+
+        /* STORAGE FOR SEARCH */
+
+        let allFridges = []
+        let fridgeMarkers = []
+
+        /* TRANSPORT RADIO BUTTONS */
+
+        document.querySelectorAll('input[name="transport"]').forEach(radio => {
+
+            radio.addEventListener("change", e => {
+
+                let mode = e.target.value
+
+                if (mode === "train") {
+                    routingProfile = "walking"
+                    switchLayer("train")
+                }
+
+                if (mode === "bus") {
+                    routingProfile = "driving"
+                    switchLayer("bus")
+                }
+
+                if (mode === "bike") {
+                    routingProfile = "cycling"
+                    switchLayer("bike")
+                }
+
+            })
+
+        })
+
+        /* ROUTE FUNCTION */
+
+        function routeToFridge(lat, lng) {
+
+            if (!userLat) {
+                alert("Location unavailable")
+                return
+            }
+
+            if (routingControl) {
+                map.removeControl(routingControl)
+            }
+
+            routingControl = L.Routing.control({
+
+                waypoints: [
+                    L.latLng(userLat, userLng),
+                    L.latLng(lat, lng)
+                ],
+
+                router: L.Routing.osrmv1({
+                    serviceUrl: "https://router.project-osrm.org/route/v1",
+                    profile: routingProfile
+                }),
+
+                showAlternatives: true,
+
+                lineOptions: {
+                    styles: [{ color: "#22c55e", weight: 6 }]
+                }
+
+            }).addTo(map)
+
+            routingControl.on('routesfound', function (e) {
+
+                let route = e.routes[0]
+
+                let time = (route.summary.totalTime / 60).toFixed(0)
+                let distance = (route.summary.totalDistance / 1000).toFixed(2)
+
+                document.getElementById("travel-info").innerHTML =
+                    `Travel time: <b>${time} minutes</b><br>
+Distance: <b>${distance} km</b>`
+
+            })
+
+        }
+
+        /* RENDER FRIDGES */
+
+        function renderFridges(fridges) {
+
+            const list = document.getElementById("fridge-list")
+            list.innerHTML = ""
+
+            /* REMOVE OLD MARKERS */
+
+            fridgeMarkers.forEach(m => map.removeLayer(m))
+            fridgeMarkers = []
+
+            fridges.forEach(f => {
+
+                const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon })
+                    .addTo(map)
+                    .bindPopup(`
+<b>${f.name}</b><br>
+Status: ${f.status}<br>
+<button onclick="routeToFridge(${f.lat},${f.lng})"
+class="bg-green-500 text-white px-3 py-1 rounded mt-2">
+Route Here
+</button>
+`)
+
+                fridgeMarkers.push(marker)
+
+                const li = document.createElement("li")
+
+                li.className = "p-3 bg-gray-50 rounded cursor-pointer"
+
+                li.innerHTML = `${f.name}`
+
+                li.onclick = () => {
+                    map.setView([f.lat, f.lng], 15)
+                    marker.openPopup()
+                }
+
+                list.appendChild(li)
+
+            })
+
+        }
+
+        /* SEARCH FUNCTION */
+
+        document.getElementById("fridge-search").addEventListener("input", e => {
+
+            let query = e.target.value.toLowerCase()
+
+            let filtered = allFridges.filter(f =>
+                f.name.toLowerCase().includes(query)
+            )
+
+            renderFridges(filtered)
+
+        })
+
+        /* LOAD FRIDGES */
+
+        function loadFridges() {
+
+            fetch("/get-fridges")
+                .then(res => res.json())
+                .then(data => {
+
+                    allFridges = data
+                    renderFridges(allFridges)
+
+                })
+
+        }
+
+        /* USER LOCATION */
+
+        navigator.geolocation.getCurrentPosition(
+
+            pos => {
+
+                userLat = pos.coords.latitude
+                userLng = pos.coords.longitude
+
+                L.marker([userLat, userLng], { icon: userIcon })
+                    .addTo(map)
+                    .bindPopup("You are here")
+
+                map.setView([userLat, userLng], 13)
+
+                loadFridges()
+
+            },
+
+            err => {
+
+                userLat = 40.7128
+                userLng = -74.0060
+
+                loadFridges()
+
+            }
+
+        )
+
+        /* AUTO ROUTE */
+
+        if (targetFridge) {
+
+            setTimeout(() => {
+
+                routeToFridge(targetFridge.lat, targetFridge.lng)
+
+                map.setView([targetFridge.lat, targetFridge.lng], 15)
+
+            }, 1000)
+
+        }
+
+    </script>
+
+    {% include "components/footer.html.jinja" %}
+
 </body>
+
 </html>
