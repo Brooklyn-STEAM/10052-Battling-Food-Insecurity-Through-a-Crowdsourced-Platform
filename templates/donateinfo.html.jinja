@@ -57,7 +57,8 @@
         </div>
 
             <!-- Drop-off Form -->
-            <form method="post" action="/type_donate" class="space-y-5">
+           <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-5">
+
 
                 <h3 class="text-xl font-semibold mb-4">Schedule a Drop-Off</h3>
 
@@ -73,6 +74,41 @@
                            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
                 </div>
 
+                <div>
+                <label class="block font-semibold mb-2">Select a Fridge</label>
+
+<!-- Hidden input for form submission -->
+<input type="hidden" name="FridgeID" id="selectedFridge" required>
+
+<!-- Dropdown button -->
+<button type="button" id="fridgeDropdownButton"
+    class="w-full border rounded-lg p-3 flex justify-between items-center bg-white hover:border-orange-400">
+
+    <span id="fridgeSelectedText" class="text-gray-500">Choose a fridge</span>
+    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M19 9l-7 7-7-7"></path>
+    </svg>
+</button>
+
+<!-- Dropdown menu -->
+<div id="fridgeDropdownMenu"
+    class="absolute z-10 w-full bg-white border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto hidden">
+
+    {% for fridge in fridges %}
+<div class="flex items-center gap-3 p-3 hover:bg-orange-50 cursor-pointer fridge-dropdown-item"
+     data-value="{{ fridge['ID'] }}"  
+     data-name="{{ fridge['Name'] }}">
+
+    <img src="{{ fridge['Image'] }}" class="w-6 h-6">
+    <span>{{ fridge['Name'] }}</span>
+</div>
+{% endfor %}
+
+</div>
+
+
+                </div>
                 <div>
                     <label class="block font-semibold mb-2">Preferred Drop-Off Date</label>
                     <input type="date" name="dropoff_date" required
@@ -101,16 +137,16 @@
         class="absolute z-10 w-full bg-white border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto">
 
         {% for item in items %}
-        <div
-            class="flex items-center gap-3 p-3 hover:bg-orange-50 cursor-pointer dropdown-item"
-            data-value="{{ item['Image'] }}"
-            data-name="{{ item['Name'] }}">
+<div
+    class="flex items-center gap-3 p-3 hover:bg-orange-50 cursor-pointer dropdown-item"
+    data-value="{{ item['Name'] }}"
+    data-name="{{ item['Name'] }}">
 
-          <img src="{{ item['Image'] }}" class="w-6 h-6">
-            <span>{{ item['Name'] }}</span>
+  <img src="{{ item['Image'] }}" class="w-6 h-6">
+    <span>{{ item['Name'] }}</span>
 
-        </div>
-        {% endfor %}
+</div>
+{% endfor %}
 
     </div>
 </div>
@@ -124,7 +160,6 @@
     Schedule Drop-Off
 </button>
 
-<p>DEBUG: {{ request.form.get('item_type') }}</p>
 
             </form>
 
@@ -166,8 +201,25 @@ document.addEventListener("DOMContentLoaded", () => {
         dropdownMenu.classList.add("hidden");
     });
 });
+document.getElementById("fridgeDropdownButton").addEventListener("click", function () {
+    document.getElementById("fridgeDropdownMenu").classList.toggle("hidden");
+});
 
-</script>
+document.querySelectorAll(".fridge-dropdown-item").forEach(item => {
+    item.addEventListener("click", function () {
+        const value = this.getAttribute("data-value");
+        const name = this.getAttribute("data-name");
+
+        document.getElementById("selectedFridge").value = value;
+        document.getElementById("fridgeSelectedText").textContent = name;
+
+        document.getElementById("fridgeDropdownMenu").classList.add("hidden");
+    });
+});
+
+
+
+</script>   
 
 
 

@@ -161,38 +161,85 @@ def signup():
 # -----------------------
 # DONATE PAGES
 # -----------------------
-@app.route("/donate")
+@app.route("/donations")
 @login_required
 def donate():
     return render_template("donate.html.jinja")
 
-@app.route("/type_donate")
+@app.route("/donate", methods=["GET"])
 @login_required
-def type_donate():
+def donations():
     connection = connect_db()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM `Items`")
+    cursor.execute("SELECT * FROM Items")
     items = cursor.fetchall()
+    cursor.execute("SELECT ID, Name, Image FROM Fridge")
+    fridges = cursor.fetchall()
     connection.close()
-    return render_template("donateinfo.html.jinja", items=items)
+
+    return render_template("donateinfo.html.jinja", items=items, fridges=fridges)
+
+
 
 @app.route("/donate-money", methods=["POST"])
 @login_required
 def donate_money():
     amount = request.form.get("amount")
     custom_amount = request.form.get("custom_amount")
-    name = request.form.get("name")
     final_amount = custom_amount if custom_amount else amount
+
+    connection = connect_db()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO `Donations` (UserID, Amount)
+        VALUES (%s, %s)
+    """, (current_user.id, final_amount))
+
+    connection.commit()
+    connection.close()
+
     flash("Thank you for your monetary donation!")
-    return redirect("type_donate")
+    return redirect(url_for("donate"))
+
+
+
 
 @app.route("/donate-food", methods=["POST"])
 @login_required
 def donate_food():
-    name = request.form.get("food_name")
-    date = request.form.get("dropoff_date")
+    email = request.form.get("food_email")
+    dropoff_date = request.form.get("dropoff_date")
+    item_type = request.form.get("item_type")
+    notes = request.form.get("notes")
+    fridge_id = request.form.get("FridgeID")
+
+    if not fridge_id:
+        return "FridgeID is required", 400
+    fridge_id = int(fridge_id)
+
+    connection = connect_db()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+    INSERT INTO `Donations` (UserID, FridgeID, Email, Dropoff, Type, Amount, Description)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+""", (
+    current_user.id,
+    fridge_id,
+    email,
+    dropoff_date,
+    item_type,   # <-- now correct ENUM value
+    1,           # <-- Amount required (you can change this)
+    notes
+))
+
+    connection.commit()
+    connection.close()
+
     flash("Your food drop-off has been scheduled!")
-    return redirect("type_donate")
+    return redirect(url_for("donate"))
+
 
 # -----------------------
 # INDIVIDUAL FRIDGE PAGE
