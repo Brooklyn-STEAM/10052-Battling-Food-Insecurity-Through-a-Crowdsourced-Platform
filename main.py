@@ -395,35 +395,82 @@ def report_fridge(fridge_id):
 def thank():
     return render_template("components/thanks.html.jinja")
 
-# -----------------------
-# UPDATE FRIDGE STATUS
-# -----------------------
-@app.route("/update/<fridge_id>")
-@login_required
-def update(fridge_id):
+from flask import request, render_template, redirect, url_for
+
+@app.route("/update_fridge/<int:fridge_id>", methods=["GET", "POST"])
+def update_fridge(fridge_id):
+
     connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("""
-        UPDATE Fridge_status fs
-        JOIN (
-            SELECT FridgeID, MAX(Last_updated) AS max_time
-            FROM Fridge_status
-            GROUP BY FridgeID
-        ) latest ON fs.FridgeID = latest.FridgeID AND fs.Last_updated = latest.max_time
-        SET fs.Status = 'Updated'
-        WHERE fs.FridgeID=%s
-    """, (fridge_id,))
-    connection.commit()
-    connection.close()
-    return render_template("update_fridge.html.jinja")
-# -----------------------
-# PROFILE PAGE
-# -----------------------
-@app.route("/profile_page")
-def account():
-    return render_template("components/profile.html.jinja")
-# -----------------------
-# RUN APP
-# -----------------------
-if __name__ == "__main__":
-    app.run(debug=True)
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    # -------- GET --------
+    if request.method == "GET":
+
+        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
+
+        cursor.execute("""
+        SELECT
+            Items.ID AS ItemsID,
+            Items.Name,
+            Items.Image,
+            IFNULL(Fridge_items.Quantity, 0) AS Quantity
+        FROM Items
+        LEFT JOIN Fridge_items
+        ON Items.ID = Fridge_items.ItemsID
+        AND Fridge_items.FridgeID = %s
+        """, (fridge_id,))
+        items = cursor.fetchall()
+
+        cursor.execute("""
+        SELECT Status, Last_updated
+        FROM Fridge_status
+        WHERE FridgeID=%s
+        ORDER BY Last_updated DESC
+        LIMIT 1
+        """, (fridge_id,))
+        status = cursor.fetchone()
+
+        connection.close()
+
+        return render_template(
+            "update_fridge.html.jinja",
+            fridge=fridge,
+            items=items,
+            status=status
+        )
+
+    # -------- POST --------
+    if request.method == "POST":
+
+        for key in request.form:
+            if key.startswith("quantity_"):
+
+                item_id = key.split("_")[1]
+                quantity = int(request.form[key])
+
+                if quantity == 0:
+                    cursor.execute("""
+                    DELETE FROM Fridge_items
+                    WHERE FridgeID=%s AND ItemsID=%s
+                    """, (fridge_id, item_id))
+                else:
+                    cursor.execute("""
+                    INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
+                    VALUES (%s,%s,%s)
+                    ON DUPLICATE KEY UPDATE Quantity=%s
+                    """, (fridge_id, item_id, quantity, quantity))
+
+                    value = int(request.form.get("fullness", 2))
+
+                    mapping = ["empty", "few", "half", "many", "full"]
+                    status_value = mapping[value]
+        cursor.execute("""
+        INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
+        VALUES (%s,%s,NOW())
+        """, (fridge_id, status_value))
+
+        connection.commit()
+        connection.close()
+
+        return redirect(f"/individfridge/{fridge_id}")
