@@ -4,7 +4,7 @@ from datetime import datetime
 import pymysql
 import random
 from dynaconf import Dynaconf
-
+import json
 app = Flask(__name__)
 
 config = Dynaconf(settings_file=["settings.toml"])
@@ -48,7 +48,7 @@ def connect_db():
 # -----------------------
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template("404.html.jinja"), 404
+    return render_template("components/404.html.jinja"), 404
 
 # -----------------------
 # LOGIN MANAGER
@@ -160,80 +160,158 @@ def signup():
 # -----------------------
 # DONATE PAGES
 # -----------------------
-@app.route("/donate")
+@app.route("/donations")
 @login_required
 def donate():
     return render_template("donate.html.jinja")
 
-@app.route("/type_donate")
+@app.route("/donate", methods=["GET"])
 @login_required
-def type_donate():
+def donations():
     connection = connect_db()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM `Items`")
+    cursor.execute("SELECT * FROM Items")
     items = cursor.fetchall()
+    cursor.execute("SELECT ID, Name, Image FROM Fridge")
+    fridges = cursor.fetchall()
     connection.close()
-    return render_template("donateinfo.html.jinja", items=items)
+
+    return render_template("donateinfo.html.jinja", items=items, fridges=fridges)
+
+
 
 @app.route("/donate-money", methods=["POST"])
 @login_required
 def donate_money():
     amount = request.form.get("amount")
     custom_amount = request.form.get("custom_amount")
-    name = request.form.get("name")
-    final_amount = custom_amount if custom_amount else amount
-    flash("Thank you for your monetary donation!")
-    return redirect("type_donate")
+    fridge_id = request.form.get("FridgeID")  # matches your form
 
+    if not fridge_id:
+        flash("Please select a fridge to donate to.")
+        return redirect(url_for("donations"))
+
+    final_amount = custom_amount if custom_amount else amount
+
+    # Validate amount
+    if not final_amount:
+        flash("Please select or enter an amount.")
+        return redirect(url_for("donations"))
+
+    try:
+        final_amount = float(final_amount)
+    except ValueError:
+        flash("Invalid amount.")
+        return redirect(url_for("donations"))
+
+    # Connect and insert into DB
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("""
+        INSERT INTO Donations (UserID, Amount, FridgeID, Email, Dropoff, Type, Description)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        current_user.id,
+        final_amount,
+        fridge_id,
+        current_user.email,
+        datetime.now(),
+        "Money",
+        "Monetary donation"
+    ))
+    connection.commit()
+    connection.close()
+
+    flash("Thank you for your monetary donation!")
+    return redirect(url_for("thank"))
 @app.route("/donate-food", methods=["POST"])
 @login_required
 def donate_food():
-    name = request.form.get("food_name")
-    date = request.form.get("dropoff_date")
+    email = request.form.get("food_email")
+    dropoff_date = request.form.get("dropoff_date")
+    item_type = request.form.get("item_type")
+    notes = request.form.get("notes")
+    fridge_id = request.form.get("FridgeID")
+
+    if not fridge_id:
+        return "FridgeID is required", 400
+    fridge_id = int(fridge_id)
+
+    connection = connect_db()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+    INSERT INTO `Donations` (UserID, FridgeID, Email, Dropoff, Type, Amount, Description)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+""", (
+    current_user.id,
+    fridge_id,
+    email,
+    dropoff_date,
+    item_type,   # <-- now correct ENUM value
+    1,           # <-- Amount required (you can change this)
+    notes
+))
+
+    connection.commit()
+    connection.close()
+
     flash("Your food drop-off has been scheduled!")
-    return redirect("type_donate")
+    return redirect(url_for("thank"))
 
 # -----------------------
 # INDIVIDUAL FRIDGE PAGE
 # -----------------------
+
+def load_items():
+    with open("items.json") as f:
+        return json.load(f)
+
+def save_items(items):
+    with open("items.json", "w") as f:
+        json.dump(items, f, indent=4)
+        
 @app.route("/individfridge/<int:fridge_id>", methods=["GET","POST"])
 @login_required
 def personal_fridges(fridge_id):
     connection = connect_db()
     cursor = connection.cursor()
 
+    # Handle review submission
     if request.method == "POST":
         rating = request.form["Rating"]
         comment = request.form["Comment"]
         user_id = current_user.id if current_user.is_authenticated else None
+
         if not user_id:
             return "You must be logged in to review", 400
 
         cursor.execute(
-            "INSERT INTO `Reviews` (FridgeID, rating, comment, UserID) VALUES (%s,%s,%s,%s)",
+            "INSERT INTO Reviews (FridgeID, rating, comment, UserID) VALUES (%s,%s,%s,%s)",
             (fridge_id, rating, comment, user_id)
         )
         connection.commit()
         return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
-    cursor.execute("SELECT * FROM `Fridge` WHERE ID=%s", (fridge_id,))
+    # Load fridge info
+    cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
     fridge = cursor.fetchone()
 
     cursor.execute("""
-    SELECT Status 
-    FROM Fridge_status
-    WHERE FridgeID = %s
-    ORDER BY Last_updated DESC
-    LIMIT 1
-""", (fridge_id,))
+        SELECT Status 
+        FROM Fridge_status
+        WHERE FridgeID = %s
+        ORDER BY Last_updated DESC
+        LIMIT 1
+    """, (fridge_id,))
     fridge_status = cursor.fetchone()
 
     cursor.execute("""
-SELECT Reviews.*, User.name AS user_name
-FROM Reviews
-JOIN User ON Reviews.UserID = User.ID
-WHERE Reviews.FridgeID = %s
-""", (fridge_id,))
+        SELECT Reviews.*, User.name AS user_name
+        FROM Reviews
+        JOIN User ON Reviews.UserID = User.ID
+        WHERE Reviews.FridgeID = %s
+    """, (fridge_id,))
     reviews = cursor.fetchall()
 
     connection.close()
@@ -241,34 +319,18 @@ WHERE Reviews.FridgeID = %s
     if not fridge:
         abort(404)
 
-    # 🔹 ADD THIS PART HERE
-    Fridge_items = [
-        {"Name": "Protein", "Image": "/static/products/items/barbecue.png"},
-        {"Name": "Canned Food", "Image": "/static/products/items/canned-food.png"},
-        {"Name": "Cereal", "Image": "/static/products/items/cereal.png"},
-        {"Name": "Dairy", "Image": "/static/products/items/dairy-products.png"},
-        {"Name": "Fruits", "Image": "/static/products/items/fruits.png"},
-        {"Name": "Juice", "Image": "/static/products/items/juice.png"},
-        {"Name": "Packaged food", "Image": "/static/products/items/meals.png"},
-        {"Name": "Rice", "Image": "/static/products/items/rice.png"},
-        {"Name": "Vegetables", "Image": "/static/products/items/vegetables.png"},
-        {"Name": "Water", "Image": "/static/products/items/water.png"},
-        {"Name": "Grains", "Image": "/static/products/items/wheat-sack.png"},
-    ]
+    # ✅ Load persistent items from JSON
+    Items = load_items()
 
-    random_items = random.sample(Fridge_items, 7)
-
-    for item in random_items:
-        item["Quantity"] = random.randint(1, 5)
-
-    # 🔹 PASS Items TO TEMPLATE
     return render_template(
         "fridge.html.jinja",
         fridge=fridge,
         reviews=reviews,
-        Items=random_items,
+        Items=Items,
         fridge_status=fridge_status
     )
+
+
 
 # -----------------------
 # API: GET FRIDGES
