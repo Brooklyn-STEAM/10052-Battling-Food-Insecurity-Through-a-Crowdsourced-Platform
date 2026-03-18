@@ -71,7 +71,7 @@
     <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
 
     <!-- AVAILABLE ITEMS -->
-    <ul class="space-y-4">
+    <ul id="list" class="space-y-4">
       {% for item in Items %}
       <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
         <div class="flex items-center space-x-4">
@@ -164,13 +164,14 @@ class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-cent
       </button>
     </form>
 
-    <button id="close-popup" class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl">✕</button>
+    <button id="close-popup" class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"></button>
   </div>
 </div>
 
 {% include "components/footer.html.jinja" %}
 
 <script>
+let localItems = serverItems;
 const openBtn = document.getElementById("open-review-btn");
 const popup = document.getElementById("review-popup");
 const closeBtn = document.getElementById("close-popup");
@@ -190,6 +191,47 @@ popup.addEventListener("click", (e) => {
     popup.classList.add("opacity-0", "pointer-events-none");
   }
 });
+let items = JSON.parse(localStorage.getItem("items")) || [];
+
+  function addItem() {
+  const value = document.getElementById("input").value;
+  localItems.push(value);
+  localStorage.setItem("items", JSON.stringify(localItems));
+  render();
+}
+
+
+
+  let serverItems = [
+  {% for item in Items %}
+    {
+      name: "{{ item['Name'] }}",
+      quantity: "{{ item['Quantity'] }}",
+      image: "{{ item['Image'] }}"
+    },
+  {% endfor %}
+];
+
+function render() {
+  document.getElementById("list").innerHTML =
+    localItems.map(i => `
+      <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+        <div class="flex items-center space-x-4">
+          <img src="${i.image}" class="w-12 h-12 rounded-lg object-cover">
+          <p class="font-semibold text-green-700">${i.name}</p>
+        </div>
+        <span class="text-sm font-medium text-gray-600">
+          ${i.quantity} available
+        </span>
+      </li>
+    `).join("");
+}
+function updateItems(newItems) {
+  localItems = newItems;
+  localStorage.setItem("items", JSON.stringify(localItems));
+
+}
+render();
 
 </script>
 </body>
