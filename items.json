@@ -1,0 +1,14 @@
+[
+    {"Name": "Protein", "Image": "/static/products/items/barbecue.png", "Quantity": 3},
+    {"Name": "Canned Food", "Image": "/static/products/items/canned-food.png", "Quantity": 2},
+    {"Name": "Cereal", "Image": "/static/products/items/cereal.png", "Quantity": 4},
+    {"Name": "Dairy", "Image": "/static/products/items/dairy-products.png", "Quantity": 1},
+    {"Name": "Fruits", "Image": "/static/products/items/fruits.png", "Quantity": 5},
+    {"Name": "Juice", "Image": "/static/products/items/juice.png", "Quantity": 2},
+    {"Name": "Packaged food", "Image": "/static/products/items/meals.png", "Quantity": 3},
+    {"Name": "Rice", "Image": "/static/products/items/rice.png", "Quantity": 4},
+    {"Name": "Vegetables", "Image": "/static/products/items/vegetables.png", "Quantity": 3},
+    {"Name": "Water", "Image": "/static/products/items/water.png", "Quantity": 6},
+    {"Name": "Grains", "Image": "/static/products/items/wheat-sack.png", "Quantity": 2}
+  ]
+  
