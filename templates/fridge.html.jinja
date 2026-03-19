@@ -171,7 +171,6 @@ class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-cent
 {% include "components/footer.html.jinja" %}
 
 <script>
-let localItems = serverItems;
 const openBtn = document.getElementById("open-review-btn");
 const popup = document.getElementById("review-popup");
 const closeBtn = document.getElementById("close-popup");
@@ -199,19 +198,15 @@ let items = JSON.parse(localStorage.getItem("items")) || [];
   localStorage.setItem("items", JSON.stringify(localItems));
   render();
 }
+const fridgeKey = `items_${fridgeId}`;
+let localItems = JSON.parse(localStorage.getItem(fridgeKey)) || [];
 
-
-
-  let serverItems = [
-  {% for item in Items %}
-    {
-      name: "{{ item['Name'] }}",
-      quantity: "{{ item['Quantity'] }}",
-      image: "{{ item['Image'] }}"
-    },
-  {% endfor %}
-];
-
+function addItem() {
+  const value = document.getElementById("input").value;
+  localItems.push(value);
+  localStorage.setItem(fridgeKey, JSON.stringify(localItems));
+  render();
+}
 function render() {
   document.getElementById("list").innerHTML =
     localItems.map(i => `

@@ -320,8 +320,9 @@ def personal_fridges(fridge_id):
         abort(404)
 
     # ✅ Load persistent items from JSON
-    Items = load_items()
-
+    Items = load_items() 
+    random.shuffle(Items)
+    
     return render_template(
         "fridge.html.jinja",
         fridge=fridge,
@@ -401,76 +402,71 @@ from flask import request, render_template, redirect, url_for
 def update_fridge(fridge_id):
 
     connection = connect_db()
-    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE Fridge_status fs
+        JOIN (
+            SELECT FridgeID, MAX(Last_updated) AS max_time
+            FROM Fridge_status
+            GROUP BY FridgeID
+        ) latest ON fs.FridgeID = latest.FridgeID AND fs.Last_updated = latest.max_time
+        SET fs.Status = 'Updated'
+        WHERE fs.FridgeID=%s
+    """, (fridge_id,))
+    connection.commit()
+    connection.close()
+    return render_template("update_fridge.html.jinja")
+# -----------------------
+# PROFILE PAGE
+# -----------------------
+@app.route("/profile_page")
+def account():
+    return render_template("components/profile.html.jinja")
 
-    # -------- GET --------
-    if request.method == "GET":
+@app.route("/profile/update-username", methods=["POST"])
+@login_required
+def update_username():
+    username = request.form.get("username", "").strip()
+    if not username:
+        flash("Username cannot be empty")
+        return redirect("/profile")
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("UPDATE User SET Name = %s WHERE ID = %s", (username, current_user.id))
+    connection.close()
+    current_user.name = username
+    flash("Username updated!")
+    return redirect("/profile_page")
 
-        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-        fridge = cursor.fetchone()
 
-        cursor.execute("""
-        SELECT
-            Items.ID AS ItemsID,
-            Items.Name,
-            Items.Image,
-            IFNULL(Fridge_items.Quantity, 0) AS Quantity
-        FROM Items
-        LEFT JOIN Fridge_items
-        ON Items.ID = Fridge_items.ItemsID
-        AND Fridge_items.FridgeID = %s
-        """, (fridge_id,))
-        items = cursor.fetchall()
+@app.route("/profile/update-password", methods=["POST"])
+@login_required
+def update_password():
+    password = request.form.get("password", "")
+    if len(password) < 8:
+        flash("Password must be at least 8 characters")
+        return redirect("/profile")
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("UPDATE User SET Password = %s WHERE ID = %s", (password, current_user.id))
+    connection.close()
+    flash("Password updated!")
+    return redirect("/profile_page")
 
-        cursor.execute("""
-        SELECT Status, Last_updated
-        FROM Fridge_status
-        WHERE FridgeID=%s
-        ORDER BY Last_updated DESC
-        LIMIT 1
-        """, (fridge_id,))
-        status = cursor.fetchone()
 
-        connection.close()
-
-        return render_template(
-            "update_fridge.html.jinja",
-            fridge=fridge,
-            items=items,
-            status=status
-        )
-
-    # -------- POST --------
-    if request.method == "POST":
-
-        for key in request.form:
-            if key.startswith("quantity_"):
-
-                item_id = key.split("_")[1]
-                quantity = int(request.form[key])
-
-                if quantity == 0:
-                    cursor.execute("""
-                    DELETE FROM Fridge_items
-                    WHERE FridgeID=%s AND ItemsID=%s
-                    """, (fridge_id, item_id))
-                else:
-                    cursor.execute("""
-                    INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
-                    VALUES (%s,%s,%s)
-                    ON DUPLICATE KEY UPDATE Quantity=%s
-                    """, (fridge_id, item_id, quantity, quantity))
-
-                    value = int(request.form.get("fullness", 2))
-
-                    mapping = ["empty", "few", "half", "many", "full"]
-                    status_value = mapping[value]
-        cursor.execute("""
-        INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
-        VALUES (%s,%s,NOW())
-        """, (fridge_id, status_value))
-
-        connection.commit()
-        connection.close()
-
-        return redirect(f"/individfridge/{fridge_id}")
+@app.route("/profile/update-picture", methods=["POST"])
+@login_required
+def update_picture():
+    picture_url = request.form.get("picture_url", "").strip()
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("UPDATE User SET ProfilePicture = %s WHERE ID = %s", (picture_url or None, current_user.id))
+    connection.close()
+    current_user.profile_picture = picture_url or None
+    flash("Profile picture updated!")
+    return redirect("/profile_page")
+# -----------------------
+# RUN APP
+# -----------------------
+if __name__ == "__main__":
+    app.run(debug=True)
