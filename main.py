@@ -232,7 +232,10 @@ def donate_food():
     item_type = request.form.get("item_type")
     notes = request.form.get("notes")
     fridge_id = request.form.get("FridgeID")
-
+    quantity = request.form.get("quantity")
+    if not quantity or int(quantity) <= 0:
+        flash("Please enter a valid quantity.")
+    quantity = int(quantity)
     if not fridge_id:
         return "FridgeID is required", 400
     fridge_id = int(fridge_id)
@@ -249,7 +252,7 @@ def donate_food():
     email,
     dropoff_date,
     item_type,   # <-- now correct ENUM value
-    1,           # <-- Amount required (you can change this)
+    quantity,           # <-- Amount required (you can change this)
     notes
 ))
 
