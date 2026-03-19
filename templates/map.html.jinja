@@ -2,14 +2,12 @@
 <html lang="en">
 
 <head>
-
-    <link rel="icon" type="image/png" href="/static/images/logo.png">
     <meta charset="UTF-8">
-
+    <link rel="icon" type="image/png" href="/static/images/logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Fridge Map</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
 
@@ -17,26 +15,11 @@
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
     <style>
-        #map {
-            height: 100%;
-            min-height: 500px;
-        }
-
-        .leaflet-marker-icon:hover {
-            transform: scale(1.2);
-        }
-
-        /* Sidebar hover */
-        #fridge-list li:hover {
-            background-color: #e0f2fe;
-        }
-
-        /* Route popup button */
-        .route-btn:hover {
-            background-color: #16a34a;
-        }
+        #map { height: 100%; min-height: 500px; }
+        .leaflet-marker-icon:hover { transform: scale(1.2); }
+        #fridge-list li:hover { background-color: #e0f2fe; }
+        .route-btn:hover { background-color: #16a34a; }
     </style>
-
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -47,181 +30,169 @@
 
         <!-- SIDEBAR -->
         <div class="w-1/3 bg-white p-6 overflow-y-auto">
+            <h2 class="text-3xl font-bold mb-4">Nearby Community Fridges</h2>
 
-            <h2 class="text-3xl font-bold mb-4">
-                Nearby Community Fridges
-            </h2>
+            <!-- Custom Start Location -->
+            <div class="mb-4">
+                <label class="font-semibold text-sm block mb-1">Starting Location</label>
+                <input type="text" id="start-location" placeholder="Enter your address" class="w-full p-2 border rounded" />
+                <button id="set-start" class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">
+                    Set Start
+                </button>
+            </div>
 
-            <input type="text" id="fridge-search" placeholder="Search fridges..."
-                class="w-full p-2 border rounded mb-4" />
+            <input type="text" id="fridge-search" placeholder="Search fridges..." class="w-full p-2 border rounded mb-4" />
 
-            <label class="font-semibold text-sm mb-2 block">
-                Transportation
-            </label>
-
+            <label class="font-semibold text-sm mb-2 block">Transportation</label>
             <div class="space-y-2 mb-4">
-
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="transport" value="train" checked>
-                    🚆 Train
-                </label>
-
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="transport" value="bus">
-                    🚌 Bus
-                </label>
-
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="transport" value="bike">
-                    🚲 Bike
-                </label>
-
+                <label class="flex items-center gap-2"><input type="radio" name="transport" value="train" checked> 🚆 Train</label>
+                <label class="flex items-center gap-2"><input type="radio" name="transport" value="bus"> 🚌 Bus</label>
+                <label class="flex items-center gap-2"><input type="radio" name="transport" value="bike"> 🚲 Bike</label>
             </div>
 
             <div id="travel-info" class="mb-4 text-sm text-gray-700"></div>
-
             <ul id="fridge-list" class="space-y-3 font-semibold"></ul>
-
         </div>
 
         <!-- MAP -->
         <div id="map" class="w-2/3"></div>
-
     </div>
 
-    <script>
-        const targetFridge = {{ target_fridge| tojson if target_fridge else 'null' }};
-        var map = L.map('map').setView([40.7128, -74.0060], 12);
+<script>
+    // MAP AND USER VARIABLES
+    const map = L.map('map').setView([40.7128, -74.0060], 12);
+    map.doubleClickZoom.disable();
 
-        // Prevent zoom conflict with double click
-        map.doubleClickZoom.disable();
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+    const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35, 35] });
+    const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45, 45] });
 
-        /* ICONS */
-        const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35, 35] });
-        const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45, 45] });
+    const trainRoutes = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png');
+    const busRoutes = L.tileLayer('https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png');
+    const bikeLanes = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png');
+    const layers = { train: trainRoutes, bus: busRoutes, bike: bikeLanes };
+    trainRoutes.addTo(map);
 
-        /* TRANSPORT LAYERS */
-        const trainRoutes = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png');
-        const busRoutes = L.tileLayer('https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png');
-        const bikeLanes = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png');
-        const layers = { train: trainRoutes, bus: busRoutes, bike: bikeLanes };
-        trainRoutes.addTo(map);
+    let routingControl = null, routingProfile = "walking";
+    let userLat = null, userLng = null, userMarker = null;
+    let allFridges = [], fridgeMarkers = [];
+    let currentTargetFridge = null; // Track the fridge for active route
 
-        /* ROUTING VARS */
-        let routingControl = null, routingProfile = "walking", userLat = null, userLng = null;
-        let allFridges = [], fridgeMarkers = [];
+    // SWITCH TRANSPORT MODE
+    document.querySelectorAll('input[name="transport"]').forEach(radio => {
+        radio.addEventListener("change", e => {
+            const mode = e.target.value;
+            if (mode === "train") routingProfile = "walking", switchLayer("train");
+            if (mode === "bus") routingProfile = "driving", switchLayer("bus");
+            if (mode === "bike") routingProfile = "cycling", switchLayer("bike");
 
-        /* SWITCH TRANSPORT */
-        document.querySelectorAll('input[name="transport"]').forEach(radio => {
-            radio.addEventListener("change", e => {
-                let mode = e.target.value;
-                if (mode === "train") routingProfile = "walking", switchLayer("train");
-                if (mode === "bus") routingProfile = "driving", switchLayer("bus");
-                if (mode === "bike") routingProfile = "cycling", switchLayer("bike");
+            // Re-route if there's an active target fridge
+            if (currentTargetFridge) routeToFridge(currentTargetFridge.lat, currentTargetFridge.lng);
+        });
+    });
+
+    function switchLayer(layer) {
+        Object.values(layers).forEach(l => map.removeLayer(l));
+        layers[layer].addTo(map);
+    }
+
+    // SET USER LOCATION
+    function setUserLocation(lat, lng) {
+        userLat = lat; userLng = lng;
+        if (userMarker) map.removeLayer(userMarker);
+        userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map)
+            .bindPopup("Start here").openPopup();
+        map.setView([lat, lng], 13);
+
+        // Re-run route if a target fridge exists
+        if (currentTargetFridge) {
+            routeToFridge(currentTargetFridge.lat, currentTargetFridge.lng);
+        }
+    }
+
+    // ROUTE TO FRIDGE
+    function routeToFridge(lat, lng) {
+        if (!userLat || !userLng) return alert("Please set your starting location first.");
+        currentTargetFridge = { lat, lng }; // Save current fridge
+        if (routingControl) map.removeControl(routingControl);
+
+        routingControl = L.Routing.control({
+            waypoints: [L.latLng(userLat, userLng), L.latLng(lat, lng)],
+            router: L.Routing.osrmv1({ serviceUrl: "https://router.project-osrm.org/route/v1", profile: routingProfile }),
+            showAlternatives: true,
+            lineOptions: {
+                styles: [
+                    { color: "#000", opacity: 0.2, weight: 10 },
+                    { color: "#3F4B3B", weight: 6 },
+                    { color: "#77E4D6", opacity: 0.5, weight: 8 }
+                ]
+            },
+            altLineOptions: { styles: [{ color: "#9ca3af", weight: 5, opacity: 0.5 }] }
+        }).addTo(map);
+    }
+
+    // RENDER FRIDGES
+    function renderFridges(fridges) {
+        const list = document.getElementById("fridge-list");
+        list.innerHTML = "";
+        fridgeMarkers.forEach(m => map.removeLayer(m));
+        fridgeMarkers = [];
+
+        fridges.forEach(f => {
+            const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon }).addTo(map)
+                .bindPopup(`<b>${f.name}</b><br>Status: <span class="capitalize">${f.status}</span><br>
+                    <button onclick="routeToFridge(${f.lat},${f.lng})" class="bg-green-500 text-white px-3 py-1 rounded mt-2">Route Here</button>`);
+            marker.on('dblclick', () => window.location.href = `/individfridge/${f.id}`);
+            fridgeMarkers.push(marker);
+
+            const li = document.createElement("li");
+            li.className = "p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100";
+            li.innerHTML = f.name;
+            li.onclick = () => { map.setView([f.lat, f.lng], 15); marker.openPopup(); };
+            li.ondblclick = () => { window.location.href = `/individfridge/${f.id}`; };
+            list.appendChild(li);
+        });
+    }
+
+    // SEARCH FILTER
+    document.getElementById("fridge-search").addEventListener("input", e => {
+        const query = e.target.value.toLowerCase();
+        renderFridges(allFridges.filter(f => f.name.toLowerCase().includes(query)));
+    });
+
+    // LOAD FRIDGES
+    function loadFridges() {
+        fetch("/get-fridges")
+            .then(res => res.json())
+            .then(data => { allFridges = data; renderFridges(allFridges); });
+    }
+
+    // GEOLOCATION
+    navigator.geolocation.getCurrentPosition(
+        pos => { setUserLocation(pos.coords.latitude, pos.coords.longitude); loadFridges(); },
+        err => { setUserLocation(40.7128, -74.0060); loadFridges(); }
+    );
+
+    // CUSTOM START LOCATION
+    document.getElementById("set-start").addEventListener("click", () => {
+        const address = document.getElementById("start-location").value;
+        if (!address) return alert("Please enter a start location.");
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data || data.length === 0) return alert("Location not found.");
+                setUserLocation(parseFloat(data[0].lat), parseFloat(data[0].lon));
             });
-        });
+    });
 
-        function switchLayer(layer) {
-            Object.values(layers).forEach(l => map.removeLayer(l));
-            layers[layer].addTo(map);
-        }
-
-        /* ROUTE TO FRIDGE */
-        function routeToFridge(lat, lng) {
-            if (!userLat) return alert("Location unavailable");
-            if (routingControl) map.removeControl(routingControl);
-
-            routingControl = L.Routing.control({
-                waypoints: [L.latLng(userLat, userLng), L.latLng(lat, lng)],
-                router: L.Routing.osrmv1({ serviceUrl: "https://router.project-osrm.org/route/v1", profile: routingProfile }),
-                showAlternatives: true,
-                lineOptions: {
-                    styles: [
-                        { color: "#000", opacity: 0.2, weight: 10 },    // Shadow
-                        { color: "#3F4B3B", weight: 6 },               // Main
-                        { color: "#77E4D6", opacity: 0.5, weight: 8 }  // Glow
-                    ]
-                },
-                altLineOptions: {
-                    styles: [{ color: "#9ca3af", weight: 5, opacity: 0.5 }]
-                }
-            }).addTo(map);
-        }
-
-        /* RENDER FRIDGES */
-        function renderFridges(fridges) {
-            const list = document.getElementById("fridge-list");
-            list.innerHTML = "";
-            fridgeMarkers.forEach(m => map.removeLayer(m));
-            fridgeMarkers = [];
-
-            fridges.forEach(f => {
-                const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon })
-                    .addTo(map)
-                    .bindPopup(`
-<b>${f.name}</b><br>
-Status: <span class="capitalize">${f.status}</span> <br>
-<button onclick="routeToFridge(${f.lat},${f.lng})"
-class="bg-green-500 text-white px-3 py-1 rounded mt-2">
-  Route Here
-</button>
-`)
-
-                // Marker double click → fridge page
-                marker.on('dblclick', () => window.location.href = `/individfridge/${f.id}`);
-                fridgeMarkers.push(marker);
-
-                const li = document.createElement("li");
-                li.className = "p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100";
-                li.innerHTML = `${f.name}`;
-
-                li.onclick = () => { map.setView([f.lat, f.lng], 15); marker.openPopup(); };
-                li.ondblclick = () => { window.location.href = `/individfridge/${f.id}`; };
-
-                list.appendChild(li);
-            });
-        }
-
-        /* SEARCH */
-        document.getElementById("fridge-search").addEventListener("input", e => {
-            let query = e.target.value.toLowerCase();
-            renderFridges(allFridges.filter(f => f.name.toLowerCase().includes(query)));
-        });
-
-        /* LOAD FRIDGES */
-        function loadFridges() {
-            fetch("/get-fridges")
-                .then(res => res.json())
-                .then(data => { allFridges = data; renderFridges(allFridges); });
-        }
-
-        /* GEOLOCATION */
-        navigator.geolocation.getCurrentPosition(pos => {
-            userLat = pos.coords.latitude;
-            userLng = pos.coords.longitude;
-
-            L.marker([userLat, userLng], { icon: userIcon }).addTo(map).bindPopup("You are here");
-            map.setView([userLat, userLng], 13);
-            loadFridges();
-        }, err => {
-            userLat = 40.7128;
-            userLng = -74.0060;
-            loadFridges();
-        });
-
-        /* AUTO ROUTE TARGET */
-        if (targetFridge) {
-            setTimeout(() => {
-                routeToFridge(targetFridge.lat, targetFridge.lng);
-                map.setView([targetFridge.lat, targetFridge.lng], 15);
-            }, 1000);
-        }
-
-    </script>
+    // AUTO ROUTE TARGET FRIDGE (OPTIONAL)
+    const targetFridge = {{ target_fridge|tojson if target_fridge else 'null' }};
+    if (targetFridge) {
+        setTimeout(() => { routeToFridge(targetFridge.lat, targetFridge.lng); map.setView([targetFridge.lat, targetFridge.lng], 15); }, 1000);
+    }
+</script>
 
     {% include "components/footer.html.jinja" %}
-
 </body>
 </html>

@@ -185,25 +185,45 @@ def donations():
 def donate_money():
     amount = request.form.get("amount")
     custom_amount = request.form.get("custom_amount")
+    fridge_id = request.form.get("FridgeID")  # matches your form
+
+    if not fridge_id:
+        flash("Please select a fridge to donate to.")
+        return redirect(url_for("donations"))
+
     final_amount = custom_amount if custom_amount else amount
 
+    # Validate amount
+    if not final_amount:
+        flash("Please select or enter an amount.")
+        return redirect(url_for("donations"))
+
+    try:
+        final_amount = float(final_amount)
+    except ValueError:
+        flash("Invalid amount.")
+        return redirect(url_for("donations"))
+
+    # Connect and insert into DB
     connection = connect_db()
     cursor = connection.cursor()
-
     cursor.execute("""
-        INSERT INTO `Donations` (UserID, Amount)
-        VALUES (%s, %s)
-    """, (current_user.id, final_amount))
-
+        INSERT INTO Donations (UserID, Amount, FridgeID, Email, Dropoff, Type, Description)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        current_user.id,
+        final_amount,
+        fridge_id,
+        current_user.email,
+        datetime.now(),
+        "Money",
+        "Monetary donation"
+    ))
     connection.commit()
     connection.close()
 
     flash("Thank you for your monetary donation!")
-    return redirect(url_for("donate"))
-
-
-
-
+    return redirect(url_for("thank"))
 @app.route("/donate-food", methods=["POST"])
 @login_required
 def donate_food():
@@ -237,8 +257,7 @@ def donate_food():
     connection.close()
 
     flash("Your food drop-off has been scheduled!")
-    return redirect(url_for("donate"))
-
+    return redirect(url_for("thank"))
 
 # -----------------------
 # INDIVIDUAL FRIDGE PAGE
@@ -377,12 +396,11 @@ def report_fridge(fridge_id):
 def thank():
     return render_template("components/thanks.html.jinja")
 
-# -----------------------
-# UPDATE FRIDGE STATUS
-# -----------------------
-@app.route("/update/<fridge_id>")
-@login_required
-def update(fridge_id):
+from flask import request, render_template, redirect, url_for
+
+@app.route("/update_fridge/<int:fridge_id>", methods=["GET", "POST"])
+def update_fridge(fridge_id):
+
     connection = connect_db()
     cursor = connection.cursor()
     cursor.execute("""
