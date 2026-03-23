@@ -73,7 +73,7 @@
     <!-- AVAILABLE ITEMS -->
     <ul id="list" class="space-y-4">
       {% for item in Items %}
-      <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+      <li class="fade-in flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
         <div class="flex items-center space-x-4">
           <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
           <p class="font-semibold text-green-700">{{ item['Name'] }}</p>
@@ -111,7 +111,8 @@
             <span class="text-sm text-gray-500">⭐ {{ review["Rating"] }}/5</span>
           </div>
           <p class="text-gray-700">{{ review["Comment"] }}</p>
-          <p class="text-xs text-gray-400 mt-3">Posted {{ review["Timestamp"] }}</p>
+          <p class="text-xs text-gray-400 mt-3"> Posted {{ review["Timestamp"].strftime('%b %d, %Y at %I:%M %p') }}</p>
+
         </div>
         {% endfor %}
       {% else %}
@@ -190,43 +191,6 @@ popup.addEventListener("click", (e) => {
     popup.classList.add("opacity-0", "pointer-events-none");
   }
 });
-let items = JSON.parse(localStorage.getItem("items")) || [];
-
-  function addItem() {
-  const value = document.getElementById("input").value;
-  localItems.push(value);
-  localStorage.setItem("items", JSON.stringify(localItems));
-  render();
-}
-const fridgeKey = `items_${fridgeId}`;
-let localItems = JSON.parse(localStorage.getItem(fridgeKey)) || [];
-
-function addItem() {
-  const value = document.getElementById("input").value;
-  localItems.push(value);
-  localStorage.setItem(fridgeKey, JSON.stringify(localItems));
-  render();
-}
-function render() {
-  document.getElementById("list").innerHTML =
-    localItems.map(i => `
-      <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-        <div class="flex items-center space-x-4">
-          <img src="${i.image}" class="w-12 h-12 rounded-lg object-cover">
-          <p class="font-semibold text-green-700">${i.name}</p>
-        </div>
-        <span class="text-sm font-medium text-gray-600">
-          ${i.quantity} available
-        </span>
-      </li>
-    `).join("");
-}
-function updateItems(newItems) {
-  localItems = newItems;
-  localStorage.setItem("items", JSON.stringify(localItems));
-
-}
-render();
 
 </script>
 </body>
