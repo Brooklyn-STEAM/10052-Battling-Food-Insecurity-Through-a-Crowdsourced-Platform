@@ -473,3 +473,11 @@ def update_picture():
 # -----------------------
 if __name__ == "__main__":
     app.run(debug=True)
+
+@app.route("/about")
+def about():
+    return render_template("aboutus.html.jinja")
+
+@app.route("/contact")
+def contact():
+    return render_template("contact.html.jinja")

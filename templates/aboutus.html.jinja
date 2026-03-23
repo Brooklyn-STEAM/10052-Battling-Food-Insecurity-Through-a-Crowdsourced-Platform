@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="icon" type="image/png" href="/static/images/logo.png">
+  <title>FridgeNet Sign Up</title>
+</head>
+
+<body class="bg-gradient-to-r from-green-100 to-yellow-100 min-h-screen flex flex-col">
+
+  {% include "components/navbar.html.jinja" %}
+
+    <h1 class="text-4xl font-extrabold text-center text-green-800 mt-12">
+        About Us
+    </h1>
+    <p class="text-center text-gray-600 mt-3 mb-12 max-w-2xl mx-auto px-4 text-lg">
+        FridgeNet is a community-driven initiative dedicated to reducing food waste and supporting those in need. Our mission is to connect individuals and organizations to share surplus food, fostering a culture of generosity and sustainability. We believe that by working together, we can make a significant impact on food insecurity and environmental conservation.
+    </p>
+
+    <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto px-4 text-lg">
+        Our platform allows users to easily donate or request food, track their contributions, and connect with local communities. We are committed to transparency, accountability, and creating a positive impact on society. Join us in our mission to create a more sustainable and compassionate world.
+    </p>
+
+  {% include "components/footer.html.jinja" %}
+
+</body>
+
+</html>

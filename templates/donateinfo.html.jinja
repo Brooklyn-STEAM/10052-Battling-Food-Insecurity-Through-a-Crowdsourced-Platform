@@ -1,291 +1,274 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
-    <title>Donate | Community Food Support</title>
+    <title>Donate | Community Support</title>
     <link rel="icon" type="image/png" href="/static/images/logo.png">
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+
+    <style>
+.input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid #374151;
+
+    /* 👇 LIGHT MODE BACKGROUND (light black / gray) */
+    background: #eef0f3; /* slightly cooler gray */
+
+    color: #111827;
+
+    outline: none;
+    transition: all 0.2s;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+
+}
+
+/* DARK MODE */
+.dark .input {
+    background: #2b3440;
+    border-color: #40376E;
+    color: white;
+
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+        .input:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+        }
+    </style>
 </head>
 
-<body class="bg-gray-50">
-    {% include "components/navbar.html.jinja" %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <!-- Page Header -->
-        <div class="text-center mb-16">
-<h1 class="text-3xl sm:text-5xl font-extrabold tracking-wide mb-4">                
-Help People In Need
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+
+{% include "components/navbar.html.jinja" %}
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-10">
+        <div>
+            <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white">
+                Help People In Need
             </h1>
-            <p class="text-lg text-gray-600">
-                Support families in need by donating money or food.
+            <p class="text-gray-600 dark:text-gray-300 mt-2">
+                Donate money or food to support local communities.
             </p>
         </div>
 
-
-        <!-- Main Grid -->
-<div class="grid lg:grid-cols-2 gap-8 lg:gap-16">            
-<!-- 💳 MONEY DONATION -->
-            <div class="bg-white p-8 rounded-2xl shadow-lg">
-                <h2 class="text-3xl font-bold mb-6">Donate Money</h2>
-                <form method="POST" action="{{ url_for('donate_money') }}" class="space-y-6">
-                    <!-- Preset Amounts -->
-                    <div>
-                        <label class="block font-semibold mb-3">Select Amount</label>
-                        <div class="grid grid-cols-3 gap-4">
-                            {% for amount in [10, 25, 50] %}
-                            <label class="cursor-pointer">
-                                <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
-
-                                <div
-                                    class="border rounded-lg p-4 text-center transition peer-checked:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50">
-                                    <span class="text-lg font-semibold">${{ amount }}</span>
-                                </div>
-                            </label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <!-- Custom Amount -->
-                    <div>
-                        <label class="block font-semibold mb-2">Or Enter Custom Amount</label>
-                        <input type="number" name="custom_amount" placeholder="Enter amount"
-                            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
-                    </div>
-<!-- Select a Fridge -->
-<div>
-    <label class="block font-semibold mb-2">Select a Fridge</label>
-
-    <!-- Hidden input for form submission -->
-    <input type="hidden" name="FridgeID" id="moneySelectedFridge" required>
-
-    <!-- Dropdown button -->
-    <button type="button" id="moneyFridgeDropdownButton"
-        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white hover:border-orange-400">
-        <span id="moneyFridgeSelectedText" class="text-gray-500">Choose a fridge</span>
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
-    </button>
-
-    <!-- Dropdown menu -->
-    <div id="moneyFridgeDropdownMenu"
-     class="absolute z-10 w-196 bg-white border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto hidden">
-        {% for fridge in fridges %}
-        <div class="flex items-center gap-3 p-3 hover:bg-orange-50 cursor-pointer money-fridge-dropdown-item"
-            data-value="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
-            <img src="{{ fridge['Image'] }}" class="w-6 h-6">
-            <span>{{ fridge['Name'] }}</span>
-        </div>
-        {% endfor %}
+        <button onclick="toggleDarkMode()"
+            class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white">
+            🌙 Theme
+        </button>
     </div>
-</div>
-                    <!-- Submit -->
-                    <button type="submit" action="/thank_you"
-                        class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition">
-                        Donate Now </button>
-                </form>
-            </div>
 
-            <!-- Drop-off Form -->
-            <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-5">
+    <!-- GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
+        <!-- 💳 MONEY FORM -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 space-y-5">
 
-                <h3 class="text-xl font-semibold mb-4">Schedule a Drop-Off</h3>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                Donate Money
+            </h2>
 
-                <div>
-                    <label class="block font-semibold mb-2">Full Name</label>
-                    <input type="text" name="full_name" required
-                        class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
+            <form method="POST" action="{{ url_for('donate_money') }}" class="space-y-5">
+
+                <!-- AMOUNTS -->
+                <div class="grid grid-cols-3 gap-3 text-gray-700 dark:text-gray-300 font-semibold">
+                    {% for amount in [10, 25, 50] %}
+                    <label class="cursor-pointer">
+                        <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
+                        <div class="p-4 text-center rounded-xl border
+                            border-gray-200 dark:border-gray-700
+                            peer-checked:bg-orange-500 peer-checked:text-white">
+                            ${{ amount }}
+                        </div>
+                    </label>
+                    {% endfor %}
                 </div>
 
-                <div>
-                    <label class="block font-semibold mb-2">Email</label>
-                    <input type="email" name="food_email" required
-                        class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
-                </div>
+                <input type="number" name="custom_amount" placeholder="Custom amount" class="input">
 
-                <div>
-                    <label class="block font-semibold mb-2">Select a Fridge</label>
+                <!-- 🧊 MONEY FRIDGE -->
+                <div class="relative">
+                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Select a Fridge
+                    </label>
 
-                    <!-- Hidden input for form submission -->
-                    <input type="hidden" name="FridgeID" id="selectedFridge" required>
+                    <input type="hidden" name="FridgeID" id="moneyFridgeValue" required>
 
-                    <!-- Dropdown button -->
-                    <button type="button" id="fridgeDropdownButton"
-                        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white hover:border-orange-400">
+                    <button type="button" id="moneyFridgeBtn"
+                        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white dark:bg-gray-800 dark:text-white">
 
-                        <span id="fridgeSelectedText" class="text-gray-500">Choose a fridge</span>
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
+                        <span id="moneyFridgeText" class="text-gray-500 dark:text-gray-300">
+                            Choose a fridge
+                        </span>
+
+                        <span>▼</span>
                     </button>
 
-                    <!-- Dropdown menu -->
-                    <div id="fridgeDropdownMenu"
-                        class="absolute z-10 w-full bg-white border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto hidden">
+                    <div id="moneyFridgeMenu"
+                        class="absolute z-10 w-full bg-white dark:bg-gray-800 border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto hidden">
 
                         {% for fridge in fridges %}
-                        <div class="flex items-center gap-3 p-3 hover:bg-orange-50 cursor-pointer fridge-dropdown-item"
-                            data-value="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                        <div class="money-item flex items-center gap-3 p-3 cursor-pointer
+                            hover:bg-orange-50 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
+                            
+                            data-id="{{ fridge['ID'] }}"
+                            data-name="{{ fridge['Name'] }}"
+                            data-image="{{ fridge['Image'] }}">
 
-                            <img src="{{ fridge['Image'] }}" class="w-6 h-6">
-                            <span>{{ fridge['Name'] }}</span>
+                            <img src="{{ fridge['Image'] }}"
+                                 class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">
+
+                            <span class="font-medium">
+                                {{ fridge['Name'] }}
+                            </span>
                         </div>
                         {% endfor %}
-
                     </div>
-
-
-                </div>
-                <div>
-                    <label class="block font-semibold mb-2">Preferred Drop-Off Date</label>
-                    <input type="date" name="dropoff_date" required
-                        class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
                 </div>
 
-                <div class="relative">
-                    <label class="block font-semibold mb-2">Type of Donation</label>
-
-                    <!-- Hidden input for form submission -->
-                    <input type="hidden" name="item_type" id="selectedItem" required>
-
-                    <!-- Dropdown button -->
-                    <button type="button" id="dropdownButton"
-                        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white hover:border-orange-400">
-
-                        <span id="selectedText" class="text-gray-500">Select donation type</span>
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                    </button>
-
-                    <!-- Dropdown menu -->
-                    <div id="dropdownMenu"
-                        class="absolute z-10 w-full bg-white border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto">
-
-                        {% for item in items %}
-                        <div class="flex items-center gap-3 p-3 hover:bg-orange-50 cursor-pointer dropdown-item"
-                            data-value="{{ item['Name'] }}" data-name="{{ item['Name'] }}">
-
-                            <img src="{{ item['Image'] }}" class="w-6 h-6">
-                            <span>{{ item['Name'] }}</span>
-
-                        </div>
-                        {% endfor %}
-
-                    </div>
-                <div>
-                    <label class="block font-semibold mb-2">Quantity</label>
-                    <input type="number" name="quantity" min="1" placeholder="Enter quantity" required
-                        class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none">
-                </div>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-2">Notes (Optional)</label>
-                    <textarea name="notes" rows="3"
-                        class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400 outline-none"></textarea>
-                </div>
-                <!-- form fields -->
-                <button type="submit"
-                    class="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition">
+                <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold">
                     Donate Now
                 </button>
-
-
             </form>
+        </div>
 
+        <!-- 🍱 FOOD FORM -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 space-y-5">
+
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                Schedule Food Drop-Off
+            </h2>
+
+            <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
+
+                <input type="text" name="full_name" placeholder="Full Name" class="input">
+                <input type="email" name="food_email" placeholder="Email" class="input">
+                <input type="date" name="dropoff_date" class="input">
+                <input type="number" name="quantity" placeholder="Quantity" class="input">
+                <textarea name="notes" placeholder="Notes (optional)" class="input"></textarea>
+
+                <!-- 🧊 FOOD FRIDGE -->
+                <div class="relative">
+                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Select a Fridge
+                    </label>
+
+                    <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
+
+                    <button type="button" id="foodFridgeBtn"
+                        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white dark:bg-gray-800 dark:text-white">
+
+                        <span id="foodFridgeText" class="text-gray-500 dark:text-gray-300">
+                            Choose a fridge
+                        </span>
+
+                        <span>▼</span>
+                    </button>
+
+                    <div id="foodFridgeMenu"
+                        class="absolute z-10 w-full bg-white dark:bg-gray-800 border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto hidden">
+
+                        {% for fridge in fridges %}
+                        <div class="food-item flex items-center gap-3 p-3 cursor-pointer
+                            hover:bg-orange-50 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
+                            
+                            data-id="{{ fridge['ID'] }}"
+                            data-name="{{ fridge['Name'] }}"
+                            data-image="{{ fridge['Image'] }}">
+
+                            <img src="{{ fridge['Image'] }}"
+                                 class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">
+
+                            <span class="font-medium">
+                                {{ fridge['Name'] }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold">
+                    Donate Now
+                </button>
+            </form>
         </div>
 
     </div>
-    </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const dropdownBtn = document.getElementById("dropdownButton");
-            const dropdownMenu = document.getElementById("dropdownMenu");
-            const dropdownItems = document.querySelectorAll(".dropdown-item");
-            const selectedText = document.getElementById("selectedText");
-            const hiddenInput = document.getElementById("selectedItem");
+<!-- 🌙 DARK MODE -->
+<script>
+function toggleDarkMode() {
+    document.documentElement.classList.toggle("dark");
 
-            dropdownMenu.classList.add("hidden");
+    localStorage.setItem(
+        "theme",
+        document.documentElement.classList.contains("dark") ? "dark" : "light"
+    );
+}
 
-            dropdownBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                dropdownMenu.classList.toggle("hidden");
-            });
+(function () {
+    if (localStorage.getItem("theme") === "dark") {
+        document.documentElement.classList.add("dark");
+    }
+})();
+</script>
 
-            dropdownItems.forEach(item => {
-                item.addEventListener("click", (e) => {
-                    e.stopPropagation();
+<!-- 🧊 DROPDOWN LOGIC -->
+<script>
+function setupDropdown(btnId, menuId, itemsClass, inputId, textId) {
+    const btn = document.getElementById(btnId);
+    const menu = document.getElementById(menuId);
+    const input = document.getElementById(inputId);
+    const text = document.getElementById(textId);
 
-                    const name = item.dataset.name;
-                    const value = item.dataset.value;
-
-                    selectedText.textContent = name;
-                    hiddenInput.value = value;
-
-                    dropdownMenu.classList.add("hidden");
-                });
-            });
-
-            document.addEventListener("click", () => {
-                dropdownMenu.classList.add("hidden");
-            });
-        });
-        document.getElementById("fridgeDropdownButton").addEventListener("click", function () {
-            document.getElementById("fridgeDropdownMenu").classList.toggle("hidden");
-        });
-
-        document.querySelectorAll(".fridge-dropdown-item").forEach(item => {
-            item.addEventListener("click", function () {
-                const value = this.getAttribute("data-value");
-                const name = this.getAttribute("data-name");
-
-                document.getElementById("selectedFridge").value = value;
-                document.getElementById("fridgeSelectedText").textContent = name;
-
-                document.getElementById("fridgeDropdownMenu").classList.add("hidden");
-            });
-        });
-// Fridge dropdown for Money form
-const moneyFridgeButton = document.getElementById("moneyFridgeDropdownButton");
-const moneyFridgeMenu = document.getElementById("moneyFridgeDropdownMenu");
-const moneyFridgeItems = document.querySelectorAll(".money-fridge-dropdown-item");
-const moneyFridgeSelectedText = document.getElementById("moneyFridgeSelectedText");
-const moneyFridgeHiddenInput = document.getElementById("moneySelectedFridge");
-
-moneyFridgeButton.addEventListener("click", function (e) {
-    e.stopPropagation();
-    moneyFridgeMenu.classList.toggle("hidden");
-});
-
-moneyFridgeItems.forEach(item => {
-    item.addEventListener("click", function () {
-        const value = this.getAttribute("data-value");
-        const name = this.getAttribute("data-name");
-
-        moneyFridgeHiddenInput.value = value;
-        moneyFridgeSelectedText.textContent = name;
-
-        moneyFridgeMenu.classList.add("hidden");
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menu.classList.toggle("hidden");
     });
-});
 
-// Close dropdown when clicking outside
-document.addEventListener("click", () => {
-    moneyFridgeMenu.classList.add("hidden");
-});
+    document.querySelectorAll("." + itemsClass).forEach(item => {
+        item.addEventListener("click", () => {
 
+            const id = item.dataset.id;
+            const name = item.dataset.name;
+            const image = item.dataset.image;
 
-    </script>
+            input.value = id;
 
+            text.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <img src="${image}" class="w-6 h-6 rounded-full object-cover">
+                    <span class="text-gray-900 dark:text-white">${name}</span>
+                </div>
+            `;
 
+            menu.classList.add("hidden");
+        });
+    });
 
+    document.addEventListener("click", () => {
+        menu.classList.add("hidden");
+    });
+}
+
+// INIT
+setupDropdown("moneyFridgeBtn", "moneyFridgeMenu", "money-item", "moneyFridgeValue", "moneyFridgeText");
+setupDropdown("foodFridgeBtn", "foodFridgeMenu", "food-item", "foodFridgeValue", "foodFridgeText");
+</script>
 
 </body>
-
 </html>
