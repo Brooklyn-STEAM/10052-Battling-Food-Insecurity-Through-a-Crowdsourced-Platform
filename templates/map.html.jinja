@@ -191,6 +191,10 @@
     if (targetFridge) {
         setTimeout(() => { routeToFridge(targetFridge.lat, targetFridge.lng); map.setView([targetFridge.lat, targetFridge.lng], 15); }, 1000);
     }
+    socket.on("status_update", data => {
+    updateFridgeOnMap(data.fridge_id, data.status);
+});
+
 </script>
 
     {% include "components/footer.html.jinja" %}

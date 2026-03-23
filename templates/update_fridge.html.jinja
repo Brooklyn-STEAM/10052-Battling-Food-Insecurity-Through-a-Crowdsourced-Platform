@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ fridge['Name'] }} - Update Inventory</title>
+<title>{{ fridge['Name'] }} -  Update Inventory</title>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 
@@ -15,7 +15,7 @@
 
 <!-- Title -->
 <h1 class="text-3xl font-bold text-green-800 mb-6">
-Update {{ fridge['Name'] }}
+Update - {{ fridge['Name'] }}
 </h1>
 
 <!-- Last Updated -->
@@ -23,7 +23,7 @@ Update {{ fridge['Name'] }}
 <strong>Last Updated:</strong>
 {% if status %}
 {{ status["Last_updated"].strftime('%b %d, %Y at %I:%M %p') }}
-{% else %}
+{% else %}  
 No updates yet
 {% endif %}
 </div>
@@ -55,13 +55,14 @@ class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full">
 -
 </button>
 
-<input
-type="number"
+<input 
+type="number" 
 name="quantity_{{ item['ItemsID'] }}"
 id="qty_{{ item['ItemsID'] }}"
 value="{{ item['Quantity'] }}"
 class="w-16 text-center border rounded"
 min="0"
+readonly
 >
 
 <button type="button"
@@ -73,7 +74,7 @@ class="bg-green-600 hover:bg-green-700 text-white w-8 h-8 rounded-full">
 </div>
 
 </div>
-{% endfor %}
+{% endfor %} 
 
 </div>
 
@@ -124,11 +125,13 @@ Submit Update
 
 <script>
 function changeQty(id, amount) {
-let input = document.getElementById(`qty_${id}`);
-let value = parseInt(input.value) || 0;
-value += amount;
-if (value < 0) value = 0;
-input.value = value;
+    const input = document.getElementById("qty_" + id);
+    let value = parseInt(input.value) || 0;
+
+    value += amount;
+    if (value < 0) value = 0;
+
+    input.value = value;
 }
 
 function updateLabel(value) {
@@ -140,6 +143,24 @@ if (value == 3) text = "Many Items";
 if (value == 4) text = "Full";
 document.getElementById("fullnessLabel").innerText = text;
 }
+
+const fridgeKey = `items_${fridgeId}`;
+let localItems = JSON.parse(localStorage.getItem(fridgeKey)) || [];
+
+function updateItems(newItems) {
+  localItems = newItems;
+  localStorage.setItem(fridgeKey, JSON.stringify(localItems));
+}
+function animateItems() {
+  document.querySelectorAll("#list li").forEach((el, i) => {
+    el.style.animationDelay = `${i * 0.05}s`;
+    el.classList.add("fade-in");
+  });
+}
+
+animateItems();
+
+
 </script>
 
 {% include "components/footer.html.jinja" %}
