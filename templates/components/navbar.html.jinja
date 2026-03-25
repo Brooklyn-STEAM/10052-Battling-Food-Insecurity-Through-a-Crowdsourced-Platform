@@ -1,5 +1,5 @@
- <!-- FridgeNet Navbar -->
-<nav class="bg-green-600 text-white w-full shadow-md z-[10000]fixed">
+<!-- FridgeNet Navbar -->
+<nav class="bg-green-600 dark:bg-[#8C65DB] text-white w-full shadow-md z-[10000]fixed">
   <div class="max-w-7xl mx-auto px-6 py-6
   flex items-center justify-between">
 
@@ -10,17 +10,41 @@
 
     <!-- Desktop Navigation -->
     <ul class="hidden md:flex items-center font-semibold space-x-10">
-      <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
-      <li><a class="hover:text-yellow-300 transition" href="/donations">Donate</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/map">Map</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/donations">Donate</a></li>
     </ul>
 
     <!-- Right Side -->
     <div class="flex items-center space-x-4">
 
+      <!-- 🌙 Dark Mode Toggle Button -->
+      <button id="theme-toggle"
+        class="p-2 rounded-lg bg-green-500 dark:bg-[#40376E]
+               hover:bg-green-400 dark:hover:bg-[#5a4fd6]
+               transition flex items-center justify-center w-10 h-10">
+
+        <!-- Sun icon (shows in dark mode) -->
+        <svg xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 hidden dark:block"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8"/>
+        </svg>
+
+        <!-- Moon icon (shows in light mode) -->
+        <svg xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 block dark:hidden"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 12.79A9 9 0 1111.21 3A7 7 0 0021 12.79z"/>
+        </svg>
+
+      </button>
+
       <!-- Account Dropdown (Desktop) -->
       <div class="z-[9999] relative group hidden md:block">
 
-        <button class="flex items-center gap-2 hover:text-gray-200 focus:outline-none">
+        <button class="flex items-center gap-2 hover:text-gray-200 dark:hover:text-gray-300 focus:outline-none">
           <!-- User Icon -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
@@ -44,16 +68,19 @@
         </button>
 
         <!-- Dropdown -->
-        <ul class="absolute right-0 w-40 bg-green-800 border border-green-700 rounded-md z-[9999]
+        <ul class="absolute right-0 w-40 
+             bg-green-800 dark:bg-[#1b1730]
+             border border-green-700 dark:border-[#40376E]
+             rounded-md z-[9999]
              opacity-0 invisible group-hover:opacity-100 group-hover:visible
              transition duration-200">
 
           {% if not current_user.is_authenticated %}
-          <li><a href="/login" class="block px-4 py-2 hover:bg-green-700">Sign In</a></li>
-          <li><a href="/signup" class="block px-4 py-2 hover:bg-green-700">Register</a></li>
+          <li><a href="/login" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">Sign In</a></li>
+          <li><a href="/signup" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">Register</a></li>
           {% else %}
-          <li><a href="/profile_page" class="block px-4 py-2 hover:bg-green-700">Profile</a></li>
-          <li><a href="/logout" class="block px-4 py-2 hover:bg-green-700">Logout</a></li>
+          <li><a href="/profile_page" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">Profile</a></li>
+          <li><a href="/logout" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-red-600">Logout</a></li>
           {% endif %}
 
         </ul>
@@ -62,7 +89,7 @@
       <!-- Mobile Menu Button -->
       <button id="mobile-menu-button" class="md:hidden">
         <svg xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6 hover:text-yellow-300 transition"
+          class="h-6 w-6 hover:text-yellow-300 dark:hover:text-yellow-200 transition"
           fill="none" viewBox="0 0 24 24"
           stroke="currentColor">
           <path stroke-linecap="round"
@@ -76,18 +103,18 @@
   </div>
 
   <!-- Mobile Menu -->
-  <div id="mobile-menu" class="hidden md:hidden bg-green-800">
+  <div id="mobile-menu" class="hidden md:hidden bg-green-800 dark:bg-[#1b1730]">
     <ul class="flex flex-col px-6 py-4 space-y-4">
 
-      <li><a class="hover:text-yellow-300 transition" href="/map">Map</a></li>
-      <li><a class="hover:text-yellow-300 transition" href="/donations">Donate</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/map">Map</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/donations">Donate</a></li>
 
       {% if current_user.is_authenticated %}
-      <li><a class="hover:text-yellow-300 transition" href="/profile">Profile</a></li>
-      <li><a class="hover:text-red-300 transition" href="/logout">Logout</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/profile">Profile</a></li>
+      <li><a class="hover:text-red-300 dark:hover:text-red-400 transition" href="/logout">Logout</a></li>
       {% else %}
-      <li><a class="hover:text-yellow-300 transition" href="/login">Sign In</a></li>
-      <li><a class="hover:text-yellow-300 transition" href="/signup">Register</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/login">Sign In</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/signup">Register</a></li>
       {% endif %}
 
     </ul>
@@ -101,6 +128,27 @@
     if (menuButton && mobileMenu) {
       menuButton.addEventListener('click', () => {
         mobileMenu.classList.toggle('hidden');
+      });
+    }
+
+    // 🌙 THEME FIX: DEFAULT LIGHT MODE ONLY (NO UI CHANGES)
+    const themeToggle = document.getElementById("theme-toggle");
+
+    (function () {
+      const saved = localStorage.getItem("theme");
+
+      if (saved === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        // FORCE LIGHT MODE AS DEFAULT
+        document.documentElement.classList.remove("dark");
+      }
+    })();
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
       });
     }
   </script>

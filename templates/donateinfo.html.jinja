@@ -5,52 +5,76 @@
     <title>Donate | Community Support</title>
     <link rel="icon" type="image/png" href="/static/images/logo.png">
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class'
+  }
+</script>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class'
-        }
-    </script>
+<script>
+(function () {
+  const saved = localStorage.getItem("theme");
+
+  if (saved === "dark") {
+    document.documentElement.classList.add("dark");
+  } else if (saved === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.classList.toggle("dark", prefersDark);
+  }
+})();
+</script>
 
     <style>
+/* INPUT */
 .input {
     width: 100%;
     padding: 0.75rem;
     border-radius: 0.75rem;
-    border: 1px solid #374151;
+    border: 1px solid #d1d5db;
+    background: #f8fafc;
+    transition: 0.25s;
+}
+.input:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.3);
+}
 
-    /* 👇 LIGHT MODE BACKGROUND (light black / gray) */
-    background: #eef0f3; /* slightly cooler gray */
-
-    color: #111827;
-
-    outline: none;
-    transition: all 0.2s;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-
+/* FORM CARD (purple theme) */
+.form-card {
+    background: linear-gradient(135deg, #ffffff, #f3f0ff);
+    border: 1px solid #e9d5ff;
+}
+.dark .form-card {
+    background: linear-gradient(135deg, #1e1b2e, #2a2545);
+    border: 1px solid #40376E;
 }
 
 /* DARK MODE */
 .dark .input {
-    background: #2b3440;
+    background: #2a2545;
     border-color: #40376E;
-    color: white;
-
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+    color: #fff;
 }
 
-        .input:focus {
-            border-color: #f97316;
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
-        }
+.dark .dropdown {
+    background: #2a2545;
+    border-color: #40376E;
+}
+html {
+    scroll-behavior: smooth;
+}
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
     </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-
-{% include "components/navbar.html.jinja" %}
+<body class="bg-white text-gray-800 
+             dark:bg-[#1b1730] dark:text-gray-100 
+             transition-colors duration-300">{% include "components/navbar.html.jinja" %}
 
 <div class="max-w-5xl mx-auto px-4 py-10">
 
@@ -65,90 +89,75 @@
             </p>
         </div>
 
-        <button onclick="toggleDarkMode()"
-            class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white">
-            🌙 Theme
-        </button>
+
     </div>
 
-    <!-- GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         <!-- 💳 MONEY FORM -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 space-y-5">
+        <div class="form-card rounded-2xl shadow-lg p-6 space-y-5">
 
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 class="text-2xl font-bold dark:text-white">
                 Donate Money
             </h2>
 
-            <form method="POST" action="{{ url_for('donate_money') }}" class="space-y-5">
+            <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm" class="space-y-5">
 
                 <!-- AMOUNTS -->
-                <div class="grid grid-cols-3 gap-3 text-gray-700 dark:text-gray-300 font-semibold">
+                <div class="grid grid-cols-3 gap-3 font-semibold">
                     {% for amount in [10, 25, 50] %}
                     <label class="cursor-pointer">
                         <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
                         <div class="p-4 text-center rounded-xl border
-                            border-gray-200 dark:border-gray-700
-                            peer-checked:bg-orange-500 peer-checked:text-white">
+                            peer-checked:bg-purple-600 peer-checked:text-white dark: text-gray-300 peer-checked:border-purple-600 hover:bg-purple-100 dark:hover:bg-[#40376E] transition">
                             ${{ amount }}
                         </div>
                     </label>
                     {% endfor %}
                 </div>
 
-                <input type="number" name="custom_amount" placeholder="Custom amount" class="input">
+                <!-- CUSTOM -->
+                <input type="number" name="custom_amount" id="customAmount"
+                    placeholder="Custom amount" class="input" min="1" max="10000">
 
-                <!-- 🧊 MONEY FRIDGE -->
+                <!-- 🧊 FRIDGE SELECT (KEEPED) -->
                 <div class="relative">
-                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                    <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2">
                         Select a Fridge
                     </label>
 
                     <input type="hidden" name="FridgeID" id="moneyFridgeValue" required>
 
                     <button type="button" id="moneyFridgeBtn"
-                        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white dark:bg-gray-800 dark:text-white">
+                        class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] dark:text-white flex justify-between">
 
-                        <span id="moneyFridgeText" class="text-gray-500 dark:text-gray-300">
-                            Choose a fridge
-                        </span>
-
+                        <span id="moneyFridgeText">Choose a fridge</span>
                         <span>▼</span>
                     </button>
 
                     <div id="moneyFridgeMenu"
-                        class="absolute z-10 w-full bg-white dark:bg-gray-800 border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto hidden">
+                        class="dropdown absolute z-10 w-full mt-2 rounded-lg border hidden">
 
                         {% for fridge in fridges %}
-                        <div class="money-item flex items-center gap-3 p-3 cursor-pointer
-                            hover:bg-orange-50 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
-                            
+                        <div class="money-item p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
                             data-id="{{ fridge['ID'] }}"
-                            data-name="{{ fridge['Name'] }}"
-                            data-image="{{ fridge['Image'] }}">
-
-                            <img src="{{ fridge['Image'] }}"
-                                 class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">
-
-                            <span class="font-medium">
-                                {{ fridge['Name'] }}
-                            </span>
+                            data-name="{{ fridge['Name'] }}">
+                            {{ fridge['Name'] }}
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
-                <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold">
+                <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl">
                     Donate Now
                 </button>
             </form>
         </div>
 
         <!-- 🍱 FOOD FORM -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 space-y-5">
+        <div class="form-card rounded-2xl shadow-lg p-6 space-y-5">
 
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 class="text-2xl font-bold dark:text-white">
                 Schedule Food Drop-Off
             </h2>
 
@@ -160,47 +169,35 @@
                 <input type="number" name="quantity" placeholder="Quantity" class="input">
                 <textarea name="notes" placeholder="Notes (optional)" class="input"></textarea>
 
-                <!-- 🧊 FOOD FRIDGE -->
+                <!-- 🧊 FRIDGE SELECT (KEEPED) -->
                 <div class="relative">
-                    <label class="block font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                    <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2">
                         Select a Fridge
                     </label>
 
                     <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
 
                     <button type="button" id="foodFridgeBtn"
-                        class="w-full border rounded-lg p-3 flex justify-between items-center bg-white dark:bg-gray-800 dark:text-white">
+                        class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] dark:text-white flex justify-between">
 
-                        <span id="foodFridgeText" class="text-gray-500 dark:text-gray-300">
-                            Choose a fridge
-                        </span>
-
+                        <span id="foodFridgeText">Choose a fridge</span>
                         <span>▼</span>
                     </button>
 
                     <div id="foodFridgeMenu"
-                        class="absolute z-10 w-full bg-white dark:bg-gray-800 border rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto hidden">
+                        class="dropdown absolute z-10 w-full mt-2 rounded-lg border hidden">
 
                         {% for fridge in fridges %}
-                        <div class="food-item flex items-center gap-3 p-3 cursor-pointer
-                            hover:bg-orange-50 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
-                            
+                        <div class="food-item p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
                             data-id="{{ fridge['ID'] }}"
-                            data-name="{{ fridge['Name'] }}"
-                            data-image="{{ fridge['Image'] }}">
-
-                            <img src="{{ fridge['Image'] }}"
-                                 class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">
-
-                            <span class="font-medium">
-                                {{ fridge['Name'] }}
-                            </span>
+                            data-name="{{ fridge['Name'] }}">
+                            {{ fridge['Name'] }}
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
-                <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold">
+                <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl">
                     Donate Now
                 </button>
             </form>
@@ -210,24 +207,9 @@
 </div>
 
 <!-- 🌙 DARK MODE -->
-<script>
-function toggleDarkMode() {
-    document.documentElement.classList.toggle("dark");
 
-    localStorage.setItem(
-        "theme",
-        document.documentElement.classList.contains("dark") ? "dark" : "light"
-    );
-}
 
-(function () {
-    if (localStorage.getItem("theme") === "dark") {
-        document.documentElement.classList.add("dark");
-    }
-})();
-</script>
-
-<!-- 🧊 DROPDOWN LOGIC -->
+<!-- 🧊 DROPDOWNS -->
 <script>
 function setupDropdown(btnId, menuId, itemsClass, inputId, textId) {
     const btn = document.getElementById(btnId);
@@ -235,39 +217,48 @@ function setupDropdown(btnId, menuId, itemsClass, inputId, textId) {
     const input = document.getElementById(inputId);
     const text = document.getElementById(textId);
 
-    btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        menu.classList.toggle("hidden");
-    });
+    if (!btn || !menu) return;
+
+    btn.onclick = () => menu.classList.toggle("hidden");
 
     document.querySelectorAll("." + itemsClass).forEach(item => {
-        item.addEventListener("click", () => {
-
-            const id = item.dataset.id;
-            const name = item.dataset.name;
-            const image = item.dataset.image;
-
-            input.value = id;
-
-            text.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <img src="${image}" class="w-6 h-6 rounded-full object-cover">
-                    <span class="text-gray-900 dark:text-white">${name}</span>
-                </div>
-            `;
-
+        item.onclick = () => {
+            input.value = item.dataset.id;
+            text.textContent = item.dataset.name;
             menu.classList.add("hidden");
-        });
+        };
     });
 
-    document.addEventListener("click", () => {
-        menu.classList.add("hidden");
+    document.addEventListener("click", () => menu.classList.add("hidden"));
+}
+
+setupDropdown("moneyFridgeBtn","moneyFridgeMenu","money-item","moneyFridgeValue","moneyFridgeText");
+setupDropdown("foodFridgeBtn","foodFridgeMenu","food-item","foodFridgeValue","foodFridgeText");
+</script>
+
+<!-- 💰 AMOUNT LOGIC -->
+<script>
+const customInput = document.getElementById("customAmount");
+const presetRadios = document.querySelectorAll('input[name="amount"]');
+
+if (customInput) {
+    customInput.addEventListener("input", () => {
+        if (customInput.value !== "") {
+            presetRadios.forEach(r => r.checked = false);
+        }
     });
 }
 
-// INIT
-setupDropdown("moneyFridgeBtn", "moneyFridgeMenu", "money-item", "moneyFridgeValue", "moneyFridgeText");
-setupDropdown("foodFridgeBtn", "foodFridgeMenu", "food-item", "foodFridgeValue", "foodFridgeText");
+presetRadios.forEach(radio => {
+    radio.addEventListener("change", () => {
+        if (radio.checked) customInput.value = "";
+    });
+});
+</script>
+<script>
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
 </script>
 
 </body>
