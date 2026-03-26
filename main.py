@@ -168,103 +168,210 @@ def signup():
 def donate():
     return render_template("donate.html.jinja")
 
+# -----------------------
+# DONATE PAGE (LOAD DATA)
+# -----------------------
 @app.route("/donate", methods=["GET"])
 @login_required
 def donations():
     connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM Items")
-    items = cursor.fetchall()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    # Get items (for food dropdown)
+    cursor.execute("SELECT ID, Name, Image FROM Items")
+    food_types = cursor.fetchall()
+
+    # Get fridges
     cursor.execute("SELECT ID, Name, Image FROM Fridge")
     fridges = cursor.fetchall()
+
     connection.close()
 
-    return render_template("donateinfo.html.jinja", items=items, fridges=fridges)
+    return render_template(
+        "donateinfo.html.jinja",
+        fridges=fridges,
+        food_types=food_types
+    )
 
 
-
-@app.route("/donate-money", methods=["POST"])
+# -----------------------------
+# 💰 DONATE MONEY
+# -----------------------------
+@app.route("/donate-money", methods=["GET", "POST"])
 @login_required
 def donate_money():
-    amount = request.form.get("amount")
-    custom_amount = request.form.get("custom_amount")
-    fridge_id = request.form.get("FridgeID")  # matches your form
-
-    if not fridge_id:
-        flash("Please select a fridge to donate to.")
-        return redirect(url_for("donations"))
-
-    final_amount = custom_amount if custom_amount else amount
-
-    # Validate amount
-    if not final_amount:
-        flash("Please select or enter an amount.")
-        return redirect(url_for("donations"))
-
-    try:
-        final_amount = float(final_amount)
-    except ValueError:
-        flash("Invalid amount.")
-        return redirect(url_for("donations"))
-
-    # Connect and insert into DB
     connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("""
-        INSERT INTO Donations (UserID, Amount, FridgeID, Email, Dropoff, Type, Description)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """, (
-        current_user.id,
-        final_amount,
-        fridge_id,
-        current_user.email,
-        datetime.now(),
-        "Money",
-        "Monetary donation"
-    ))
-    connection.commit()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    if request.method == "POST":
+        amount = request.form.get("amount")
+        custom_amount = request.form.get("custom_amount")
+        fridge_id = request.form.get("FridgeID")
+
+        # Validation
+        if not fridge_id:
+            flash("Please select a fridge.")
+            return redirect(url_for("donations"))
+
+        try:
+            fridge_id = int(fridge_id)
+        except:
+            flash("Invalid fridge selection.")
+            return redirect(url_for("donations"))
+
+        final_amount = custom_amount if custom_amount else amount
+        if not final_amount:
+            flash("Enter an amount.")
+            return redirect(url_for("donations"))
+
+        try:
+            final_amount = float(final_amount)
+        except:
+            flash("Invalid amount.")
+            return redirect(url_for("donations"))
+
+        # Get fridge name
+        cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
+        fridge_name = fridge["Name"] if fridge else None
+
+        # Insert donation
+        cursor.execute("""
+            INSERT INTO Donations
+            (UserID, Amount, FridgeID, Email, Dropoff, Type, Description, Name)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            current_user.id,
+            final_amount,
+            fridge_id,
+            current_user.email,
+            datetime.now(),
+            "Money",                 # ✅ SAFE ENUM VALUE
+            "Money Donation",
+            fridge_name
+        ))
+
+        connection.commit()
+        connection.close()
+
+        flash("Donation successful!")
+        return redirect(url_for("thank"))
+
+    # GET
+    cursor.execute("SELECT ID, Name, Image FROM Fridge")
+    fridges = cursor.fetchall()
+
+    # ALSO LOAD ITEMS (needed for page!)
+    cursor.execute("SELECT ID, Name, Image FROM Items")
+    food_types = cursor.fetchall()
+
     connection.close()
 
-    flash("Thank you for your monetary donation!")
-    return redirect(url_for("thank"))
-@app.route("/donate-food", methods=["POST"])
+    return render_template(
+        "donateinfo.html.jinja",
+        fridges=fridges,
+        food_types=food_types
+    )
+
+
+# -----------------------------
+# 🍱 DONATE FOOD
+# -----------------------------
+@app.route("/donate-food", methods=["GET", "POST"])
 @login_required
 def donate_food():
-    email = request.form.get("food_email")
-    dropoff_date = request.form.get("dropoff_date")
-    item_type = request.form.get("item_type")
-    notes = request.form.get("notes")
-    fridge_id = request.form.get("FridgeID")
-    quantity = request.form.get("quantity")
-    if not quantity or int(quantity) <= 0:
-        flash("Please enter a valid quantity.")
-    quantity = int(quantity)
-    if not fridge_id:
-        return "FridgeID is required", 400
-    fridge_id = int(fridge_id)
-
     connection = connect_db()
-    cursor = connection.cursor()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-    cursor.execute("""
-    INSERT INTO `Donations` (UserID, FridgeID, Email, Dropoff, Type, Amount, Description)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
-""", (
-    current_user.id,
-    fridge_id,
-    email,
-    dropoff_date,
-    item_type,   # <-- now correct ENUM value
-    quantity,           # <-- Amount required (you can change this)
-    notes
-))
+    if request.method == "POST":
+        full_name = request.form.get("full_name")
+        email = request.form.get("food_email")
+        dropoff_date = request.form.get("dropoff_date")
+        fridge_id = request.form.get("FridgeID")
+        quantity = request.form.get("quantity")
+        food_type_id = request.form.get("food_type")  # ✅ comes from dropdown
 
-    connection.commit()
+        # --------------------
+        # VALIDATION
+        # --------------------
+        if not fridge_id:
+            flash("Select a fridge.")
+            return redirect(url_for("donations"))
+
+        try:
+            fridge_id = int(fridge_id)
+        except:
+            flash("Invalid fridge.")
+            return redirect(url_for("donations"))
+
+        if not quantity or int(quantity) <= 0:
+            flash("Enter valid quantity.")
+            return redirect(url_for("donations"))
+
+        if not food_type_id:
+            flash("Select food type.")
+            return redirect(url_for("donations"))
+
+        try:
+            food_type_id = int(food_type_id)
+        except:
+            flash("Invalid food type.")
+            return redirect(url_for("donations"))
+
+        # --------------------
+        # GET FRIDGE NAME
+        # --------------------
+        cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
+        fridge_name = fridge["Name"] if fridge else None
+
+        # --------------------
+        # GET ITEM NAME
+        # --------------------
+        cursor.execute("SELECT Name FROM Items WHERE ID=%s", (food_type_id,))
+        item = cursor.fetchone()
+        item_name = item["Name"] if item else "Food"
+
+        # --------------------
+        # INSERT (FIXED)
+        # --------------------
+        cursor.execute("""
+            INSERT INTO Donations
+            (UserID, FridgeID, Email, Dropoff, Type, Amount, Description, Name)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            current_user.id,
+            fridge_id,
+            email,
+            dropoff_date,
+            "Food",             # ✅ FIXES DataError
+            int(quantity),
+            item_name,          # actual food type stored here
+            fridge_name
+        ))
+
+        connection.commit()
+        connection.close()
+
+        flash("Food donation scheduled!")
+        return redirect(url_for("thank"))
+
+    # --------------------
+    # GET PAGE DATA
+    # --------------------
+    cursor.execute("SELECT ID, Name, Image FROM Fridge")
+    fridges = cursor.fetchall()
+
+    cursor.execute("SELECT ID, Name, Image FROM Items")
+    food_types = cursor.fetchall()
+
     connection.close()
 
-    flash("Your food drop-off has been scheduled!")
-    return redirect(url_for("thank"))
-
+    return render_template(
+        "donateinfo.html.jinja",
+        fridges=fridges,
+        food_types=food_types
+    )
 # -----------------------
 # INDIVIDUAL FRIDGE PAGE
 # -----------------------
