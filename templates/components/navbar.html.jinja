@@ -1,3 +1,17 @@
+<script>
+(function () {
+  const saved = localStorage.getItem("theme");
+
+  if (saved === "dark") {
+    document.documentElement.classList.add("dark");
+  } else if (saved === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.classList.toggle("dark", prefersDark);
+  }
+})();
+</script>
 <!-- FridgeNet Navbar -->
 <nav class="bg-green-600 dark:bg-[#8C65DB] text-white w-full shadow-md z-[10000]fixed">
   <div class="max-w-7xl mx-auto px-6 py-6

@@ -6,6 +6,8 @@ import random
 from dynaconf import Dynaconf
 import json
 
+
+
 app = Flask(__name__)    
 config = Dynaconf(settings_file=["settings.toml"])
 app.secret_key = config.secret_key
@@ -666,6 +668,53 @@ if __name__ == "__main__":
 def about():
     return render_template("aboutus.html.jinja")
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        message = request.form.get("message")
+
+        # --------------------
+        # VALIDATION
+        # --------------------
+        if not name or not email or not message:
+            flash("All fields are required.", "error")
+            return redirect("/contact")
+
+        if len(message) < 10:
+            flash("Message must be at least 10 characters.", "error")
+            return redirect("/contact")
+
+        # --------------------
+        # DATABASE
+        # --------------------
+        connection = connect_db()
+        cursor = connection.cursor()
+
+        try:
+            cursor.execute("""
+                INSERT INTO Contacts (name, email, message)
+                VALUES (%s, %s, %s)
+            """, (name, email, message))
+
+            connection.commit()
+
+        except Exception as e:
+            print("DB ERROR:", e)  # 👈 shows real issue in terminal
+            connection.close()
+            flash("Something went wrong. Please try again.", "error")
+            return redirect("/contact")
+
+        connection.close()
+
+        # --------------------
+        # SUCCESS
+        # --------------------
+        flash("Message sent successfully!", "success")
+        return redirect("/contact")
+
+    # --------------------
+    # GET
+    # --------------------
     return render_template("contact.html.jinja")

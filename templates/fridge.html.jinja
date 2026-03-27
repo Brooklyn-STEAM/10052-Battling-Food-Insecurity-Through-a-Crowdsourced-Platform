@@ -2,207 +2,181 @@
 <html> 
 <head>
  <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/static/images/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <link rel="icon" type="image/png" href="/static/images/logo.png">
+
+ <script src="https://cdn.tailwindcss.com"></script>
+ <script>
+   tailwind.config = { darkMode: 'class' }
+ </script>
+
+ <script>
+ (function () {
+   const saved = localStorage.getItem("theme");
+
+   if (saved === "dark") {
+     document.documentElement.classList.add("dark");
+   } else if (saved === "light") {
+     document.documentElement.classList.remove("dark");
+   } else {
+     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+     document.documentElement.classList.toggle("dark", prefersDark);
+   }
+ })();
+ </script>
+
+ <style>
+ html {
+   scroll-behavior: smooth;
+   transition: background-color 0.3s ease, color 0.3s ease;
+ }
+ body, div, p, h1, h2, span {
+   transition: background-color 0.3s ease, color 0.3s ease;
+ }
+ </style>
 </head>
-<body>
+
+<body class="bg-yellow-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 {% include "components/navbar.html.jinja" %}
 
-<div class="min-h-screen bg-yellow-50">
+<div class="min-h-screen bg-yellow-50 dark:bg-gray-900">
 
-  <!-- HEADER / FRIDGE HERO -->
-  <section class="bg-gradient-to-r from-green-100 to-emerald-50 py-16 px-6">
+  <!-- HEADER -->
+  <section class="bg-gradient-to-r from-green-100 to-emerald-50 
+                  dark:from-gray-800 dark:to-gray-900 py-16 px-6">
     <div class="max-w-6xl mx-auto">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 mb-3"> {{ fridge["Name"] }} </h1>
-          <p class="text-gray-700 text-lg"> 📍 {{ fridge ["Address"] }} </p>
+          <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 dark:text-green-400 mb-3">
+            {{ fridge["Name"] }}
+          </h1>
+          <p class="text-gray-700 dark:text-gray-300 text-lg">
+            📍 {{ fridge["Address"] }}
+          </p>
         </div>
 
-        <!-- STATUS + REPORT -->
         <div class="flex flex-col sm:flex-row gap-4">
-
-          <!-- Dynamic Status Badge -->
           {% set status = fridge_status['Status'] | lower | trim %}
 
-{% if status in ["full", "few", "many"] %}
-    <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
-        🟢 Open & Stocked
-    </span>
+          {% if status in ["full", "few", "many"] %}
+          <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+            🟢 Open & Stocked
+          </span>
 
-{% elif status in ["low", "empty", "half"] %}
-    <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
-        🟡 Low Stock
-    </span>
+          {% elif status in ["low", "empty", "half"] %}
+          <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+            🟡 Low Stock
+          </span>
 
-{% else %}
-    <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
-        🔴 Closed / Needs Attention
-    </span>
-{% endif %}
+          {% else %}
+          <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+            🔴 Closed / Needs Attention
+          </span>
+          {% endif %}
 
+          <a href="/update_fridge/{{ fridge['ID'] }}"
+            class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">
+            Update Inventory
+          </a>
 
-
-
-<a href="/update_fridge/{{ fridge['ID'] }}"
-   class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">
-    Update Inventory
-</a>
-
-
-              <a href="/report/{{ fridge['ID'] }}"
-                class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">
-                Report Issue
-              </a>
-
+          <a href="/report/{{ fridge['ID'] }}"
+            class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">
+            Report Issue
+          </a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <section class="py-16 px-6 max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-2 gap-12">
 
-  <!-- TWO-COLUMN GRID -->
-  <div class="grid md:grid-cols-2 gap-12">
+      <!-- IMAGE -->
+      <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
 
-    <!-- IMAGE -->
-    <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
-
-    <!-- AVAILABLE ITEMS -->
-    <ul id="list" class="space-y-4">
-      {% for item in Items %}
-      <li class="fade-in flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-        <div class="flex items-center space-x-4">
-          <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
-          <p class="font-semibold text-green-700">{{ item['Name'] }}</p>
-        </div>
-        <span class="text-sm font-medium text-gray-600">
-          {{ item['Quantity'] }} available
-        </span>
-      </li>
-      {% endfor %}
-    </ul>
-
-  </div> <!-- END GRID -->
-
-
-  <!-- REVIEWS NOW BELOW ITEMS -->
-  <div class="space-y-6 mt-12 max-h-[600px] overflow-y-auto">
-
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-3xl font-bold text-green-800">Community Reviews</h2>
-
-      {% if current_user.is_authenticated %}
-      <button id="open-review-btn"
-        class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-md text-sm font-semibold transition">
-        Add Review
-      </button>
-      {% endif %}
+      <!-- ITEMS -->
+      <ul id="list" class="space-y-4">
+        {% for item in Items %}
+        <li class="flex justify-between items-center 
+                   bg-white dark:bg-gray-800 
+                   p-4 rounded-xl shadow-sm">
+          <div class="flex items-center space-x-4">
+            <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
+            <p class="font-semibold text-green-700 dark:text-green-400">{{ item['Name'] }}</p>
+          </div>
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+            {{ item['Quantity'] }} available
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
 
-    <div class="space-y-6">
-      {% if reviews %}
-        {% for review in reviews %}
-        <div class="bg-white rounded-2xl shadow-md p-6">
-          <div class="flex justify-between items-center mb-2">
-            <p class="font-semibold text-green-700">{{ review["user_name"] }}</p>
-            <span class="text-sm text-gray-500">⭐ {{ review["Rating"] }}/5</span>
-          </div>
-          <p class="text-gray-700">{{ review["Comment"] }}</p>
-          <p class="text-xs text-gray-400 mt-3"> Posted {{ review["Timestamp"].strftime('%b %d, %Y at %I:%M %p') }}</p>
+    <!-- REVIEWS -->
+    <div class="space-y-6 mt-12 max-h-[600px] overflow-y-auto">
 
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-green-800 dark:text-green-400">Community Reviews</h2>
+
+        {% if current_user.is_authenticated %}
+        <button id="open-review-btn"
+          class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-md text-sm font-semibold transition">
+          Add Review
+        </button>
+        {% endif %}
+      </div>
+
+      <div class="space-y-6">
+        {% if reviews %}
+        {% for review in reviews %}
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+          <div class="flex justify-between items-center mb-2">
+            <p class="font-semibold text-green-700 dark:text-green-400">{{ review["user_name"] }}</p>
+            <span class="text-sm text-gray-500 dark:text-gray-400">⭐ {{ review["Rating"] }}/5</span>
+          </div>
+          <p class="text-gray-700 dark:text-gray-300">{{ review["Comment"] }}</p>
+          <p class="text-xs text-gray-400">Posted {{ review["Timestamp"].strftime('%b %d, %Y at %I:%M %p') }}</p>
         </div>
         {% endfor %}
-      {% else %}
-      <div class="bg-green-50 rounded-2xl p-6">
-        <p class="text-gray-600 italic">No reviews yet. Be the first to share your experience!</p>
+        {% else %}
+        <div class="bg-green-50 dark:bg-green-900/20 rounded-2xl p-6">
+          <p class="text-gray-600 dark:text-gray-400 italic">No reviews yet.</p>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
+
     </div>
-
-  </div>
-
-</section>
-
-      </div>
-    </div>
-
   </section>
-
 </div>
-<!-- REVIEW POPUP -->
+
+<!-- POPUP -->
 <div id="review-popup"
 class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
-  <div class="bg-white p-8 rounded-xl shadow-lg border relative w-[420px] scale-95 transition-transform duration-300">
-    
-    <h2 class="text-2xl font-bold text-green-800 mb-6">
+
+  <div class="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-lg border dark:border-gray-700 w-[420px]">
+
+    <h2 class="text-2xl font-bold text-green-800 dark:text-green-400 mb-6">
       Add Review
     </h2>
 
-    <form method="POST" action="{{ url_for('personal_fridges', fridge_id=fridge['ID']) }}">
-      <div>
-        <label class="block text-sm font-medium text-green-800 mb-1">Rating</label>
-        <select name="Rating" required class="w-full rounded-lg border border-green-400 px-3 py-2">
-          <option value="">Select rating</option>
-          <option value="5">★★★★★</option>
-          <option value="4">★★★★☆</option>
-          <option value="3">★★★☆☆</option>
-          <option value="2">★★☆☆☆</option>
-          <option value="1">★☆☆☆☆</option>
-        </select>
-      </div>
+    <form method="POST">
+      <label class="block text-sm text-green-800 dark:text-green-400 mb-1">Rating</label>
+      <select class="w-full rounded-lg border border-green-400 dark:border-green-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 mb-4">
+        <option>Select rating</option>
+      </select>
 
-      <div>
-        <label class="block text-sm font-medium text-green-800 mb-1">Comment</label>
-        <textarea name="Comment" rows="4" required class="w-full rounded-lg border border-green-400 px-3 py-2"></textarea>
-      </div>
+      <label class="block text-sm text-green-800 dark:text-green-400 mb-1">Comment</label>
+      <textarea class="w-full rounded-lg border border-green-400 dark:border-green-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
 
-      <button type="submit"
-        class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow transition">
+      <button class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl">
         Submit Review
       </button>
     </form>
-
-    <button id="close-popup" class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"></button>
   </div>
 </div>
 
 {% include "components/footer.html.jinja" %}
 
-<script>
-const openBtn = document.getElementById("open-review-btn");
-const popup = document.getElementById("review-popup");
-const closeBtn = document.getElementById("close-popup");
-
-if (openBtn) {
-  openBtn.addEventListener("click", () => {
-    popup.classList.remove("opacity-0", "pointer-events-none");
-  });
-}
-
-closeBtn.addEventListener("click", () => {
-  popup.classList.add("opacity-0", "pointer-events-none");
-});
-
-popup.addEventListener("click", (e) => {
-  if (e.target === popup) {
-    popup.classList.add("opacity-0", "pointer-events-none");
-  }
-});
-
-</script>
 </body>
-
-
-
-
-
-
-
-
-
-
-
 </html>
