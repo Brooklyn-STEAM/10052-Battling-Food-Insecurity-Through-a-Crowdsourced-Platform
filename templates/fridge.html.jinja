@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/static/images/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>   Community Fridge</title>
 </head>
 <body>
 {% include "components/navbar.html.jinja" %}
@@ -26,12 +27,12 @@
           <!-- Dynamic Status Badge -->
           {% set status = fridge_status['Status'] | lower | trim %}
 
-{% if status in ["full", "few", "many"] %}
+{% if status in ["full", "many", "half"] %}
     <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
         🟢 Open & Stocked
     </span>
 
-{% elif status in ["low", "empty", "half"] %}
+{% elif status in ["low", "empty", "few"] %}
     <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
         🟡 Low Stock
     </span>
@@ -70,20 +71,21 @@
     <!-- IMAGE -->
     <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
 
-    <!-- AVAILABLE ITEMS -->
     <ul id="list" class="space-y-4">
-      {% for item in Items %}
-      <li class="fade-in flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-        <div class="flex items-center space-x-4">
-          <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
-          <p class="font-semibold text-green-700">{{ item['Name'] }}</p>
-        </div>
-        <span class="text-sm font-medium text-gray-600">
-          {{ item['Quantity'] }} available
-        </span>
-      </li>
-      {% endfor %}
-    </ul>
+  {% for item in items %}
+    {% if item['Quantity'] > 0 %}
+    <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+      <div class="flex items-center space-x-4">
+        <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
+        <p class="font-semibold text-green-700">{{ item['Name'] }}</p>
+      </div>
+      <span class="text-sm font-medium text-gray-600">
+        {{ item['Quantity'] }} available
+      </span>
+    </li>
+    {% endif %}
+  {% endfor %}
+</ul>
 
   </div> <!-- END GRID -->
 
