@@ -7,22 +7,147 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="icon" type="image/png" href="/static/images/logo.png">
   <title>FridgeNet - About Us</title>
+  <title>About Us | FridgeNet</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+
+  <!-- Theme loader -->
+  <script>
+    (function () {
+      const saved = localStorage.getItem("theme");
+
+      if (saved === "dark") {
+        document.documentElement.classList.add("dark");
+      } else if (saved === "light") {
+        document.documentElement.classList.remove("dark");
+      } else {
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", prefersDark);
+      }
+    })();
+  </script>
+
+  <style>
+    .input {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      border: 1px solid #d1d5db;
+      background: #f8fafc;
+      transition: 0.25s;
+    }
+
+    .input:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+    }
+
+    .form-card {
+      background: linear-gradient(135deg, #ffffff, #f3f0ff);
+      border: 1px solid #e9d5ff;
+    }
+
+    .dark .form-card {
+      background: linear-gradient(135deg, #1e1b2e, #2a2545);
+      border: 1px solid #40376E;
+    }
+
+    .dark .input {
+      background: #2a2545;
+      border-color: #40376E;
+      color: #fff;
+    }
+
+    .dark .dropdown {
+      background: #2a2545;
+      border-color: #40376E;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body, div, p, h1, h2, a {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+  </style>
 </head>
 
-<body class="bg-gradient-to-r from-green-100 to-yellow-100 min-h-screen flex flex-col">
+<body class="bg-gradient-to-r from-green-100 to-yellow-100 
+             dark:from-gray-900 dark:to-gray-800 
+             text-gray-900 dark:text-gray-100
+             min-h-screen flex flex-col bg-pattern-dots bg-gray-100 dark:bg-gray-900 bg-opacity-10">
 
   {% include "components/navbar.html.jinja" %}
 
-    <h1 class="text-4xl font-extrabold text-center text-green-800 mt-12">
-        About Us
-    </h1>
-    <p class="text-center text-gray-600 mt-3 mb-12 max-w-2xl mx-auto px-4 text-lg">
-        FridgeNet is a community-driven initiative dedicated to reducing food waste and supporting those in need. Our mission is to connect individuals and organizations to share surplus food, fostering a culture of generosity and sustainability. We believe that by working together, we can make a significant impact on food insecurity and environmental conservation.
-    </p>
+  <!-- Header -->
+  <h1 class="text-4xl font-extrabold text-center text-green-800 dark:text-green-400 mt-12">
+    About Us
+  </h1>
 
-    <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto px-4 text-lg">
-        Our platform allows users to easily donate or request food, track their contributions, and connect with local communities. We are committed to transparency, accountability, and creating a positive impact on society. Join us in our mission to create a more sustainable and compassionate world.
-    </p>
+  <!-- Intro -->
+  <p class="text-center text-gray-600 dark:text-gray-400 mt-3 mb-12 max-w-2xl mx-auto px-4 text-lg">
+    FridgeNet is a community-driven initiative dedicated to reducing food waste and supporting those in need. Our mission is to connect individuals and organizations to share surplus food, fostering a culture of generosity and sustainability.
+  </p>
+
+  <!-- Expanded Section -->
+  <div class="max-w-4xl mx-auto px-6 space-y-10">
+
+    <!-- Mission -->
+    <div>
+      <h2 class="text-2xl font-bold text-green-700 dark:text-green-400 mb-2">Our Mission</h2>
+      <p class="text-gray-600 dark:text-gray-400">
+        We aim to bridge the gap between food surplus and food insecurity. By enabling communities to easily share resources,
+        we reduce waste while helping people access essential nourishment.
+      </p>
+    </div>
+
+    <!-- What We Do -->
+    <div>
+      <h2 class="text-2xl font-bold text-green-700 dark:text-green-400 mb-2">What We Do</h2>
+      <p class="text-gray-600 dark:text-gray-400">
+        FridgeNet provides a platform where users can locate nearby community fridges, donate extra food, and request supplies when needed.
+        Our system promotes trust, transparency, and real-time collaboration between neighbors.
+      </p>
+    </div>
+
+    <!-- Impact -->
+    <div>
+      <h2 class="text-2xl font-bold text-green-700 dark:text-green-400 mb-2">Our Impact</h2>
+      <p class="text-gray-600 dark:text-gray-400">
+        Every shared meal makes a difference. By participating, you contribute to reducing landfill waste, lowering carbon emissions,
+        and supporting individuals and families in your local area.
+      </p>
+    </div>
+
+    <!-- Why It Matters -->
+    <div>
+      <h2 class="text-2xl font-bold text-green-700 dark:text-green-400 mb-2">Why It Matters</h2>
+      <p class="text-gray-600 dark:text-gray-400">
+        Millions of tons of food go to waste every year while many people struggle with food insecurity.
+        FridgeNet exists to change that by making sharing simple, accessible, and impactful.
+      </p>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center pt-6">
+      <p class="text-lg text-gray-700 dark:text-gray-300">
+        Join us in building a more sustainable and compassionate future.
+      </p>
+      <a href="/signup"
+        class="inline-block mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition">
+        Get Started
+      </a>
+    </div>
+
+  </div>
+  <br><br>
 
   {% include "components/footer.html.jinja" %}
 

@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" id="htmlRoot">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,105 +9,134 @@
   <title>FridgeNet - Home</title>
 </head>
 
-<body class="bg-white text-gray-800 min-h-screen flex flex-col">
+<body class="bg-white text-gray-800 
+             dark:bg-[#1b1730] dark:text-gray-100 
+             transition-colors duration-300">
+
   {% include "components/navbar.html.jinja" %}
 
-  <main class="flex-grow">
-    <!-- HERO SECTION -->
-    <section class="bg-gradient-to-r from-green-100 to-emerald-50 py-20 px-6 text-center">
-      <h1 class="text-5xl md:text-6xl font-extrabold text-green-800 mb-6">
+  <main>
+
+    <!-- HERO -->
+    <section class="text-center py-24 px-6 
+                    bg-gradient-to-r from-green-100 to-emerald-50
+                    dark:from-[#1e1b2e] dark:to-[#1b1730]">
+
+      <h1 class="text-5xl md:text-6xl font-extrabold text-green-800 dark:text-white mb-6">
         Share Food. Support Community. Reduce Waste.
       </h1>
-      <p class="max-w-2xl mx-auto text-lg text-gray-700 mb-8 font-semibold">
-        FridgeNet connects neighbors, restaurants, and community fridges to make
-        free food easy to find, share, and protect—right in your neighborhood.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center scale-90">
-      <div class="shadow-2xl absolute inset-0 transform  hover:scale-80 transition duration-300 -ml-60">
-        <a href="/map" class="bg-orange-500 hover:bg-green-600 text-white font-semibold px-8 py-3 rounded-xl shadow-md transition">
-          Find a Fridge Near You
-        </a>
-</div>
 
-<div class="shadow-2xl absolute inset-0 transform  hover:scale-80 transition duration-300 ml-50">
-        <a href="/donations" class="bg-green-600 hover:bg-orange-500 text-white font-semibold px-8 py-3 rounded-xl shadow-md transition">
+      <p class="max-w-2xl mx-auto text-lg text-gray-700 dark:text-gray-300 mb-8">
+        FridgeNet connects neighbors, restaurants, and community fridges
+        to make free food easy to find and share.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+
+        <a href="/map"
+           class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl shadow-md dark:bg-[#7209b7] dark:hover:bg-[#2a2545] transition">
+          Find a Fridge
+        </a>
+
+        <a href="/donations"
+           class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow-md dark:bg-[#7b2cbf] dark:hover:bg-[#2a2545] transition">
           Donate Food
         </a>
-        </div>
+
       </div>
     </section>
 
-    <!-- ABOUT SECTION -->
-    <section class="py-20 px-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+    <!-- ABOUT -->
+    <section class="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-10 items-center">
+
       <div>
-        <h2 class="text-4xl font-bold text-green-800 mb-4">Building Stronger Communities Through Shared Food</h2>
-        <p class="text-gray-700 leading-relaxed mb-4">
-          Every day, good food is thrown away while families struggle to access fresh meals.
+        <h2 class="text-4xl font-bold text-green-800 dark:text-white mb-4">
+          Building Stronger Communities
+        </h2>
+
+        <p class="text-gray-700 dark:text-gray-300 mb-3">
+          Reduce food waste and help neighbors access fresh meals.
         </p>
-        <p class="text-gray-700 leading-relaxed">
-          Quickly find nearby community fridges, donate extra food, and report maintenance needs.
+
+        <p class="text-gray-700 dark:text-gray-300">
+          Donate, share, and find community fridges near you.
         </p>
       </div>
-      <div class="bg-green-50 rounded-2xl h-72 flex items-center justify-center overflow-hidden">
-        <img src="/static/images/cimage.jpg" alt="Community image" class="object-cover h-full w-full">
+
+      <div class="rounded-2xl overflow-hidden bg-gray-100 dark:bg-[#1f1b35] h-72">
+        <img src="/static/images/cimage.jpg" class="w-full h-full object-cover">
       </div>
+
     </section>
 
-    <!-- SERVICES SECTION -->
-    <section class="bg-green-50 py-20 px-6">
+    <!-- FEATURES -->
+    <section class="py-20 px-6 bg-green-50 dark:bg-[#1f1b35]">
+
       <div class="max-w-6xl mx-auto text-center">
-        <h2 class="text-4xl font-bold text-green-800 mb-12">How FridgeNet Helps You Help Others</h2>
+
+        <h2 class="text-4xl font-bold text-green-800 dark:text-white mb-12">
+          How FridgeNet Helps
+        </h2>
+
         <div class="grid md:grid-cols-3 gap-8">
-          <div class="bg-white rounded-2xl shadow-md p-8">
-            <h3 class="text-xl font-semibold text-green-700 mb-3">Find Nearby Fridges</h3>
-            <p class="text-gray-600">Instantly locate community fridges on an interactive map.</p>
+
+          <div class="bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow">
+            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">
+              Find Fridges
+            </h3>
+            <p class="text-gray-600 dark:text-gray-300">
+              Locate nearby community fridges instantly.
+            </p>
           </div>
-          <div class="bg-white rounded-2xl shadow-md p-8">
-            <h3 class="text-xl font-semibold text-green-700 mb-3">Donate Food Easily</h3>
-            <p class="text-gray-600">Restaurants and neighbors can quickly share extra food.</p>
+
+          <div class="bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow">
+            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">
+              Donate Food
+            </h3>
+            <p class="text-gray-600 dark:text-gray-300">
+              Share extra food easily with your community.
+            </p>
           </div>
-          <div class="bg-white rounded-2xl shadow-md p-8">
-            <h3 class="text-xl font-semibold text-green-700 mb-3">Keep Fridges Safe</h3>
-            <p class="text-gray-600">Report issues or low supplies to support a reliable network.</p>
+
+          <div class="bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow">
+            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">
+              Support Network
+            </h3>
+            <p class="text-gray-600 dark:text-gray-300">
+              Keep fridges stocked and maintained.
+            </p>
           </div>
+
         </div>
       </div>
     </section>
 
-    <!-- TESTIMONIALS -->
-    <section class="bg-orange-200  py-20 px-6">
-      <div class="max-w-6xl mx-auto text-center">
-        <h2 class="text-4xl font-bold text-green-800 mb-12">Real Impact in Real Neighborhoods</h2>
-        <div class="grid md:grid-cols-3 gap-8">
-          <div class="bg-white rounded-2xl shadow-md p-6 italic">“FridgeNet helped me find fresh groceries close to home.” - Herold H</div>
-          <div class="bg-white rounded-2xl shadow-md p-6 italic">“Our restaurant now donates extra meals in minutes.” - Caleb S</div>
-          <div class="bg-white rounded-2xl shadow-md p-6 italic">“Volunteering feels easier and more organized.” - Delilah W</div>
-        </div>
+    <!-- CTA (UPDATED AS REQUESTED) -->
+    <section class="text-center py-24 px-6 bg-green-200 dark:bg-[#1b1730]">
+
+      <h2 class="text-4xl font-bold text-green-900 dark:text-white mb-6">
+        Join the Movement
+      </h2>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+
+        <a href="/map"
+           class="bg-white dark:bg-[#7209b7] text-green-800 dark:text-white px-8 py-3 rounded-xl shadow hover:bg-gray-100 dark:hover:bg-[#40376E] transition">
+          Explore Map
+        </a>
+
+        <a href="/signup"
+           class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow dark:bg-[#7b2cbf] dark:hover:bg-[#2a2545] transition">
+          Create New Account
+        </a>
+
       </div>
+
     </section>
 
-    <!-- CTA / SIGNUP -->
-    <div class="bg-green-200 py-20 px-6 text-center text-green-800">
-      <h2 class="text-4xl font-bold mb-4">Join the Movement to End Food Waste</h2>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-        <a href="/signup" class="bg-white text-green-700 font-semibold px-8 py-3 rounded-xl shadow-md hover:bg-gray-100 transition">Create Your Free Account</a>
-        <a href="/map" class="bg-white text-green-700 font-semibold px-8 py-3 rounded-xl shadow-md hover:bg-gray-100 transition">Explore the Map</a>
-      </div>
-    </div>
   </main>
 
   {% include "components/footer.html.jinja" %}
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const flashMessage = document.getElementById('flash-message');
-      if (flashMessage) {
-        setTimeout(() => {
-          flashMessage.style.opacity = '0';
-          setTimeout(() => flashMessage.remove(), 500);
-        }, 4000);
-      }
-    });
-  </script>
 </body>
 </html>
