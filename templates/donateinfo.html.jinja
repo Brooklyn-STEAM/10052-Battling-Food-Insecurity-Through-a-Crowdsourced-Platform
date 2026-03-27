@@ -13,6 +13,7 @@
         }
     </script>
 
+
     <script>
             (function () {
                 const saved = localStorage.getItem("theme");
@@ -47,7 +48,7 @@
         /* FORM CARD (purple theme) */
         .form-card {
             background: linear-gradient(135deg, #ffffff, #f3f0ff);
-            border: 1px solid #e9d5ff;
+            border: 1px solid #cac2d2;
         }
 
         .dark .form-card {
@@ -143,21 +144,22 @@
                         <div id="moneyFridgeMenu" class="dropdown absolute z-10 w-full mt-2 rounded-lg border hidden">
 
                             {% for fridge in fridges %}
-<div class="money-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
-     data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                            <div class="money-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
+                                data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
 
-    <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}"
-         class="w-10 h-10 rounded-md object-cover border border-gray-300 dark:border-[#40376E]">
+                                <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}"
+                                    class="w-10 h-10 rounded-md object-cover border border-gray-300 dark:border-[#40376E]">
 
-    <span class="text-sm font-medium">
-        {{ fridge['Name'] }}
-    </span>
-</div>
+                                <span class="text-sm font-medium">
+                                    {{ fridge['Name'] }}
+                                </span>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl">
+                    <button
+                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 transition">
                         Donate Now
                     </button>
                 </form>
@@ -176,23 +178,23 @@
                     <input type="email" name="food_email" placeholder="Email" class="input">
                     <input type="date" name="dropoff_date" class="input">
                     <input type="number" name="quantity" placeholder="Quantity" class="input">
-<!-- 🍱 FOOD TYPE (FROM ITEMS TABLE) -->
-<div>
-    <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2">
-        Select Food Type
-    </label>
+                    <!-- 🍱 FOOD TYPE (FROM ITEMS TABLE) -->
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2">
+                            Select Food Type
+                        </label>
 
-    <select name="food_type" class="input" required>
-        <option value="">Choose food type</option>
+                        <select name="food_type" class="input" required>
+                            <option value="">Choose food type</option>
 
-        {% for item in food_types %}
-            <option value="{{ item['ID'] }}">
-                {{ item['Name'] }}
-            </option>
-        {% endfor %}
+                            {% for item in food_types %}
+                            <option value="{{ item['ID'] }}">
+                                {{ item['Name'] }}
+                            </option>
+                            {% endfor %}
 
-    </select>
-</div>
+                        </select>
+                    </div>
                     <!-- 🧊 FRIDGE SELECT (KEEPED) -->
                     <div class="relative">
                         <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2">
@@ -211,21 +213,22 @@
                         <div id="foodFridgeMenu" class="dropdown absolute z-10 w-full mt-2 rounded-lg border hidden">
 
                             {% for fridge in fridges %}
-<div class="food-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
-     data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                            <div class="food-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
+                                data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
 
-    <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}"
-         class="w-10 h-10 rounded-md object-cover border border-gray-300 dark:border-[#40376E]">
+                                <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}"
+                                    class="w-10 h-10 rounded-md object-cover border border-gray-300 dark:border-[#40376E]">
 
-    <span class="text-sm font-medium">
-        {{ fridge['Name'] }}
-    </span>
-</div>
+                                <span class="text-sm font-medium">
+                                    {{ fridge['Name'] }}
+                                </span>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl">
+                    <button
+                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 transition">
                         Donate Now
                     </button>
                 </form>
@@ -239,35 +242,35 @@
 
     <!-- 🧊 DROPDOWNS -->
     <script>
- document.addEventListener('DOMContentLoaded', function() {
-    // Handling the Money Form Dropdown
-    setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
-    
-    // Handling the Food Form Dropdown
-    setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handling the Money Form Dropdown
+            setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
 
-    function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
-        const btn = document.getElementById(btnId);
-        const menu = document.getElementById(menuId);
-        const hiddenInput = document.getElementById(hiddenInputId);
-        const btnText = document.getElementById(textId);
+            // Handling the Food Form Dropdown
+            setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
 
-        // Toggle menu visibility
-        btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+            function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
+                const btn = document.getElementById(btnId);
+                const menu = document.getElementById(menuId);
+                const hiddenInput = document.getElementById(hiddenInputId);
+                const btnText = document.getElementById(textId);
 
-        // Handle item selection
-        menu.querySelectorAll(itemClass).forEach(item => {
-            item.addEventListener('click', function() {
-                const id = this.getAttribute('data-id');
-                const name = this.getAttribute('data-name');
+                // Toggle menu visibility
+                btn.addEventListener('click', () => menu.classList.toggle('hidden'));
 
-                hiddenInput.value = id;      // This sends the ID to your SQL database
-                btnText.innerText = name;    // This shows the user what they picked
-                menu.classList.add('hidden'); // Close menu
-            });
+                // Handle item selection
+                menu.querySelectorAll(itemClass).forEach(item => {
+                    item.addEventListener('click', function () {
+                        const id = this.getAttribute('data-id');
+                        const name = this.getAttribute('data-name');
+
+                        hiddenInput.value = id;      // This sends the ID to your SQL database
+                        btnText.innerText = name;    // This shows the user what they picked
+                        menu.classList.add('hidden'); // Close menu
+                    });
+                });
+            }
         });
-    }
-});
 
     </script>
 
