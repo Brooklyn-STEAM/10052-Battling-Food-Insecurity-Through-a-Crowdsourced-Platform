@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/static/images/logo.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Community Fridge Map</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,190 +12,387 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-
     <style>
-        #map { height: 100%; min-height: 500px; }
-        .leaflet-marker-icon:hover { transform: scale(1.2); }
-        #fridge-list li:hover { background-color: #e0f2fe; }
-        .route-btn:hover { background-color: #16a34a; }
+        .leaflet-routing-container { display: none; }
+        #itinerary-container .leaflet-routing-alt {
+            max-height: 300px;
+            overflow-y: auto;
+            background: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            font-size: 13px;
+            color: #166534;
+        }
+        #itinerary-container tr {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            align-items: center;
+        }
     </style>
 </head>
 
 <body class="bg-gray-100 font-sans">
-
     {% include "components/navbar.html.jinja" %}
 
-    <div class="flex h-screen">
+    <div class="relative w-full h-screen overflow-hidden flex flex-col md:flex-row">
+        <div id="map" class="absolute inset-0 md:relative md:w-2/3 h-full z-0 order-1 md:order-2"></div>
 
-        <!-- SIDEBAR -->
-        <div class="w-1/3 bg-white p-6 overflow-y-auto">
-            <h2 class="text-3xl font-bold mb-4">Nearby Community Fridges</h2>
+        <button id="toggle-sidebar" class="md:hidden fixed bottom-6 right-6 z-[1001] bg-green-600 text-white p-4 rounded-full shadow-2xl flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
 
-            <!-- Custom Start Location -->
-            <div class="mb-4">
-                <label class="font-semibold text-sm block mb-1">Starting Location</label>
-                <input type="text" id="start-location" placeholder="Enter your address" class="w-full p-2 border rounded" />
-                <button id="set-start" class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">
-                    Set Start
-                </button>
+        <aside id="sidebar" class="fixed inset-x-0 bottom-0 z-[1000] w-full h-[70vh] bg-white transition-transform duration-300 transform translate-y-full md:translate-y-0 md:static md:w-1/3 md:h-full overflow-hidden flex flex-col border-t md:border-t-0 md:border-r border-gray-200 order-2 md:order-1">
+            
+            <div id="close-sidebar" class="md:hidden w-full flex flex-col items-center py-3 cursor-pointer">
+                <div class="w-12 h-1.5 bg-gray-300 rounded-full mb-1"></div>
+                <span class="text-[10px] text-gray-400 font-bold uppercase">Close List</span>
             </div>
 
-            <input type="text" id="fridge-search" placeholder="Search fridges..." class="w-full p-2 border rounded mb-4" />
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div id="routing-directions" class="hidden mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
+                    <div class="flex justify-between items-center mb-2 border-b border-green-200 pb-2">
+                        <h3 class="font-bold text-green-800 text-sm uppercase">Route Instructions</h3>
+                        <button onclick="window.clearRoute()" class="text-[10px] text-red-500 font-bold hover:underline">CLEAR</button>
+                    </div>
+                    <div id="itinerary-container"></div>
+                </div>
 
-            <label class="font-semibold text-sm mb-2 block">Transportation</label>
-            <div class="space-y-2 mb-4">
-                <label class="flex items-center gap-2"><input type="radio" name="transport" value="train" checked> 🚆 Train</label>
-                <label class="flex items-center gap-2"><input type="radio" name="transport" value="bus"> 🚌 Bus</label>
-                <label class="flex items-center gap-2"><input type="radio" name="transport" value="bike"> 🚲 Bike</label>
-            </div>
+                <h2 class="text-2xl font-bold mb-4">Nearby Fridges</h2>
 
-            <div id="travel-info" class="mb-4 text-sm text-gray-700"></div>
-            <ul id="fridge-list" class="space-y-3 font-semibold"></ul>
+                <div class="mb-4">
+                    <label class="font-semibold text-xs text-gray-600 block mb-1">Starting Location</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="start-location" placeholder="Enter address" class="flex-grow p-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-green-500" />
+                        <button id="set-start" class="bg-green-500 text-white px-3 py-1 rounded-lg font-bold text-sm">Set</button>
+                    </div>
+                </div>
+                <div id="directions-modal" class="fixed inset-0 z-[2000] hidden bg-black/50 flex items-end md:hidden">
+    <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-green-800 uppercase tracking-wide">Route Directions</h3>
+            <button onclick="closeDirectionsModal()" class="text-gray-400 p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
+        <div id="mobile-itinerary-container"></div>
+        <button onclick="window.clearRoute(); closeDirectionsModal();" class="w-full mt-4 py-3 bg-red-50 text-red-500 font-bold rounded-xl text-sm">Cancel Route</button>
+    </div>
+</div>
 
-        <!-- MAP -->
-        <div id="map" class="w-2/3"></div>
+                <input type="text" id="fridge-search" placeholder="Search fridges..." class="w-full p-2 border rounded-lg mb-4 text-sm bg-gray-50 outline-none" />
+
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                    <label class="cursor-pointer"><input type="radio" name="transport" value="foot" class="hidden peer" checked><div class="p-2 border-2 rounded-xl text-center peer-checked:border-green-600 peer-checked:bg-green-50 text-[10px] font-bold uppercase">Walk</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="transport" value="bicycle" class="hidden peer"><div class="p-2 border-2 rounded-xl text-center peer-checked:border-green-600 peer-checked:bg-green-50 text-[10px] font-bold uppercase">Bike</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="transport" value="car" class="hidden peer"><div class="p-2 border-2 rounded-xl text-center peer-checked:border-green-600 peer-checked:bg-green-50 text-[10px] font-bold uppercase">Drive</div></label>
+                </div>
+                <h3 class="text-sm font-bold mb-2 text-gray-500">Favorites</h3>
+                <ul id="favorites-list" class="space-y-2 mb-4"></ul>
+
+                <h3 class="text-sm font-bold mb-2 text-gray-500">Recently Viewed</h3>
+                <ul id="recent-list" class="space-y-2 mb-4"></ul>
+
+                <ul id="fridge-list" class="space-y-3 font-semibold pb-10"></ul>
+            </div>
+        </aside>
     </div>
 
 <script>
-    // MAP AND USER VARIABLES
-    const map = L.map('map').setView([40.7128, -74.0060], 12);
-    map.doubleClickZoom.disable();
+    
+const sidebar = document.getElementById('sidebar');
+const toggleBtn = document.getElementById('toggle-sidebar');
+const closeBtn = document.getElementById('close-sidebar');
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+// Sidebar Toggle Logic
+toggleBtn.onclick = () => { 
+    sidebar.classList.remove('translate-y-full'); 
+    toggleBtn.classList.add('hidden'); 
+};
+closeBtn.onclick = () => { 
+    sidebar.classList.add('translate-y-full'); 
+    toggleBtn.classList.remove('hidden'); 
+};
 
-    const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35, 35] });
-    const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45, 45] });
+// Map Initialization
+const map = L.map('map', { zoomControl: false }).setView([40.7128, -74.0060], 12);
+L.control.zoom({ position: 'topright' }).addTo(map); 
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    const trainRoutes = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png');
-    const busRoutes = L.tileLayer('https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png');
-    const bikeLanes = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png');
-    const layers = { train: trainRoutes, bus: busRoutes, bike: bikeLanes };
-    trainRoutes.addTo(map);
+const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35, 35] });
+const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45, 45] });
 
-    let routingControl = null, routingProfile = "walking";
-    let userLat = null, userLng = null, userMarker = null;
-    let allFridges = [], fridgeMarkers = [];
-    let currentTargetFridge = null; // Track the fridge for active route
+let userLat, userLng, userMarker;
+let currentRouteLayer = null; // Stores the polyline
+let currentTargetFridge = null;
+let allFridges = [], fridgeMarkers = [];
 
-    // SWITCH TRANSPORT MODE
-    document.querySelectorAll('input[name="transport"]').forEach(radio => {
-        radio.addEventListener("change", e => {
-            const mode = e.target.value;
-            if (mode === "train") routingProfile = "walking", switchLayer("train");
-            if (mode === "bus") routingProfile = "driving", switchLayer("bus");
-            if (mode === "bike") routingProfile = "cycling", switchLayer("bike");
+// Profile Map for Geoapify
+const profileMap = {
+    "foot": "walk",
+    "bicycle": "bicycle",
+    "car": "drive"
+};
 
-            // Re-route if there's an active target fridge
-            if (currentTargetFridge) routeToFridge(currentTargetFridge.lat, currentTargetFridge.lng);
-        });
-    });
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
 
-    function switchLayer(layer) {
-        Object.values(layers).forEach(l => map.removeLayer(l));
-        layers[layer].addTo(map);
+function setUserLocation(lat, lng) {
+    userLat = lat; userLng = lng;
+    if (userMarker) map.removeLayer(userMarker);
+    userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup("Your Location").openPopup();
+    map.setView([lat, lng], 13);
+    renderFridges(allFridges);
+}
+
+// THE FIXED ROUTING FUNCTION
+window.routeToFridge = function(lat, lng) {
+    if (!userLat || !userLng) return alert("Please set your starting location first.");
+
+    currentTargetFridge = { lat, lng };
+
+    if (currentRouteLayer) map.removeLayer(currentRouteLayer);
+
+    const isMobile = window.innerWidth < 768;
+    const directionsContainer = document.getElementById('routing-directions');
+    const itineraryContainer = document.getElementById('itinerary-container');
+    const mobileItinerary = document.getElementById('mobile-itinerary-container');
+    const modal = document.getElementById('directions-modal');
+    
+    // Show loading state
+    const loadingHtml = "<p class='text-xs text-green-600 animate-pulse'>Calculating route...</p>";
+    if (isMobile) {
+        modal.classList.remove('hidden');
+        mobileItinerary.innerHTML = loadingHtml;
+    } else {
+        directionsContainer.classList.remove('hidden');
+        itineraryContainer.innerHTML = loadingHtml;
     }
 
-    // SET USER LOCATION
-    function setUserLocation(lat, lng) {
-        userLat = lat; userLng = lng;
-        if (userMarker) map.removeLayer(userMarker);
-        userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map)
-            .bindPopup("Start here").openPopup();
-        map.setView([lat, lng], 13);
+    const selectedMode = document.querySelector('input[name="transport"]:checked').value;
+    const geoMode = profileMap[selectedMode] || "walk";
+    const apiKey = "364fdb68178f4a09b69ef7df5051e13b";
 
-        // Re-run route if a target fridge exists
-        if (currentTargetFridge) {
-            routeToFridge(currentTargetFridge.lat, currentTargetFridge.lng);
-        }
-    }
+    const url = `https://api.geoapify.com/v1/routing?waypoints=${userLat},${userLng}|${lat},${lng}&mode=${geoMode}&apiKey=${apiKey}`;
 
-    // ROUTE TO FRIDGE
-    function routeToFridge(lat, lng) {
-        if (!userLat || !userLng) return alert("Please set your starting location first.");
-        currentTargetFridge = { lat, lng }; // Save current fridge
-        if (routingControl) map.removeControl(routingControl);
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.features || data.features.length === 0) throw new Error("No route found");
 
-        routingControl = L.Routing.control({
-            waypoints: [L.latLng(userLat, userLng), L.latLng(lat, lng)],
-            router: L.Routing.osrmv1({ serviceUrl: "https://router.project-osrm.org/route/v1", profile: routingProfile }),
-            showAlternatives: true,
-            lineOptions: {
-                styles: [
-                    { color: "#000", opacity: 0.2, weight: 10 },
-                    { color: "#3F4B3B", weight: 6 },
-                    { color: "#77E4D6", opacity: 0.5, weight: 8 }
-                ]
-            },
-            altLineOptions: { styles: [{ color: "#9ca3af", weight: 5, opacity: 0.5 }] }
-        }).addTo(map);
-    }
+            const routeData = data.features[0];
+            const coords = routeData.geometry.coordinates[0].map(c => [c[1], c[0]]);
+            currentRouteLayer = L.polyline(coords, {color: '#16a34a', weight: 5, opacity: 0.8}).addTo(map);
+            map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
 
-    // RENDER FRIDGES
-    function renderFridges(fridges) {
-        const list = document.getElementById("fridge-list");
-        list.innerHTML = "";
-        fridgeMarkers.forEach(m => map.removeLayer(m));
-        fridgeMarkers = [];
+            const distMi = (routeData.properties.distance * 0.000621371).toFixed(1);
+            const timeMin = Math.round(routeData.properties.time / 60);
+            
+            // Build the HTML for the steps
+            let stepsHtml = `
+    <div class="mb-4 p-4 bg-green-600 rounded-xl text-white shadow-md">
+        <div class="flex justify-between items-center gap-2">
+            <div class="flex flex-col">
+                <span class="text-[10px] uppercase opacity-80 font-bold">Distance</span>
+                <span class="text-lg font-extrabold leading-none">${distMi} mi</span>
+            </div>
+            <div class="h-8 w-px bg-white/20"></div>
+            <div class="flex flex-col text-right">
+                <span class="text-[10px] uppercase opacity-80 font-bold">Est. Time</span>
+                <span class="text-lg font-extrabold leading-none">${timeMin} mins</span>
+            </div>
+        </div>
+    </div>
+`;
 
-        fridges.forEach(f => {
-            const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon }).addTo(map)
-                .bindPopup(`<b>${f.name}</b><br>Status: <span class="capitalize">${f.status}</span><br>
-                    <button onclick="routeToFridge(${f.lat},${f.lng})" class="bg-green-500 text-white px-3 py-1 rounded mt-2">Route Here</button>`);
-            marker.on('dblclick', () => window.location.href = `/individfridge/${f.id}`);
-            fridgeMarkers.push(marker);
-
-            const li = document.createElement("li");
-            li.className = "p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100";
-            li.innerHTML = f.name;
-            li.onclick = () => { map.setView([f.lat, f.lng], 15); marker.openPopup(); };
-            li.ondblclick = () => { window.location.href = `/individfridge/${f.id}`; };
-            list.appendChild(li);
-        });
-    }
-
-    // SEARCH FILTER
-    document.getElementById("fridge-search").addEventListener("input", e => {
-        const query = e.target.value.toLowerCase();
-        renderFridges(allFridges.filter(f => f.name.toLowerCase().includes(query)));
-    });
-
-    // LOAD FRIDGES
-    function loadFridges() {
-        fetch("/get-fridges")
-            .then(res => res.json())
-            .then(data => { allFridges = data; renderFridges(allFridges); });
-    }
-
-    // GEOLOCATION
-    navigator.geolocation.getCurrentPosition(
-        pos => { setUserLocation(pos.coords.latitude, pos.coords.longitude); loadFridges(); },
-        err => { setUserLocation(40.7128, -74.0060); loadFridges(); }
-    );
-
-    // CUSTOM START LOCATION
-    document.getElementById("set-start").addEventListener("click", () => {
-        const address = document.getElementById("start-location").value;
-        if (!address) return alert("Please enter a start location.");
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data || data.length === 0) return alert("Location not found.");
-                setUserLocation(parseFloat(data[0].lat), parseFloat(data[0].lon));
+            routeData.properties.legs[0].steps.forEach((step, i) => {
+                const stepDist = (step.distance * 0.000621371).toFixed(2);
+                stepsHtml += `
+                    <div class="text-sm py-3 border-b border-gray-100 last:border-0 flex gap-3">
+                        <span class="font-bold text-green-600">${i + 1}.</span> 
+                        <div class="flex-grow">
+                            <p class="text-gray-800">${step.instruction.text}</p>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">${stepDist > 0 ? stepDist + ' mi' : ''}</span>
+                        </div>
+                    </div>
+                `;
             });
-    });
 
-    // AUTO ROUTE TARGET FRIDGE (OPTIONAL)
-    const targetFridge = {{ target_fridge|tojson if target_fridge else 'null' }};
-    if (targetFridge) {
-        setTimeout(() => { routeToFridge(targetFridge.lat, targetFridge.lng); map.setView([targetFridge.lat, targetFridge.lng], 15); }, 1000);
-    }
-    socket.on("status_update", data => {
-    updateFridgeOnMap(data.fridge_id, data.status);
+            // Inject into the correct container
+            if (isMobile) {
+                mobileItinerary.innerHTML = stepsHtml;
+            } else {
+                itineraryContainer.innerHTML = stepsHtml;
+            }
+        })
+        .catch(err => {
+            const errorHtml = "<p class='text-xs text-red-500'>Route not found.</p>";
+            isMobile ? mobileItinerary.innerHTML = errorHtml : itineraryContainer.innerHTML = errorHtml;
+        });
+};
+
+// Add this helper function
+window.closeDirectionsModal = function() {
+    document.getElementById('directions-modal').classList.add('hidden');
+};
+
+window.clearRoute = function() {
+    if (currentRouteLayer) map.removeLayer(currentRouteLayer);
+    document.getElementById('routing-directions').classList.add('hidden');
+    currentTargetFridge = null;
+};
+
+function renderFridges(fridges) {
+    const list = document.getElementById("fridge-list");
+    list.innerHTML = "";
+    fridgeMarkers.forEach(m => map.removeLayer(m));
+    fridgeMarkers = [];
+
+    const fridgesWithData = fridges.map(f => ({
+        ...f,
+        distance: userLat ? getDistance(userLat, userLng, f.lat, f.lng) : null
+    })).sort((a, b) => (a.distance || 999) - (b.distance || 999));
+
+    fridgesWithData.forEach(f => {
+        const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon }).addTo(map)
+            .bindPopup(`
+                <div class="p-2 text-center">
+                    <b class="text-lg">${f.name}</b><br>
+                    <button onclick="window.routeToFridge(${f.lat},${f.lng})" class="bg-green-600 text-white px-3 py-1 rounded-lg mt-2 w-full font-bold">Get Directions</button>
+                </div>
+            `);
+        fridgeMarkers.push(marker);
+
+        const li = document.createElement("li");
+        li.className = "p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-green-50 flex justify-between items-center transition-colors";
+        li.innerHTML = `
+            <div class="flex flex-col">
+                <span class="font-bold text-gray-900">${f.name}</span>
+                <span class="text-[10px] text-gray-400 uppercase">${f.status || 'Active'}</span>
+                <div class="flex gap-2 mt-2">
+                    <button class="details-btn text-[10px] bg-green-600 text-white px-2 py-1 rounded">Details</button>
+                    <button class="fav-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded">⭐</button>
+                </div>
+            </div>
+            ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
+        `;
+
+        li.querySelector(".details-btn").onclick = (e) => {
+            e.stopPropagation();
+            saveRecentlyViewed(f);
+            window.location.href = `/individfridge/${f.id}`;
+        };
+
+        li.querySelector(".fav-btn").onclick = (e) => {
+            e.stopPropagation();
+            toggleFavorite(f);
+        };
+
+        li.onclick = (e) => {
+            saveRecentlyViewed(f);
+            map.setView([f.lat, f.lng], 16);
+            marker.openPopup();
+            window.routeToFridge(f.lat, f.lng); 
+
+            if (window.innerWidth < 768) { 
+                sidebar.classList.add('translate-y-full'); 
+                toggleBtn.classList.remove('hidden'); 
+            }
+        };
+        list.appendChild(li);
+    });
+}
+
+document.querySelectorAll('input[name="transport"]').forEach(radio => {
+    radio.onchange = () => {
+        if (currentTargetFridge) {
+            window.routeToFridge(currentTargetFridge.lat, currentTargetFridge.lng);
+        }
+    };
 });
 
-</script>
+document.getElementById("fridge-search").oninput = (e) => {
+    renderFridges(allFridges.filter(f => f.name.toLowerCase().includes(e.target.value.toLowerCase())));
+};
 
-    {% include "components/footer.html.jinja" %}
+document.getElementById("set-start").onclick = () => {
+    const address = document.getElementById("start-location").value;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+        .then(res => res.json())
+        .then(data => { 
+            if(data[0]) setUserLocation(parseFloat(data[0].lat), parseFloat(data[0].lon)); 
+        });
+};
+
+function loadFridges() {
+    fetch("/get-fridges")
+        .then(res => res.json())
+        .then(data => { 
+            allFridges = data; 
+            renderFridges(allFridges); 
+        });
+}
+
+navigator.geolocation.getCurrentPosition(
+    pos => { setUserLocation(pos.coords.latitude, pos.coords.longitude); loadFridges(); },
+    () => { setUserLocation(40.7128, -74.0060); loadFridges(); }
+);
+
+function saveRecentlyViewed(fridge) {
+    let recent = JSON.parse(localStorage.getItem("recentFridges")) || [];
+    recent = recent.filter(f => f.id !== fridge.id);
+    recent.unshift(fridge);
+    recent = recent.slice(0, 3);
+    localStorage.setItem("recentFridges", JSON.stringify(recent));
+    renderRecent();
+}
+
+function toggleFavorite(fridge) {
+    let favorites = JSON.parse(localStorage.getItem("favoriteFridges")) || [];
+    const exists = favorites.find(f => f.id === fridge.id);
+    if (exists) {
+        favorites = favorites.filter(f => f.id !== fridge.id);
+    } else {
+        favorites.unshift(fridge);
+        favorites = favorites.slice(0, 5);
+    }
+    localStorage.setItem("favoriteFridges", JSON.stringify(favorites));
+    renderFavorites();
+}
+
+function renderRecent() {
+    const list = document.getElementById("recent-list");
+    const data = JSON.parse(localStorage.getItem("recentFridges")) || [];
+    list.innerHTML = "";
+    data.forEach(f => {
+        const li = document.createElement("li");
+        li.className = "p-2 bg-gray-100 rounded cursor-pointer text-sm hover:bg-gray-200";
+        li.textContent = f.name;
+        li.onclick = () => window.location.href = `/individfridge/${f.id}`;
+        list.appendChild(li);
+    });
+}
+
+function renderFavorites() {
+    const list = document.getElementById("favorites-list");
+    const data = JSON.parse(localStorage.getItem("favoriteFridges")) || [];
+    list.innerHTML = "";
+    data.forEach(f => {
+        const li = document.createElement("li");
+        li.className = "p-2 bg-yellow-100 rounded cursor-pointer text-sm hover:bg-yellow-200";
+        li.textContent = "⭐ " + f.name;
+        li.onclick = () => window.location.href = `/individfridge/${f.id}`;
+        list.appendChild(li);
+    });
+}
+renderFavorites();
+renderRecent();
+</script>
 </body>
 </html>

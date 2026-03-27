@@ -3,46 +3,10 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="icon" type="image/png" href="/static/images/logo.png">
-
-  <title>FridgeNet</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class'
-    }
-  </script>
-
-  <!-- SAME THEME SYSTEM AS DONATION PAGE -->
-  <script>
-    (function () {
-      const saved = localStorage.getItem("theme");
-
-      if (saved === "dark") {
-        document.documentElement.classList.add("dark");
-      } else if (saved === "light") {
-        document.documentElement.classList.remove("dark");
-      } else {
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.classList.toggle("dark", prefersDark);
-      }
-    })();
-  </script>
-
-  <style>
-    html {
-      scroll-behavior: smooth;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    body {
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-  </style>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="icon" type="image/png" href="/static/images/logo.png">
+  <title>FridgeNet - Home</title>
 </head>
 
 <body class="bg-white text-gray-800 

@@ -4,36 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/static/images/logo.png">
-    <title>Donate Food - FridgeNet</title>
-
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script>
-      tailwind.config = { darkMode: 'class' }
-    </script>
-
-    <!-- Load saved theme -->
-    <script>
-      (function () {
-        const saved = localStorage.getItem("theme");
-        if (saved === "dark") {
-          document.documentElement.classList.add("dark");
-        } else if (saved === "light") {
-          document.documentElement.classList.remove("dark");
-        }
-      })();
-    </script>
-
-    <!-- Smooth transition -->
-    <style>
-      html {
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-      body, div {
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title> FridgeNet - Donate</title>
   </head>
 
   <body class="bg-gradient-to-r from-green-100 to-orange-300 

@@ -6,11 +6,11 @@ import random
 from dynaconf import Dynaconf
 import json
 
-
-
-app = Flask(__name__)    
+app = Flask(__name__)       
 config = Dynaconf(settings_file=["settings.toml"])
 app.secret_key = config.secret_key
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:208576454@localhost/fridge_net'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 login_manager = LoginManager(app)
 login_manager.login_view = "/login"
@@ -269,6 +269,10 @@ def donate_money():
 
     connection.close()
 
+    flash("Thank you for your monetary donation!")
+    return redirect(url_for("thank"))
+
+@app.route("/donate-food", methods=["POST"])
     return render_template(
         "donateinfo.html.jinja",
         fridges=fridges,
@@ -377,42 +381,43 @@ def donate_food():
 # -----------------------
 # INDIVIDUAL FRIDGE PAGE
 # -----------------------
-
 @app.route("/individfridge/<int:fridge_id>", methods=["GET","POST"])
 @login_required
 def personal_fridges(fridge_id):
     connection = connect_db()
-    cursor = connection.cursor()
+    # FIX 1: Must use DictCursor so HTML can read item['Name']
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-    # Handle review submission
+    # -------- POST (Review Submission) --------
     if request.method == "POST":
-        rating = request.form["Rating"]
-        comment = request.form["Comment"]
-        user_id = current_user.id if current_user.is_authenticated else None
-
-        if not user_id:
-            return "You must be logged in to review", 400
+        rating = request.form.get("Rating")
+        comment = request.form.get("Comment")
+        user_id = current_user.id
 
         cursor.execute(
             "INSERT INTO Reviews (FridgeID, rating, comment, UserID) VALUES (%s,%s,%s,%s)",
             (fridge_id, rating, comment, user_id)
         )
         connection.commit()
+        connection.close()
         return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
-    # Load fridge info
+    # -------- GET (Load Page) --------
+    # 1. Load fridge info
     cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
     fridge = cursor.fetchone()
 
+    # 2. Load latest status
     cursor.execute("""
-    SELECT Status, Last_updated
-    FROM Fridge_status
-    WHERE FridgeID = %s
-    ORDER BY Last_updated DESC
-    LIMIT 1
-""", (fridge_id,))
+        SELECT Status, Last_updated
+        FROM Fridge_status
+        WHERE FridgeID = %s
+        ORDER BY Last_updated DESC
+        LIMIT 1
+    """, (fridge_id,))
     fridge_status = cursor.fetchone()
 
+    # 3. Load reviews
     cursor.execute("""
         SELECT Reviews.*, User.name AS user_name
         FROM Reviews
@@ -421,7 +426,7 @@ def personal_fridges(fridge_id):
     """, (fridge_id,))
     reviews = cursor.fetchall()
 
-    # 🔴 THIS is the important part: load real inventory
+    # 4. Load fresh inventory (The part that was missing/broken)
     cursor.execute("""
         SELECT
             Items.ID AS ItemsID,
@@ -433,22 +438,21 @@ def personal_fridges(fridge_id):
         ON Items.ID = Fridge_items.ItemsID
         AND Fridge_items.FridgeID = %s
     """, (fridge_id,))
-    items = cursor.fetchall()
+    items_list = cursor.fetchall()
 
     connection.close()
 
     if not fridge:
         abort(404)
 
+    
     return render_template(
         "fridge.html.jinja",
         fridge=fridge,
         reviews=reviews,
-        Items=items,
+        items=items_list, 
         fridge_status=fridge_status
     )
-
-
 
 # -----------------------
 # API: GET FRIDGES
@@ -530,87 +534,57 @@ def thank():
 # -----------------------
 @app.route("/update_fridge/<int:fridge_id>", methods=["GET", "POST"])
 def update_fridge(fridge_id):
-
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
-    current_time = datetime.now()
-    # -------- GET --------
-    if request.method == "GET":
-
-        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-        fridge = cursor.fetchone()
-
-        cursor.execute("""
-        SELECT
-            Items.ID AS ItemsID,
-            Items.Name,
-            Items.Image,
-            IFNULL(Fridge_items.Quantity, 0) AS Quantity
-        FROM Items
-        LEFT JOIN Fridge_items
-        ON Items.ID = Fridge_items.ItemsID
-        AND Fridge_items.FridgeID = %s
-        """, (fridge_id,))
-        items = cursor.fetchall()
-
-        cursor.execute("""
-        SELECT Status, Last_updated
-        FROM Fridge_status
-        WHERE FridgeID=%s
-        ORDER BY Last_updated DESC
-        LIMIT 1
-        """, (fridge_id,))
-        status = cursor.fetchone()
-
-        connection.close()
-        
-        return render_template(
-            "update_fridge.html.jinja",
-            fridge=fridge,
-            items=items,
-            status={'Last_updated': current_time})
-        
 
     # -------- POST --------
-    # Get fullness status once
-    value = int(request.form.get("fullness", 2))
-    mapping = ["empty", "few", "half", "many", "full"]
-    status_value = mapping[value]
+    if request.method == "POST":
+        # Get fullness status
+        value = int(request.form.get("fullness", 2))
+        mapping = ["empty", "few", "half", "many", "full"]
+        status_value = mapping[value]
 
-    # Update item quantities
-    for key in request.form:
-        if key.startswith("quantity_"):
+        # Update item quantities
+        for key in request.form:
+            if key.startswith("quantity_"):
+                item_id = key.split("_")[1]
+                quantity = int(request.form[key])
 
-            item_id = key.split("_")[1]
-            quantity = int(request.form[key])
+                if quantity == 0:
+                    cursor.execute("DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s", (fridge_id, item_id))
+                else:
+                    cursor.execute("""
+                        INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
+                        VALUES (%s,%s,%s)
+                        ON DUPLICATE KEY UPDATE Quantity=%s
+                    """, (fridge_id, item_id, quantity, quantity))
 
-            if quantity == 0:
-                cursor.execute("""
-                DELETE FROM Fridge_items
-                WHERE FridgeID=%s AND ItemsID=%s
-                """, (fridge_id, item_id))
-            else:
-                cursor.execute("""
-                INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
-                VALUES (%s,%s,%s)
-                ON DUPLICATE KEY UPDATE Quantity=%s
-                """, (fridge_id, item_id, quantity, quantity))
+        # Insert fridge status update
+        cursor.execute("INSERT INTO Fridge_status (FridgeID, Status, Last_updated) VALUES (%s, %s, NOW())", (fridge_id, status_value))
+       
+        print("Data updated!")
+        connection.commit()
+        connection.close()
 
-    # Insert fridge status ONCE
+        return redirect(f"/individfridge/{fridge_id}")
+
+    # -------- GET --------
+    # If the code reaches here, it means it's a GET request
+    cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+    fridge = cursor.fetchone()
+
     cursor.execute("""
-    INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
-    VALUES (%s, %s, NOW())
-""", (fridge_id, status_value))
+        SELECT Items.ID AS ItemsID, Items.Name, Items.Image, IFNULL(Fridge_items.Quantity, 0) AS Quantity
+        FROM Items
+        LEFT JOIN Fridge_items ON Items.ID = Fridge_items.ItemsID AND Fridge_items.FridgeID = %s
+    """, (fridge_id,))
+    items = cursor.fetchall()
 
-
-
-    connection.commit()
     connection.close()
-
-    return redirect(f"/individfridge/{fridge_id}")
+    return render_template("update_fridge.html.jinja", fridge=fridge, items=items)
 
 # -----------------------
-# PROFILE PAGE
+# PROFILE PAGES
 # -----------------------
 @app.route("/profile_page")
 def account():
@@ -631,7 +605,6 @@ def update_username():
     flash("Username updated!")
     return redirect("/profile_page")
 
-
 @app.route("/profile/update-password", methods=["POST"])
 @login_required
 def update_password():
@@ -646,7 +619,6 @@ def update_password():
     flash("Password updated!")
     return redirect("/profile_page")
 
-
 @app.route("/profile/update-picture", methods=["POST"])
 @login_required
 def update_picture():
@@ -658,15 +630,25 @@ def update_picture():
     current_user.profile_picture = picture_url or None
     flash("Profile picture updated!")
     return redirect("/profile_page")
-# -----------------------
-# RUN APP
-# -----------------------
-if __name__ == "__main__":
-    app.run(debug=True)
 
+# -----------------------
+# ABOUT PAGE 
+# -----------------------
 @app.route("/about")
 def about():
     return render_template("aboutus.html.jinja")
+
+# -----------------------
+# CONTACT PAGE 
+# -----------------------
+@app.route("/contact")
+def contact():
+    return render_template("contact.html.jinja")
+
+
+# -----------------------
+# FAVORITES @app.route("/analytics/top-fridges")
+# -----------------------
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
