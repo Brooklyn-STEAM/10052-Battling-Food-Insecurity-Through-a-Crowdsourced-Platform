@@ -48,7 +48,6 @@
 
 
 
-
 <a href="/update_fridge/{{ fridge['ID'] }}"
    class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">
     Update Inventory
@@ -59,61 +58,59 @@
                 class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">
                 Report Issue
               </a>
-
+{% if current_user.is_authenticated %}
+<button id="fav-btn" 
+        data-fridge-id="{{ fridge['ID'] }}"
+        class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
+    <svg id="heart-icon" class="h-6 w-6 transition-all duration-200 fill-none stroke-gray-400 stroke-2" 
+    xmlns="http://www.w3.org/2000/svg" 
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+</button>
+{% endif %}
         </div>
       </div>
-    </div>
+    </div> 
   </section>
 
-  <!-- MAIN -->
-  <section class="py-16 px-6 max-w-6xl mx-auto">
-    <div class="grid md:grid-cols-2 gap-12">
-
-      <!-- IMAGE -->
-      <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
-
       <!-- ITEMS -->
-      <ul id="list" class="space-y-4">
-        {% for item in Items %}
-        <li class="flex justify-between items-center 
-                   bg-white dark:bg-gray-800 
-                   p-4 rounded-xl shadow-sm">
-          <div class="flex items-center space-x-4">
-            <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
-            <p class="font-semibold text-green-700 dark:text-green-400">{{ item['Name'] }}</p>
-          </div>
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {{ item['Quantity'] }} available
-          </span>
-        </li>
+      <section class="py-12 px-6 max-w-6xl mx-auto">
+  <div class="grid md:grid-cols-2 gap-8 items-start">
+    
+    <div class="md:sticky md:top-6">
+      <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}" 
+           class="w-full max-h-[400px] aspect-square rounded-3xl shadow-lg object-cover max-h-[400px]">
+    </div>
+
+    <div class="space-y-3">
+      <h2 class="text-2xl font-bold text-green-800 dark:text-green-400 mb-4">Available Items</h2>
+      
+      <ul id="list" class="grid gap-2">
+        {% for item in items %}
+          {% if item['Quantity'] > 0 %}
+          <li class="flex items-center justify-between bg-white dark:bg-gray-800 p-2 pr-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center space-x-3">
+              <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
+              <p class="font-medium text-gray-800 dark:text-gray-200">{{ item['Name'] }}</p>
+            </div>
+            
+            <div class="flex items-center">
+              <span class="text-xs font-bold px-2 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-md">
+                {{ item['Quantity'] }} left
+              </span>
+            </div>
+          </li>
+          {% endif %}
+        {% else %}
+          <li class="p-6 text-center bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+            <p class="text-gray-500 italic text-sm">No items currently listed.</p>
+          </li>
         {% endfor %}
       </ul>
     </div>
 
-  <!-- TWO-COLUMN GRID -->
-  <div class="grid md:grid-cols-2 gap-12">
-
-    <!-- IMAGE -->
-    <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
-
-    <ul id="list" class="space-y-4">
-  {% for item in items %}
-    {% if item['Quantity'] > 0 %}
-    <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-      <div class="flex items-center space-x-4">
-        <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
-        <p class="font-semibold text-green-700">{{ item['Name'] }}</p>
-      </div>
-      <span class="text-sm font-medium text-gray-600">
-        {{ item['Quantity'] }} available
-      </span>
-    </li>
-    {% endif %}
-  {% endfor %}
-</ul>
-
-  </div> <!-- END GRID -->
-
+  </div>
 
   <!-- REVIEWS NOW BELOW ITEMS -->
   <div class="space-y-6 mt-12 max-h-[600px] overflow-y-auto">
@@ -153,32 +150,85 @@
 </div>
 
 <!-- POPUP -->
-<div id="review-popup"
-class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
-
+<div id="review-popup" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
   <div class="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-lg border dark:border-gray-700 w-[420px]">
+    <h2 class="text-2xl font-bold text-green-800 dark:text-green-400 mb-6">Add Review</h2>
 
-    <h2 class="text-2xl font-bold text-green-800 dark:text-green-400 mb-6">
-      Add Review
-    </h2>
-
-    <form method="POST">
+    <form method="POST" action="/individfridge/{{ fridge['ID'] }}">
       <label class="block text-sm text-green-800 dark:text-green-400 mb-1">Rating</label>
-      <select class="w-full rounded-lg border border-green-400 dark:border-green-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 mb-4">
-        <option>Select rating</option>
+      <select name="Rating" class="w-full rounded-lg border border-green-400 dark:border-green-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 mb-4">
+        <option value="5">5 - Excellent</option>
+        <option value="4">4 - Good</option>
+        <option value="3">3 - Average</option>
+        <option value="2">2 - Poor</option>
+        <option value="1">1 - Very Bad</option>
       </select>
 
       <label class="block text-sm text-green-800 dark:text-green-400 mb-1">Comment</label>
-      <textarea class="w-full rounded-lg border border-green-400 dark:border-green-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
+      <textarea name="Comment" required class="w-full rounded-lg border border-green-400 dark:border-green-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
 
-      <button class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl">
+      <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl">
         Submit Review
       </button>
     </form>
   </div>
 </div>
+<script>
+const openBtn = document.getElementById('open-review-btn');
+const popup = document.getElementById('review-popup');
 
-{% include "components/footer.html.jinja" %}
+openBtn.addEventListener('click', () => {
+    popup.classList.remove('opacity-0', 'pointer-events-none');
+});
 
+// Close when clicking outside
+popup.addEventListener('click', (e) => {
+    if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none');
+});
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const favBtn = document.getElementById('fav-btn');
+    const heartIcon = document.getElementById('heart-icon');
+    if (!favBtn) return;
+
+    const fridgeId = favBtn.dataset.fridgeId;
+
+    const updateHeartUI = (isFavorited) => {
+        if (isFavorited) {
+            heartIcon.classList.add('fill-red-500', 'stroke-red-500');
+            heartIcon.classList.remove('fill-none', 'stroke-gray-400');
+        } else {
+            heartIcon.classList.remove('fill-red-500', 'stroke-red-500');
+            heartIcon.classList.add('fill-none', 'stroke-gray-400');
+        }
+    };
+
+    // 1. Initial Check
+    try {
+        const response = await fetch('/get-favorites');
+        const favorites = await response.json();
+        // Use ID (caps) to match your DB return
+        const isFavorited = favorites.some(f => (f.ID || f.id) == fridgeId);
+        if (isFavorited) updateHeartUI(true);
+    } catch (err) {
+        console.log("Not logged in or fetch error");
+    }
+
+    // 2. Click Toggle
+    favBtn.addEventListener('click', async () => {
+        const res = await fetch('/toggle-favorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fridge_id: fridgeId })
+        });
+
+        if (res.ok) {
+            const isCurrentlyRed = heartIcon.classList.contains('fill-red-500');
+            updateHeartUI(!isCurrentlyRed);
+        }
+    });
+});
+</script>
 </body>
+{% include "components/footer.html.jinja" %}
 </html>

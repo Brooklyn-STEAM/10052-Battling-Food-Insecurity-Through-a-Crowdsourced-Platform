@@ -171,67 +171,19 @@ Submit Update
 
 <!-- JAVASCRIPT -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-
-    /* -----------------------------
-       1. Save original quantities
-    ------------------------------ */
-    let originalQuantities = {};
+/* 1. Global Data: Store original quantities for the Undo feature */
+let originalQuantities = {
     {% for item in items %}
-        originalQuantities[{{ item['ItemsID'] }}] = {{ item['Quantity'] }};
+        "{{ item['ItemsID'] }}": {{ item['Quantity'] }},
     {% endfor %}
+};
 
-    /* -----------------------------
-       2. Elements
-    ------------------------------ */
-    const popup = document.getElementById("reset-popup");
-    const cancelBtn = document.getElementById("cancel-reset");
-    const confirmBtn = document.getElementById("confirm-reset");
-
-    /* -----------------------------
-       3. Open popup
-    ------------------------------ */
-    window.resetAll = function () {
-        popup.classList.remove("opacity-0", "pointer-events-none");
-    };
-
-    /* -----------------------------
-       4. Cancel → close + restore
-    ------------------------------ */
-    cancelBtn.addEventListener("click", () => {
-        popup.classList.add("opacity-0", "pointer-events-none");
-
-        for (const id in originalQuantities) {
-            const input = document.getElementById("qty_" + id);
-            const hidden = document.getElementById("hidden_qty_" + id);
-
-            if (input) input.value = originalQuantities[id];
-            if (hidden) hidden.value = originalQuantities[id];
-        }
-    });
-
-    /* -----------------------------
-       5. Confirm → set all to 0
-    ------------------------------ */
-    confirmBtn.addEventListener("click", () => {
-        document.querySelectorAll("input[id^='qty_']").forEach(input => {
-            input.value = 0;
-        });
-        document.querySelectorAll("input[id^='hidden_qty_']").forEach(input => {
-            input.value = 0;
-        });
-
-        popup.classList.add("opacity-0", "pointer-events-none");
-    });
-
-});
-
-/* -----------------------------
-   6. Plus/minus buttons
------------------------------- */
+/* 2. Plus/minus buttons */
 function changeQty(id, amount) {
     const input = document.getElementById("qty_" + id);
     const hidden = document.getElementById("hidden_qty_" + id);
+
+    if (!input || !hidden) return;
 
     let value = parseInt(input.value) || 0;
     value = Math.max(0, value + amount);
@@ -239,6 +191,68 @@ function changeQty(id, amount) {
     input.value = value;
     hidden.value = value;
 }
+
+/* 3. Fullness Slider Label Update */
+function updateLabel(val) {
+    const labels = ["Empty", "Few Items", "Half Full", "Many Items", "Full"];
+    const labelEl = document.getElementById("fullnessLabel");
+    if (labelEl) labelEl.innerText = labels[val];
+}
+
+/* 4. Undo Changes Logic */
+function undoChanges() {
+    for (const id in originalQuantities) {
+        const input = document.getElementById("qty_" + id);
+        const hidden = document.getElementById("hidden_qty_" + id);
+        
+        if (input) {
+            input.value = originalQuantities[id];
+            hidden.value = originalQuantities[id];
+        }
+    }
+    // Also reset slider to default (Half Full)
+    const slider = document.getElementById("fullnessSlider");
+    if (slider) {
+        slider.value = 2;
+        updateLabel(2);
+    }
+}
+
+/* 5. Open Reset Popup */
+function resetAll() {
+    const popup = document.getElementById("reset-popup");
+    if (popup) popup.classList.remove("opacity-0", "pointer-events-none");
+}
+
+/* 6. Event Listeners for Popup Buttons */
+document.addEventListener("DOMContentLoaded", () => {
+    const popup = document.getElementById("reset-popup");
+    const cancelBtn = document.getElementById("cancel-reset");
+    const confirmBtn = document.getElementById("confirm-reset");
+
+    // Close popup on Cancel
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            popup.classList.add("opacity-0", "pointer-events-none");
+        });
+    }
+
+    // Set everything to 0 on Confirm
+    if (confirmBtn) {
+        confirmBtn.addEventListener("click", () => {
+            document.querySelectorAll("input[id^='qty_']").forEach(input => input.value = 0);
+            document.querySelectorAll("input[id^='hidden_qty_']").forEach(input => input.value = 0);
+
+            const slider = document.getElementById("fullnessSlider");
+            if (slider) {
+                slider.value = 0;
+                updateLabel(0);
+            }
+
+            popup.classList.add("opacity-0", "pointer-events-none");
+        });
+    }
+});
 </script>
 
 </div>

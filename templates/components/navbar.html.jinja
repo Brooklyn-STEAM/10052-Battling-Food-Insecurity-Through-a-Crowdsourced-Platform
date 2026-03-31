@@ -124,8 +124,8 @@
       <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/donations">Donate</a></li>
 
       {% if current_user.is_authenticated %}
-      <li><a class="hover:text-yellow-300 transition" href="/profile_page">Profile</a></li>
-      <li><a class="hover:text-red-300 transition" href="/logout">Logout</a></li>
+      <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/profile">Profile</a></li>
+      <li><a class="hover:text-red-300 dark:hover:text-red-400 transition" href="/logout">Logout</a></li>
       {% else %}
       <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/login">Sign In</a></li>
       <li><a class="hover:text-yellow-300 dark:hover:text-yellow-200 transition" href="/signup">Register</a></li>
