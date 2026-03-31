@@ -55,53 +55,72 @@
            src="/static/products/Donate.png">
 
       <!-- Accept / Not Accept -->
-      <div class="flex flex-col md:flex-row justify-center gap-12 mb-12 
-                  bg-green-50 dark:bg-[#1b1730]
-                  p-8 rounded-xl shadow-md">
+<div class="flex flex-col md:flex-row justify-center gap-10 mb-12
+            bg-white/70 dark:bg-gradient-to-br dark:from-[#141228] dark:to-[#1f1a3d]
+            backdrop-blur-md
+            p-10 rounded-2xl shadow-lg border border-white/20 dark:border-white/10">
 
-        <!-- Accept -->
-        <div class="flex flex-col items-center">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               width="48"
-               height="48"
-               viewBox="0 0 48 48">
-            <g fill="none" stroke-linejoin="round" stroke-width="4">
-              <path fill="#16a839" stroke="#000"
-                d="M24 44C29.5228 44 34.5228 41.7614 38.1421 38.1421C41.7614 34.5228 44 29.5228 44 24C44 18.4772 41.7614 13.4772 38.1421 9.85786C34.5228 6.23858 29.5228 4 24 4C18.4772 4 13.4772 6.23858 9.85786 9.85786C6.23858 13.4772 4 18.4772 4 24C4 29.5228 6.23858 34.5228 9.85786 38.1421C13.4772 41.7614 18.4772 44 24 44Z"/>
-              <path stroke="#fff" stroke-linecap="round" d="M16 24L22 30L34 18"/>
-            </g>
-          </svg>
+  <!-- Accept -->
+  <div class="flex flex-col items-center text-center group">
+    <div class="p-4 rounded-full 
+                bg-green-100 dark:bg-green-500/10 
+                shadow-inner dark:shadow-[0_0_20px_rgba(34,197,94,0.25)]">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="44"
+           height="44"
+           viewBox="0 0 48 48">
+        <g fill="none" stroke-linejoin="round" stroke-width="4">
+          <path fill="#22c55e" class="dark:fill-green-500"
+            stroke="none"
+            d="M24 44C29.5228 44 34.5228 41.7614 38.1421 38.1421C41.7614 34.5228 44 29.5228 44 24C44 18.4772 41.7614 13.4772 38.1421 9.85786C34.5228 6.23858 29.5228 4 24 4C18.4772 4 13.4772 6.23858 9.85786 9.85786C6.23858 13.4772 4 18.4772 4 24C4 29.5228 6.23858 34.5228 9.85786 38.1421C13.4772 41.7614 18.4772 44 24 44Z"/>
+          <path stroke="#fff" stroke-linecap="round" d="M16 24L22 30L34 18"/>
+        </g>
+      </svg>
+    </div>
 
-          <p class="font-semibold mt-2 dark:text-white">WE ACCEPT</p>
-          <ul class="list-disc pl-5 text-left space-y-1 text-xl">
-            <li>Packaged Foods</li>
-            <li>Fresh Produce</li>
-            <li>Sealed Drinks</li>
-            <li>Bakery Items (same day)</li>
-          </ul>
-        </div>
+    <p class="font-semibold mt-4 text-gray-800 dark:text-white tracking-wide">
+      WE ACCEPT
+    </p>
 
-        <!-- Not Accept -->
-        <div class="flex flex-col items-center">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               width="48"
-               height="48"
-               viewBox="0 0 24 24">
-            <g fill="#16a839">
-              <path d="M8.478 8.478a1 1 0 0 1 1.414 0l2.154 2.153l2.153-2.153a1 1 0 1 1 1.414 1.414l-2.153 2.154l2.153 2.153a1 1 0 0 1-1.414 1.414l-2.153-2.153l-2.154 2.153A1 1 0 0 1 8.478 14.2l2.153-2.153l-2.153-2.154a1 1 0 0 1 0-1.414"/>
-            </g>
-          </svg>
+    <ul class="mt-3 space-y-1 text-base text-gray-700 dark:text-gray-300">
+      <li>Packaged Foods</li>
+      <li>Fresh Produce</li>
+      <li>Sealed Drinks</li>
+      <li>Bakery Items (same day)</li>
+    </ul>
+  </div>
 
-          <p class="font-semibold mt-2 dark:text-white">NOT ACCEPTING</p>
-          <ul class="list-disc pl-5 text-left space-y-1 text-xl">
-            <li>Open Containers</li>
-            <li>Expired Food</li>
-            <li>Alcohol</li>
-            <li>Homemade Meals</li>
-          </ul>
-        </div>
+  <!-- Divider -->
+  <div class="hidden md:block w-px bg-gray-200 dark:bg-white/10"></div>
 
-      </div>
+  <!-- Not Accept -->
+  <div class="flex flex-col items-center text-center group">
+    <div class="p-4 rounded-full 
+                bg-red-100 dark:bg-red-500/10 
+                shadow-inner dark:shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="44"
+           height="44"
+           viewBox="0 0 24 24">
+        <g fill="currentColor" class="text-red-500">
+          <path d="M8.478 8.478a1 1 0 0 1 1.414 0l2.154 2.153l2.153-2.153a1 1 0 1 1 1.414 1.414l-2.153 2.154l2.153 2.153a1 1 0 0 1-1.414 1.414l-2.153-2.153l-2.154 2.153A1 1 0 0 1 8.478 14.2l2.153-2.153l-2.153-2.154a1 1 0 0 1 0-1.414"/>
+        </g>
+      </svg>
+    </div>
+
+    <p class="font-semibold mt-4 text-gray-800 dark:text-white tracking-wide">
+      NOT ACCEPTING
+    </p>
+
+    <ul class="mt-3 space-y-1 text-base text-gray-700 dark:text-gray-300">
+      <li>Open Containers</li>
+      <li>Expired Food</li>
+      <li>Alcohol</li>
+      <li>Homemade Meals</li>
+    </ul>
+  </div>
+
+</div>
 
       <!-- Button -->
       <div class="flex justify-center mb-12">
