@@ -435,55 +435,199 @@ navigator.geolocation.getCurrentPosition(
     () => { setUserLocation(40.7128, -74.0060); loadFridges(); }
 );
 
+
+// 1. Initial Load: Get everything from Database when page opens
+document.addEventListener("DOMContentLoaded", () => {
+    loadFridges(); // Existing map load
+    loadFavoritesFromServer(); // Sync with DB
+    renderRecent(); // Keep local storage for "Recently Viewed" only
+});
+
+// 2. Fetch Favorites from Python API (Syncs with Fridge Page)
+async function loadFavoritesFromServer() {
+    try {
+        const res = await fetch('/get-favorites');
+        const favorites = await res.json();
+        renderFavoritesList(favorites);
+    } catch (err) {
+        console.error("Error loading favorites from server:", err);
+    }
+}
+
+// 3. The Toggle Function (Connects to your Python route)
+// We use 'window' so it can be called from the marker popups
+window.toggleFavorite = async function(fridge) {
+    try {
+        const res = await fetch('/toggle-favorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fridge_id: fridge.id || fridge.ID })
+        });
+
+        if (res.status === 401) {
+            alert("Please log in to save favorites!");
+            return;
+        }
+
+        const data = await res.json();
+        console.log("Server response:", data.message);
+        
+        // Refresh the list from the database so the sidebar updates instantly
+        loadFavoritesFromServer();
+
+    } catch (err) {
+        console.error("Error toggling favorite:", err);
+    }
+};
+
+// 4. Render the Sidebar Favorites List
+function renderFavoritesList(favorites) {
+    const list = document.getElementById("favorites-list");
+    if (!list) return;
+    
+    list.innerHTML = "";
+
+    if (!favorites || favorites.length === 0) {
+        list.innerHTML = '<li class="p-2 text-xs text-gray-400 italic text-center">No favorites yet.</li>';
+        return;
+    }
+
+    favorites.forEach(f => {
+        const li = document.createElement("li");
+        const fID = f.ID || f.id;
+        const fName = f.Name || f.name;
+        const fLat = f.Latitude || f.lat;
+        const fLng = f.Longitude || f.lng;
+
+        // Container styling
+        li.className = "p-2 bg-yellow-50 border border-yellow-200 rounded-xl mb-2 flex justify-between items-center shadow-sm";
+        
+        li.innerHTML = `
+            <span class="font-semibold text-sm cursor-pointer hover:text-yellow-700 flex-grow py-1">⭐ ${fName}</span>
+            <button class="go-to-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded-lg font-bold uppercase hover:bg-yellow-600 transition-colors">
+                Go to →
+            </button>
+        `;
+        
+        // CLICK 1: Clicking the Name just centers the map or goes to the page
+        li.querySelector('span').onclick = () => {
+            if (fLat && fLng) {
+                map.setView([fLat, fLng], 15);
+            } else {
+                window.location.href = `/individfridge/${fID}`;
+            }
+        };
+
+        // CLICK 2: ONLY the button triggers the route
+        li.querySelector('.go-to-btn').onclick = (e) => {
+            e.stopPropagation(); // Prevents clicking the row
+            if (fLat && fLng) {
+                map.setView([fLat, fLng], 16);
+                window.routeToFridge(fLat, fLng);
+                
+                // On mobile, close sidebar so they see the map/popup immediately
+                if (window.innerWidth < 768) { 
+                    sidebar.classList.add('translate-y-full'); 
+                    toggleBtn.classList.remove('hidden'); 
+                }
+            } else {
+                alert("Location data not available for this fridge.");
+            }
+        };
+
+        list.appendChild(li);
+    });
+}
+
+// 5. Update renderFridges to use the DB toggle
+// (Modified part of your existing renderFridges function)
+function renderFridges(fridges) {
+    const list = document.getElementById("fridge-list");
+    list.innerHTML = "";
+    fridgeMarkers.forEach(m => map.removeLayer(m));
+    fridgeMarkers = [];
+
+    const fridgesWithData = fridges.map(f => ({
+        ...f,
+        distance: userLat ? getDistance(userLat, userLng, f.lat, f.lng) : null
+    })).sort((a, b) => (a.distance || 999) - (b.distance || 999));
+
+    fridgesWithData.forEach(f => {
+        const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon }).addTo(map)
+            .bindPopup(`
+                <div class="p-2 text-center">
+                    <b class="text-lg">${f.name}</b><br>
+                    <button onclick="window.routeToFridge(${f.lat},${f.lng})" class="bg-green-600 text-white px-3 py-1 rounded-lg mt-2 w-full font-bold">Get Directions</button>
+                </div>
+            `);
+        fridgeMarkers.push(marker);
+
+        const li = document.createElement("li");
+        li.className = "p-4 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:bg-green-50 flex justify-between items-center transition-all shadow-sm";
+        li.innerHTML = `
+            <div class="flex flex-col">
+                <span class="font-bold text-gray-900">${f.name}</span>
+                <span class="text-[10px] text-gray-400 uppercase tracking-tighter">${f.status || 'Active'}</span>
+                <div class="flex gap-2 mt-2">
+                    <button class="details-btn text-[10px] bg-green-600 text-white px-3 py-1 rounded-lg font-bold">Details</button>
+                    <button class="fav-btn text-[10px] bg-yellow-500 text-white px-3 py-1 rounded-lg font-bold">⭐ Favorite</button>
+                </div>
+            </div>
+            ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
+        `;
+
+        // Updated Listeners
+        li.querySelector(".details-btn").onclick = (e) => {
+            e.stopPropagation();
+            saveRecentlyViewed(f);
+            window.location.href = `/individfridge/${f.id}`;
+        };
+
+        li.querySelector(".fav-btn").onclick = (e) => {
+            e.stopPropagation();
+            window.toggleFavorite(f); // Calls DB Toggle
+        };
+
+        li.onclick = () => {
+            saveRecentlyViewed(f);
+            map.setView([f.lat, f.lng], 16);
+            marker.openPopup();
+            window.routeToFridge(f.lat, f.lng);
+        };
+        list.appendChild(li);
+    });
+}
+
+// 6. Recently Viewed (Stays in LocalStorage)
 function saveRecentlyViewed(fridge) {
     let recent = JSON.parse(localStorage.getItem("recentFridges")) || [];
-    recent = recent.filter(f => f.id !== fridge.id);
-    recent.unshift(fridge);
+    // Remove if already exists, then add to front
+    recent = recent.filter(f => f.id !== (fridge.id || fridge.ID));
+    recent.unshift({ id: fridge.id || fridge.ID, name: fridge.name || fridge.Name });
     recent = recent.slice(0, 3);
     localStorage.setItem("recentFridges", JSON.stringify(recent));
     renderRecent();
 }
 
-function toggleFavorite(fridge) {
-    let favorites = JSON.parse(localStorage.getItem("favoriteFridges")) || [];
-    const exists = favorites.find(f => f.id === fridge.id);
-    if (exists) {
-        favorites = favorites.filter(f => f.id !== fridge.id);
-    } else {
-        favorites.unshift(fridge);
-        favorites = favorites.slice(0, 5);
-    }
-    localStorage.setItem("favoriteFridges", JSON.stringify(favorites));
-    renderFavorites();
-}
-
 function renderRecent() {
     const list = document.getElementById("recent-list");
+    if (!list) return;
     const data = JSON.parse(localStorage.getItem("recentFridges")) || [];
     list.innerHTML = "";
+    
+    if (data.length === 0) {
+        list.innerHTML = '<li class="p-2 text-xs text-gray-400 italic">None recently viewed.</li>';
+        return;
+    }
+
     data.forEach(f => {
         const li = document.createElement("li");
-        li.className = "p-2 bg-gray-100 rounded cursor-pointer text-sm hover:bg-gray-200";
+        li.className = "p-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-sm hover:bg-gray-100 mb-1 transition-colors";
         li.textContent = f.name;
         li.onclick = () => window.location.href = `/individfridge/${f.id}`;
         list.appendChild(li);
     });
 }
-
-function renderFavorites() {
-    const list = document.getElementById("favorites-list");
-    const data = JSON.parse(localStorage.getItem("favoriteFridges")) || [];
-    list.innerHTML = "";
-    data.forEach(f => {
-        const li = document.createElement("li");
-        li.className = "p-2 bg-yellow-100 rounded cursor-pointer text-sm hover:bg-yellow-200";
-        li.textContent = "⭐ " + f.name;
-        li.onclick = () => window.location.href = `/individfridge/${f.id}`;
-        list.appendChild(li);
-    });
-}
-renderFavorites();
-renderRecent();
 </script>
 
 </body>
