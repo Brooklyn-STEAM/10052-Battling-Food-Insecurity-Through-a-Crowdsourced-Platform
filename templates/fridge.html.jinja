@@ -2,10 +2,38 @@
 <html> 
 <head>
  <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/static/images/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <title>   Community Fridge</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <link rel="icon" type="image/png" href="/static/images/logo.png">
+
+ <script src="https://cdn.tailwindcss.com"></script>
+ <script>
+   tailwind.config = { darkMode: 'class' }
+ </script>
+
+ <script>
+ (function () {
+   const saved = localStorage.getItem("theme");
+
+   if (saved === "dark") {
+     document.documentElement.classList.add("dark");
+   } else if (saved === "light") {
+     document.documentElement.classList.remove("dark");
+   } else {
+     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+     document.documentElement.classList.toggle("dark", prefersDark);
+   }
+ })();
+ </script>
+
+ <style>
+ html {
+   scroll-behavior: smooth;
+   transition: background-color 0.3s ease, color 0.3s ease;
+ }
+ body, div, p, h1, h2, span {
+   transition: background-color 0.3s ease, color 0.3s ease;
+ }
+ </style>
 </head>
 
 <body class="bg-yellow-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -30,36 +58,31 @@
         <div class="flex flex-col sm:flex-row gap-4">
           {% set status = fridge_status['Status'] | lower | trim %}
 
-{% if status in ["full", "many", "half"] %}
-    <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
-        🟢 Open & Stocked
-    </span>
+          {% if status in ["full", "few", "many"] %}
+          <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+            🟢 Open & Stocked
+          </span>
 
-{% elif status in ["low", "empty", "few"] %}
-    <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
-        🟡 Low Stock
-    </span>
+          {% elif status in ["low", "empty", "half"] %}
+          <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+            🟡 Low Stock
+          </span>
 
-{% else %}
-    <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
-        🔴 Closed / Needs Attention
-    </span>
-{% endif %}
+          {% else %}
+          <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">
+            🔴 Closed / Needs Attention
+          </span>
+          {% endif %}
 
+          <a href="/update_fridge/{{ fridge['ID'] }}"
+            class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">
+            Update Inventory
+          </a>
 
-
-
-<a href="/update_fridge/{{ fridge['ID'] }}"
-   class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">
-    Update Inventory
-</a>
-
-
-              <a href="/report/{{ fridge['ID'] }}"
-                class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">
-                Report Issue
-              </a>
-
+          <a href="/report/{{ fridge['ID'] }}"
+            class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">
+            Report Issue
+          </a>
         </div>
       </div>
     </div>
@@ -90,33 +113,8 @@
       </ul>
     </div>
 
-  <!-- TWO-COLUMN GRID -->
-  <div class="grid md:grid-cols-2 gap-12">
-
-    <!-- IMAGE -->
-    <img src="{{ fridge['Image']}}" alt="{{fridge['Name']}}">
-
-    <ul id="list" class="space-y-4">
-  {% for item in items %}
-    {% if item['Quantity'] > 0 %}
-    <li class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-      <div class="flex items-center space-x-4">
-        <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover">
-        <p class="font-semibold text-green-700">{{ item['Name'] }}</p>
-      </div>
-      <span class="text-sm font-medium text-gray-600">
-        {{ item['Quantity'] }} available
-      </span>
-    </li>
-    {% endif %}
-  {% endfor %}
-</ul>
-
-  </div> <!-- END GRID -->
-
-
-  <!-- REVIEWS NOW BELOW ITEMS -->
-  <div class="space-y-6 mt-12 max-h-[600px] overflow-y-auto">
+    <!-- REVIEWS -->
+    <div class="space-y-6 mt-12 max-h-[600px] overflow-y-auto">
 
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-green-800 dark:text-green-400">Community Reviews</h2>

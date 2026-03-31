@@ -31,6 +31,75 @@
             align-items: center;
         }
     </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+
+
+    <script>
+            (function () {
+                const saved = localStorage.getItem("theme");
+
+                if (saved === "dark") {
+                    document.documentElement.classList.add("dark");
+                } else if (saved === "light") {
+                    document.documentElement.classList.remove("dark");
+                } else {
+                    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    document.documentElement.classList.toggle("dark", prefersDark);
+                }
+            })();
+    </script>
+
+    <style>
+        /* INPUT */
+        .input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            transition: 0.25s;
+        }
+
+        .input:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+        }
+
+        /* FORM CARD (purple theme) */
+        .form-card {
+            background: linear-gradient(135deg, #ffffff, #f3f0ff);
+            border: 1px solid #cac2d2;
+        }
+
+        .dark .form-card {
+            background: linear-gradient(135deg, #1e1b2e, #2a2545);
+            border: 1px solid #40376E;
+        }
+
+        /* DARK MODE */
+        .dark .input {
+            background: #2a2545;
+            border-color: #40376E;
+            color: #fff;
+        }
+
+        .dark .dropdown {
+            background: #2a2545;
+            border-color: #40376E;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        html {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -259,54 +328,76 @@ function renderFridges(fridges) {
         distance: userLat ? getDistance(userLat, userLng, f.lat, f.lng) : null
     })).sort((a, b) => (a.distance || 999) - (b.distance || 999));
 
-    fridgesWithData.forEach(f => {
-        const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon }).addTo(map)
-            .bindPopup(`
-                <div class="p-2 text-center">
-                    <b class="text-lg">${f.name}</b><br>
-                    <button onclick="window.routeToFridge(${f.lat},${f.lng})" class="bg-green-600 text-white px-3 py-1 rounded-lg mt-2 w-full font-bold">Get Directions</button>
-                </div>
-            `);
-        fridgeMarkers.push(marker);
+   fridgesWithData.forEach(f => {
 
-        const li = document.createElement("li");
-        li.className = "p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-green-50 flex justify-between items-center transition-colors";
-        li.innerHTML = `
-            <div class="flex flex-col">
-                <span class="font-bold text-gray-900">${f.name}</span>
-                <span class="text-[10px] text-gray-400 uppercase">${f.status || 'Active'}</span>
-                <div class="flex gap-2 mt-2">
-                    <button class="details-btn text-[10px] bg-green-600 text-white px-2 py-1 rounded">Details</button>
-                    <button class="fav-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded">⭐</button>
-                </div>
+    // ✅ Marker (FIXED)
+    const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon })
+        .addTo(map)
+        .bindPopup(`
+            <div class="p-2 text-center">
+                <b class="text-lg">${f.name}</b><br>
+                <button onclick="window.routeToFridge(${f.lat},${f.lng})"
+                    class="bg-green-600 text-white px-3 py-1 rounded-lg mt-2 w-full font-bold">
+                    Get Directions
+                </button>
             </div>
-            ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
-        `;
+        `);
 
-        li.querySelector(".details-btn").onclick = (e) => {
-            e.stopPropagation();
-            saveRecentlyViewed(f);
-            window.location.href = `/individfridge/${f.id}`;
-        };
-
-        li.querySelector(".fav-btn").onclick = (e) => {
-            e.stopPropagation();
-            toggleFavorite(f);
-        };
-
-        li.onclick = (e) => {
-            saveRecentlyViewed(f);
-            map.setView([f.lat, f.lng], 16);
-            marker.openPopup();
-            window.routeToFridge(f.lat, f.lng); 
-
-            if (window.innerWidth < 768) { 
-                sidebar.classList.add('translate-y-full'); 
-                toggleBtn.classList.remove('hidden'); 
-            }
-        };
-        list.appendChild(li);
+    // ✅ Double click on marker → go to page
+    marker.on('dblclick', () => {
+        window.location.href = `/individfridge/${f.id}`;
     });
+
+    fridgeMarkers.push(marker);
+
+    // ✅ Sidebar item
+    const li = document.createElement("li");
+    li.className = "p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-green-50 flex justify-between items-center transition-colors";
+
+    li.innerHTML = `
+        <div class="flex flex-col">
+            <span class="font-bold text-gray-900">${f.name}</span>
+            <span class="text-[10px] text-gray-400 uppercase">${f.status || 'Active'}</span>
+            <div class="flex gap-2 mt-2">
+                <button class="details-btn text-[10px] bg-green-600 text-white px-2 py-1 rounded">Details</button>
+                <button class="fav-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded">⭐</button>
+            </div>
+        </div>
+        ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
+    `;
+
+    // Existing buttons (unchanged)
+    li.querySelector(".details-btn").onclick = (e) => {
+        e.stopPropagation();
+        saveRecentlyViewed(f);
+        window.location.href = `/individfridge/${f.id}`;
+    };
+
+    li.querySelector(".fav-btn").onclick = (e) => {
+        e.stopPropagation();
+        toggleFavorite(f);
+    };
+
+    // ✅ Double click on list item → go to page
+    li.ondblclick = () => {
+        window.location.href = `/individfridge/${f.id}`;
+    };
+
+    // Normal click (UNCHANGED behavior)
+    li.onclick = () => {
+        saveRecentlyViewed(f);
+        map.setView([f.lat, f.lng], 16);
+        marker.openPopup();
+        window.routeToFridge(f.lat, f.lng);
+
+        if (window.innerWidth < 768) {
+            sidebar.classList.add('translate-y-full');
+            toggleBtn.classList.remove('hidden');
+        }
+    };
+
+    list.appendChild(li);
+});
 }
 
 document.querySelectorAll('input[name="transport"]').forEach(radio => {
@@ -394,5 +485,6 @@ function renderFavorites() {
 renderFavorites();
 renderRecent();
 </script>
+
 </body>
 </html>

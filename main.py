@@ -272,13 +272,6 @@ def donate_money():
     flash("Thank you for your monetary donation!")
     return redirect(url_for("thank"))
 
-@app.route("/donate-food", methods=["POST"])
-    return render_template(
-        "donateinfo.html.jinja",
-        fridges=fridges,
-        food_types=food_types
-    )
-
 
 # -----------------------------
 # 🍱 DONATE FOOD
@@ -641,9 +634,7 @@ def about():
 # -----------------------
 # CONTACT PAGE 
 # -----------------------
-@app.route("/contact")
-def contact():
-    return render_template("contact.html.jinja")
+
 
 
 # -----------------------
