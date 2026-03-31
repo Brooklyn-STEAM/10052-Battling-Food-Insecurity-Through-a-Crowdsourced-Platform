@@ -200,32 +200,26 @@ let originalQuantities = {
     {% endfor %}
 };
 
-/* 2. Plus/minus buttons */
-function updateLabel(value) {
-  const labels = ["Empty", "Few", "Half", "Many", "Full"];
-  document.getElementById("fullnessLabel").innerText = labels[value];
-}
-
+/* 2. Plus/Minus Buttons Logic */
 function changeQty(id, amount) {
-  const input = document.getElementById("qty_" + id);
-  const hidden = document.getElementById("hidden_qty_" + id);
+    const input = document.getElementById("qty_" + id);
+    const hidden = document.getElementById("hidden_qty_" + id);
 
-    if (!input || !hidden) return;
-
-    let value = parseInt(input.value) || 0;
-    value = Math.max(0, value + amount);
-  let value = parseInt(input.value) || 0;
-  value = Math.max(0, value + amount);
-
-  input.value = value;
-  hidden.value = value;
+    if (input && hidden) {
+        let value = parseInt(input.value) || 0;
+        value = Math.max(0, value + amount);
+        input.value = value;
+        hidden.value = value;
+    }
 }
 
 /* 3. Fullness Slider Label Update */
 function updateLabel(val) {
     const labels = ["Empty", "Few Items", "Half Full", "Many Items", "Full"];
     const labelEl = document.getElementById("fullnessLabel");
-    if (labelEl) labelEl.innerText = labels[val];
+    if (labelEl) {
+        labelEl.innerText = labels[val];
+    }
 }
 
 /* 4. Undo Changes Logic */
@@ -234,12 +228,12 @@ function undoChanges() {
         const input = document.getElementById("qty_" + id);
         const hidden = document.getElementById("hidden_qty_" + id);
         
-        if (input) {
+        if (input && hidden) {
             input.value = originalQuantities[id];
             hidden.value = originalQuantities[id];
         }
     }
-    // Also reset slider to default (Half Full)
+    // Reset slider to "Half Full" (index 2)
     const slider = document.getElementById("fullnessSlider");
     if (slider) {
         slider.value = 2;
@@ -247,13 +241,15 @@ function undoChanges() {
     }
 }
 
-/* 5. Open Reset Popup */
+/* 5. Reset Popup Logic */
 function resetAll() {
     const popup = document.getElementById("reset-popup");
-    if (popup) popup.classList.remove("opacity-0", "pointer-events-none");
+    if (popup) {
+        popup.classList.remove("opacity-0", "pointer-events-none");
+    }
 }
 
-/* 6. Event Listeners for Popup Buttons */
+/* 6. Event Listeners (Wait for DOM to load) */
 document.addEventListener("DOMContentLoaded", () => {
     const popup = document.getElementById("reset-popup");
     const cancelBtn = document.getElementById("cancel-reset");
@@ -269,39 +265,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // Set everything to 0 on Confirm
     if (confirmBtn) {
         confirmBtn.addEventListener("click", () => {
+            // Update all visible and hidden quantity inputs
             document.querySelectorAll("input[id^='qty_']").forEach(input => input.value = 0);
             document.querySelectorAll("input[id^='hidden_qty_']").forEach(input => input.value = 0);
 
+            // Reset the slider to Empty
             const slider = document.getElementById("fullnessSlider");
             if (slider) {
                 slider.value = 0;
                 updateLabel(0);
             }
 
+            // Close the popup
             popup.classList.add("opacity-0", "pointer-events-none");
         });
     }
+    
+    // Initial label update based on slider starting value
+    const slider = document.getElementById("fullnessSlider");
+    if (slider) updateLabel(slider.value);
 });
-</script>
-
-// Reset popup logic
-const popup = document.getElementById("reset-popup");
-const cancelBtn = document.getElementById("cancel-reset");
-const confirmBtn = document.getElementById("confirm-reset");
-
-function resetAll() {
-  popup.classList.remove("opacity-0", "pointer-events-none");
-}
-
-cancelBtn.onclick = () => {
-  popup.classList.add("opacity-0", "pointer-events-none");
-};
-
-confirmBtn.onclick = () => {
-  document.querySelectorAll("input[id^='qty_']").forEach(i => i.value = 0);
-  document.querySelectorAll("input[id^='hidden_qty_']").forEach(i => i.value = 0);
-  popup.classList.add("opacity-0", "pointer-events-none");
-};
 </script>
 
 </body>
