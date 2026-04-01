@@ -611,7 +611,13 @@ def update_picture():
 # -----------------------
 @app.route("/about")
 def about():
-    return render_template("aboutus.html.jinja")
+    stats = {
+        "meals": 12847,        # replace with real query
+        "users": 642,
+        "fridges": 25,
+        "food_saved": 3.4      # tons (or calculate)
+    }
+    return render_template("aboutus.html.jinja", stats=stats)
 
 
 # -----------------------
