@@ -1,16 +1,43 @@
 <!doctype html>
 <html>
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/static/images/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="icon" type="image/png" href="/static/images/logo.png">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- Load saved theme -->
+    <script>
+      (function () {
+        const saved = localStorage.getItem("theme");
+        if (saved === "dark") {
+          document.documentElement.classList.add("dark");
+        } else if (saved === "light") {
+          document.documentElement.classList.remove("dark");
+        }
+      })();
+    </script>
+
+    <!-- Smooth transition -->
+    <style>
+      html {
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      body, div {
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+    </style>
+
     <title>Report a Problem | FridgeNet</title>
 </head>
 
-<body class="bg-gray-50 min-h-screen font-sans antialiased">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans antialiased">
     {% include "components/navbar.html.jinja" %}
 
     <main class="max-w-7xl mx-auto px-4 py-12">
@@ -19,17 +46,17 @@
             <!-- Left Side: Form -->
             <div class="w-full lg:w-1/2">
                 <div class="mb-8">
-                    <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">REPORT A PROBLEM</h1>
-                    <p class="text-gray-600 mt-2">Our team will investigate the issue immediately.</p>
+                    <h1 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">REPORT A PROBLEM</h1>
+                    <p class="text-gray-600 dark:text-gray-400 mt-2">Our team will investigate the issue immediately.</p>
                 </div>
 
 <form action="/report/{{ fridge['ID'] }}" method="POST"
-      class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+      class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 space-y-5">
     <div class="grid grid-cols-2 gap-4">
         <div>
-            <label for="priority" class="block text-sm font-semibold text-gray-700 mb-1">Priority</label>
+            <label for="priority" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Priority</label>
             <select name="priority" id="priority" required
-                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
+                class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
                 <option value="">Select...</option>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -38,9 +65,9 @@
         </div>
 
         <div>
-            <label for="reproducibility" class="block text-sm font-semibold text-gray-700 mb-1">Reproducibility</label>
+            <label for="reproducibility" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Reproducibility</label>
             <select name="reproducibility" id="reproducibility" required
-                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
+                class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
                 <option value="">Select...</option>
                 <option value="always">Always</option>
                 <option value="sometimes">Sometimes</option>
@@ -50,22 +77,22 @@
     </div>
 
     <div>
-        <label for="issue_description" class="block text-sm font-semibold text-gray-700 mb-1">Issue Description</label>
+        <label for="issue_description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Issue Description</label>
         <textarea name="issue_description" id="issue_description" rows="4" required
             placeholder="What happened?"
-            class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600"></textarea>
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600"></textarea>
     </div>
 
     <div>
-        <label for="contact_info" class="block text-sm font-semibold text-gray-700 mb-1">
-            Contact Info <span class="text-gray-400 font-normal">(Optional)</span>
+        <label for="contact_info" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+            Contact Info <span class="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span>
         </label>
         <input type="text" name="contact_info" id="contact_info" placeholder="Email or Phone"
-            class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-3 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
     </div>
 
     <button type="submit"
-        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-green-200 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-green-500/50">
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-green-200 dark:shadow-green-900/40 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-green-500/50">
         Submit Report
     </button>
 </form>
@@ -83,28 +110,27 @@
                     <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }} Image">
                 </div>
 
-                <div class="bg-green-50 p-6 rounded-xl border border-green-100 text-center">
-                <p class="text-green-900 font-medium text-lg">{{fridge['Name']}}</p>
+                <div class="bg-green-50 dark:bg-green-900/20 p-6 rounded-xl border border-green-100 dark:border-green-800 text-center">
+                <p class="text-green-900 dark:text-green-300 font-medium text-lg">{{fridge['Name']}}</p>
                 <br>
-                    <h3 class="text-green-800 font-bold uppercase tracking-widest text-xs mb-2">Location</h3>
-                    <p class="text-green-900 font-medium text-lg">{{fridge['Address']}}</p>
+                    <h3 class="text-green-800 dark:text-green-400 font-bold uppercase tracking-widest text-xs mb-2">Location</h3>
+                    <p class="text-green-900 dark:text-green-300 font-medium text-lg">{{fridge['Address']}}</p>
                 </div>
             </div>
 
         </div>
     </main>
+
 <script>
-    const radios = document.querySelectorAll('input[name="fridgeStatus"]');
+const radios = document.querySelectorAll('input[name="fridgeStatus"]');
 const statusText = document.getElementById("statusText");
 
 radios.forEach(radio => {
   radio.addEventListener("change", (e) => {
     const selectedStatus = e.target.value;
 
-    // update UI
     statusText.textContent = selectedStatus;
 
-    // example API call to update backend
     fetch("/api/fridge/status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

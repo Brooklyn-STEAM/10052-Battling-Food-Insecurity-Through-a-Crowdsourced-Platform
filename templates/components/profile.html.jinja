@@ -1,42 +1,84 @@
 <!doctype html>
 <html>
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <title>Profile</title>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/static/images/logo.png">
+    <title>Profile - FridgeNet</title>
 
-<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- ✅ Theme Init (SYNCED with navbar) -->
+    <script>
+      (function () {
+        const saved = localStorage.getItem("theme");
+
+        if (saved === "dark") {
+          document.documentElement.classList.add("dark");
+        } else if (saved === "light") {
+          document.documentElement.classList.remove("dark");
+        } else {
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.classList.toggle("dark", prefersDark);
+        }
+      })();
+    </script>
+
+    <style>
+      html {
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      body, div, input {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+    </style>
+  </head>
+
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 
+             dark:from-[#1b1730] dark:to-[#7C5EDB] 
+             min-h-screen text-gray-900 dark:text-gray-100">
+
 {% include "components/navbar.html.jinja" %}
 
 <div class="flex justify-center py-16 px-4">
-  <div class="bg-white w-full max-w-lg rounded-3xl p-10 shadow-xl border border-green-100">
+  <div class="bg-white dark:bg-[#1b1730]
+              w-full max-w-lg rounded-3xl p-10 shadow-xl
+              border border-green-100 dark:border-[#40376E]">
 
     <!-- Profile Header -->
     <div class="flex flex-col items-center mb-10">
       {% if current_user.profile_picture %}
-        <img src="{{ current_user.profile_picture }}"
-             class="w-28 h-28 rounded-full object-cover shadow-lg mb-4 ring-4 ring-green-200"
+        <img src="{{ current_user.profile_picture }}" class="w-28 h-28 rounded-full object-cover shadow-lg mb-4 ring-4 ring-green-200 dark:ring-[#5a4fd6] "
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div class="w-28 h-28 rounded-full bg-green-700 hidden items-center justify-center shadow-lg mb-4">
           <span class="text-white text-4xl font-bold">{{ current_user.name[0] | upper }}</span>
         </div>
       {% else %}
-        <div class="w-28 h-28 rounded-full bg-green-600 flex items-center justify-center shadow-lg mb-4 ring-4 ring-green-200">
+        <div class="w-28 h-28 rounded-full bg-green-600 flex items-center justify-center shadow-lg mb-4 ring-4 ring-green-200 dark:ring-[#5a4fd6]">
           <span class="text-white text-4xl font-bold">{{ current_user.name[0] | upper }}</span>
         </div>
       {% endif %}
 
-      <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ current_user.name }}</h2>
-      <p class="text-gray-600 text-sm mt-1">{{ current_user.email }}</p>
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">
+        {{ current_user.name }}
+      </h2>
+
+      <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+        {{ current_user.email }}
+      </p>
     </div>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         {% for message in messages %}
-          <div class="flash-message mb-4 px-4 py-3 rounded-xl bg-green-600 text-white text-sm shadow-md">
+          <div class="flash-message mb-4 px-4 py-3 rounded-xl 
+                      bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md">
             {{ message }}
           </div>
         {% endfor %}
@@ -45,12 +87,21 @@
 
     <!-- Username -->
     <form method="POST" action="/profile/update-username" class="mb-8">
-      <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 block">Username</label>
+      <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
+        Username
+      </label>
+
       <div class="flex gap-2">
-        <input type="text" name="username" value="{{ current_user.name }}" required placeholder="Adam Smith"
-          class="flex-1 px-4 py-3 rounded-xl bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 shadow-sm">
+        <input type="text" name="username" value="{{ current_user.name }}" required
+          class="flex-1 px-4 py-3 rounded-xl
+                 bg-gray-50 dark:bg-[#2a2545]
+                 border border-gray-300 dark:border-[#40376E]
+                 text-gray-900 dark:text-white
+                 focus:ring-2 focus:ring-green-600 dark:focus:ring-[#7b2cbf]">
+
         <button type="submit"
-          class="px-4 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition shadow">
+          class="px-4 py-3 rounded-xl bg-green-600 text-white font-semibold
+                 hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
           Save
         </button>
       </div>
@@ -58,12 +109,21 @@
 
     <!-- Password -->
     <form method="POST" action="/profile/update-password" class="mb-8">
-      <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 block">New Password</label>
+      <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
+        New Password
+      </label>
+
       <div class="flex gap-2">
-        <input type="password" name="password" placeholder="••••••••" required minlength="8"
-          class="flex-1 px-4 py-3 rounded-xl bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 shadow-sm">
+        <input type="password" name="password" required minlength="8"
+          class="flex-1 px-4 py-3 rounded-xl
+                 bg-gray-50 dark:bg-[#2a2545]
+                 border border-gray-300 dark:border-[#40376E]
+                 text-gray-900 dark:text-white
+                 focus:ring-2 focus:ring-green-600 dark:focus:ring-[#7b2cbf]">
+
         <button type="submit"
-          class="px-4 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition shadow">
+          class="px-4 py-3 rounded-xl bg-green-600 text-white font-semibold
+                 hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
           Save
         </button>
       </div>
@@ -71,28 +131,40 @@
 
     <!-- Profile Picture -->
     <form method="POST" action="/profile/update-picture" class="mb-10">
-      <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 block">Profile Picture URL</label>
+      <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
+        Profile Picture URL
+      </label>
+
       <div class="flex gap-2">
-        <input type="url" name="picture_url" placeholder="https://example.com/photo.jpg"
-               value="{{ current_user.profile_picture or '' }}"
-          class="flex-1 px-4 py-3 rounded-xl bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 shadow-sm">
+        <input type="url" name="picture_url"
+          value="{{ current_user.profile_picture or '' }}"
+          class="flex-1 px-4 py-3 rounded-xl
+                 bg-gray-50 dark:bg-[#2a2545]
+                 border border-gray-300 dark:border-[#40376E]
+                 text-gray-900 dark:text-white
+                 focus:ring-2 focus:ring-green-600 dark:focus:ring-[#7b2cbf]">
+
         <button type="submit"
-          class="px-4 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition shadow">
+          class="px-4 py-3 rounded-xl bg-green-600 text-white font-semibold
+                 hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
           Save
         </button>
       </div>
     </form>
 
-    <div class="border-t border-gray-300 mb-8"></div>
+    <div class="border-t border-gray-300 dark:border-[#40376E] mb-8"></div>
 
     <!-- Actions -->
     <div class="space-y-3">
       <a href="/"
-        class="block text-center w-full py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition shadow">
+        class="block text-center py-3 rounded-xl bg-green-600 text-white font-semibold
+               hover:bg-green-700 dark:bg-[#6f52c9] dark:hover:bg-[#40376E] transition">
         Return to Home
       </a>
+
       <a href="/logout"
-        class="block text-center w-full py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition shadow">
+        class="block text-center py-3 rounded-xl bg-red-500 text-white font-semibold
+               hover:bg-red-600 dark:bg-[#d00000] dark:hover:bg-[#9b0000] transition">
         Log Out
       </a>
     </div>
@@ -106,7 +178,7 @@
 
     alerts.forEach(alert => {
       setTimeout(() => {
-        alert.classList.add("opacity-0", "translate-y-2", "transition-all", "duration-700");
+        alert.classList.add("opacity-0", "translate-y-2");
         setTimeout(() => alert.remove(), 700);
       }, 3000);
     });

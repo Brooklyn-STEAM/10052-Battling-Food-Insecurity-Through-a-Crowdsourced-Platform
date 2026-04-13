@@ -4,28 +4,167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" href="/static/images/logo.png">
-  <title>FridgeNet Sign Up</title>
+
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+
+  <title>About Us | FridgeNet</title>
+
+  <style>
+    html { scroll-behavior: smooth; }
+
+    .float {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
 </head>
 
-<body class="bg-gradient-to-r from-green-100 to-yellow-100 min-h-screen flex flex-col">
+<body class="bg-gradient-to-br from-green-100 via-white to-yellow-100
+             dark:from-[#0b0a18] dark:via-[#121028] dark:to-[#1a1635]
+             min-h-screen flex flex-col text-gray-900 dark:text-gray-100">
 
   {% include "components/navbar.html.jinja" %}
 
-    <h1 class="text-4xl font-extrabold text-center text-green-800 mt-12">
-        About Us
-    </h1>
-    <p class="text-center text-gray-600 mt-3 mb-12 max-w-2xl mx-auto px-4 text-lg">
-        FridgeNet is a community-driven initiative dedicated to reducing food waste and supporting those in need. Our mission is to connect individuals and organizations to share surplus food, fostering a culture of generosity and sustainability. We believe that by working together, we can make a significant impact on food insecurity and environmental conservation.
-    </p>
+  <!-- ✅ SAME STRUCTURE AS DONATE PAGE -->
+  <div class="relative overflow-x-hidden">
 
-    <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto px-4 text-lg">
-        Our platform allows users to easily donate or request food, track their contributions, and connect with local communities. We are committed to transparency, accountability, and creating a positive impact on society. Join us in our mission to create a more sustainable and compassionate world.
+    <!-- BACKGROUND GLOW -->
+    <div class="absolute top-[-100px] left-[-100px] w-[300px] h-[300px]
+                bg-green-400/30 dark:bg-purple-600/20
+                blur-[120px] rounded-full pointer-events-none"></div>
+
+    <div class="absolute bottom-[-100px] right-[-100px] w-[300px] h-[300px]
+                bg-yellow-300/30 dark:bg-indigo-600/20
+                blur-[120px] rounded-full pointer-events-none"></div>
+
+    <!-- HERO -->
+    <section class="text-center px-6 pt-20 pb-16 relative z-10">
+      <h1 class="text-5xl md:text-6xl font-extrabold mb-6
+                 leading-[1.2] py-2
+                 bg-gradient-to-r from-green-600 to-emerald-500
+                 dark:from-purple-300 dark:to-indigo-400
+                 bg-clip-text text-transparent">
+        About FridgeNet
+      </h1>
+
+      <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300">
+        Fighting food waste and food insecurity through community-powered sharing.
+      </p>
+    </section>
+
+    <!-- STATS -->
+<!-- STATS -->
+<section class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6 mb-16 text-center">
+
+  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
+      {{ "{:,}".format(stats.meals) }}+
     </p>
+    <p class="text-sm text-gray-600 dark:text-gray-400">Meals Shared</p>
+  </div>
+
+  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
+      {{ "{:,}".format(stats.users) }}+
+    </p>
+    <p class="text-sm text-gray-600 dark:text-gray-400">Active Users</p>
+  </div>
+
+  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
+      {{ stats.fridges }}+
+    </p>
+    <p class="text-sm text-gray-600 dark:text-gray-400">Fridges</p>
+  </div>
+
+  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
+      {{ stats.food_saved }} Tons
+    </p>
+    <p class="text-sm text-gray-600 dark:text-gray-400">Food Saved</p>
+  </div>
+
+</section>
+
+    <!-- CONTENT -->
+    <section class="max-w-5xl mx-auto px-6 pb-20 grid gap-8 md:grid-cols-2 relative z-10">
+
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+                  bg-white/70 dark:bg-white/5
+                  border border-gray-200 dark:border-white/10
+                  shadow-lg hover:shadow-2xl hover:-translate-y-1 transition">
+        <h2 class="text-xl font-bold mb-2 text-green-700 dark:text-purple-300">🌍 Our Mission</h2>
+        <p class="text-gray-600 dark:text-gray-400">
+          Bridge food surplus and food insecurity through simple, community-driven sharing.
+        </p>
+      </div>
+
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+                  bg-white/70 dark:bg-white/5
+                  border border-gray-200 dark:border-white/10
+                  shadow-lg hover:shadow-2xl hover:-translate-y-1 transition">
+        <h2 class="text-xl font-bold mb-2 text-green-700 dark:text-purple-300">🧊 What We Do</h2>
+        <p class="text-gray-600 dark:text-gray-400">
+          Find fridges, donate food, and request supplies — all in one simple platform.
+        </p>
+      </div>
+
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+                  bg-white/70 dark:bg-white/5
+                  border border-gray-200 dark:border-white/10
+                  shadow-lg hover:shadow-2xl hover:-translate-y-1 transition">
+        <h2 class="text-xl font-bold mb-2 text-green-700 dark:text-purple-300">📊 Our Impact</h2>
+        <p class="text-gray-600 dark:text-gray-400">
+          Reduce waste, lower emissions, and support families locally.
+        </p>
+      </div>
+
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+                  bg-white/70 dark:bg-white/5
+                  border border-gray-200 dark:border-white/10
+                  shadow-lg hover:shadow-2xl hover:-translate-y-1 transition">
+        <h2 class="text-xl font-bold mb-2 text-green-700 dark:text-purple-300">💡 Why It Matters</h2>
+        <p class="text-gray-600 dark:text-gray-400">
+          Millions of tons of food are wasted while people go hungry — we’re fixing that.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- CTA -->
+    <section class="text-center pb-24 px-6">
+      <div class="max-w-xl mx-auto p-10 rounded-3xl
+                  bg-gradient-to-r from-green-500 to-emerald-500
+                  dark:from-purple-700 dark:to-indigo-700
+                  text-white shadow-2xl">
+
+        <h3 class="text-3xl font-bold mb-3">Join the Movement</h3>
+
+        <p class="opacity-90 mb-6">
+          Make an impact in minutes — help your community today.
+        </p>
+
+        <a href="/signup"
+           class="inline-block bg-white text-green-600
+                  dark:text-purple-700
+                  font-semibold px-8 py-3 rounded-xl
+                  shadow-md hover:scale-110 transition">
+          Get Started
+        </a>
+      </div>
+    </section>
+
+  </div>
 
   {% include "components/footer.html.jinja" %}
 
 </body>
-
 </html>

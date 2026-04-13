@@ -71,3 +71,36 @@
       transform: translateY(0);
     }
   }
+
+/* Ensures the map fills its container regardless of screen size */
+/* 1. Map & General UI */
+#map { height: 100%; width: 100%; }
+.leaflet-marker-icon:hover { transform: scale(1.2); transition: transform 0.2s; }
+#fridge-list li:hover { background-color: #f3f4f6; }
+
+/* Hide the default floating box on the map */
+.leaflet-routing-container {
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: static !important;
+    font-size: 13px;
+}
+
+/* Ensure the text is readable and fits the sidebar width */
+.leaflet-routing-alt {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+.leaflet-routing-alt table {
+    width: 100%;
+}
+
+.leaflet-routing-alt tr:hover {
+    background-color: #dcfce7 !important; /* light green highlight */
+}
+
