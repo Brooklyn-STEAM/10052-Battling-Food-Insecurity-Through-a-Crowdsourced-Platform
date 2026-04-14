@@ -330,7 +330,7 @@ function renderFridges(fridges) {
 
    fridgesWithData.forEach(f => {
 
-    // ✅ Marker (FIXED)
+    // ✅ Marker 
     const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon })
         .addTo(map)
         .bindPopup(`
@@ -366,7 +366,7 @@ function renderFridges(fridges) {
         ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
     `;
 
-    // Existing buttons (unchanged)
+    // Existing buttons 
     li.querySelector(".details-btn").onclick = (e) => {
         e.stopPropagation();
         saveRecentlyViewed(f);
@@ -383,7 +383,7 @@ function renderFridges(fridges) {
         window.location.href = `/individfridge/${f.id}`;
     };
 
-    // Normal click (UNCHANGED behavior)
+    // Normal click
     li.onclick = () => {
         saveRecentlyViewed(f);
         map.setView([f.lat, f.lng], 16);
@@ -468,7 +468,6 @@ window.toggleFavorite = async function(fridge) {
             alert("Please log in to save favorites!");
             return;
         }
-
         const data = await res.json();
         console.log("Server response:", data.message);
         
@@ -534,7 +533,6 @@ function renderFavoritesList(favorites) {
                 alert("Location data not available for this fridge.");
             }
         };
-
         list.appendChild(li);
     });
 }
@@ -574,8 +572,7 @@ function renderFridges(fridges) {
                 </div>
             </div>
             ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
-        `;
-
+        `; 
         // Updated Listeners
         li.querySelector(".details-btn").onclick = (e) => {
             e.stopPropagation();

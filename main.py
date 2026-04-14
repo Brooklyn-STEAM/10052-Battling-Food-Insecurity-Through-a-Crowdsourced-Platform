@@ -5,13 +5,28 @@ import pymysql
 import random
 from dynaconf import Dynaconf
 import json
+from flask_mail import Mail, Message
 
 app = Flask(__name__)       
 config = Dynaconf(settings_file=["settings.toml"])
 app.secret_key = config.secret_key
+
+DB_HOST = "db.steamcenter.tech" 
+DB_USER = "smack"
+DB_NAME = "fridge_net"
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:208576454@localhost/fridge_net'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['TESTING'] = False
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'fridge.net5@gmail.com'
+app.config['MAIL_PASSWORD'] = 'wfrj pqqt xlgh okpk' 
+app.config['MAIL_DEFAULT_SENDER'] = 'fridge.net5@gmail.com' # Must match Username
+app.config['MAIL_DEBUG'] = True
 
+mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "/login"
 
@@ -40,10 +55,10 @@ class User:
 # -----------------------
 def connect_db():
     return pymysql.connect(
-        host="db.steamcenter.tech",
-        user="smack",
+        host=DB_HOST,
+        user=DB_USER,
         password=config.password,
-        database="fridge_net",
+        database=DB_NAME,
         autocommit=True,
         cursorclass=pymysql.cursors.DictCursor
     )
@@ -70,12 +85,50 @@ def load_user(user_id):
     return None
 
 # -----------------------
+# EMAIL FUNCTION
+# -----------------------
+def send_email(subject, recipients, name, confirm_url):
+    msg = Message(
+        subject=subject,
+        recipients=recipients,
+        sender=app.config['MAIL_DEFAULT_SENDER']
+    )
+    # Render both text and HTML bodies
+    msg.body = render_template(f'email/welcome.txt', name=name, confirm_url=confirm_url)
+    msg.html = render_template('email/emaildropoff.html.jinja', **data_dict)
+
+    # Send the message within an app context if needed
+    with app.app_context():
+        mail.send(msg)
+
+# -----------------------
 # HOME
 # -----------------------
 @app.route("/")
 def index():
     return render_template("homepage.html.jinja")
 
+# -----------------------
+# EMAIL
+# -----------------------
+@app.route('/send', methods=['GET', 'POST'])
+def email():
+    if request.method == 'POST':
+        # Get data from the HTML form
+        user_email = request.form.get('email')
+        user_msg = request.form.get('message')
+
+        # Create the email message
+        msg = Message(subject="New Website Inquiry",
+                      sender='your-email@gmail.com',
+                      recipients=['your-personal-inbox@gmail.com']) # Where you want to receive it
+        
+        msg.body = f"Message from {user_email}:\n\n{user_msg}"
+        
+        mail.send(msg)
+        return "Email sent successfully!"
+
+    return render_template('donateinfo.html.jinja')
 # -----------------------
 # MAP PAGE (OPTIONAL TARGET FRIDGE)
 # -----------------------
@@ -276,6 +329,9 @@ def donate_money():
 # -----------------------------
 # 🍱 DONATE FOOD
 # -----------------------------
+fridges = [{"ID": 1, "Name": "Central Park Fridge", "Image": "/static/img1.jpg"}]
+food_types = [{"ID": 1, "Name": "Canned Goods"}, {"ID": 2, "Name": "Fresh Produce"}]
+
 @app.route("/donate-food", methods=["GET", "POST"])
 @login_required
 def donate_food():
@@ -288,73 +344,78 @@ def donate_food():
         dropoff_date = request.form.get("dropoff_date")
         fridge_id = request.form.get("FridgeID")
         quantity = request.form.get("quantity")
-        food_type_id = request.form.get("food_type")  # ✅ comes from dropdown
+        item_id = request.form.get("food_type")
+        notes = request.form.get("notes") # Captured from your new textarea
 
-        # --------------------
-        # VALIDATION
-        # --------------------
-        if not fridge_id:
-            flash("Select a fridge.")
-            return redirect(url_for("donations"))
-
-        try:
-            fridge_id = int(fridge_id)
-        except:
-            flash("Invalid fridge.")
-            return redirect(url_for("donations"))
-
-        if not quantity or int(quantity) <= 0:
-            flash("Enter valid quantity.")
-            return redirect(url_for("donations"))
-
-        if not food_type_id:
-            flash("Select food type.")
-            return redirect(url_for("donations"))
-
-        try:
-            food_type_id = int(food_type_id)
-        except:
-            flash("Invalid food type.")
-            return redirect(url_for("donations"))
-
-        # --------------------
-        # GET FRIDGE NAME
-        # --------------------
+        # Fetch Fridge and Item names
         cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
-        fridge = cursor.fetchone()
-        fridge_name = fridge["Name"] if fridge else None
+        fridge_name = (cursor.fetchone() or {}).get("Name", "Unknown Fridge")
+        
+        cursor.execute("SELECT Name FROM Items WHERE ID=%s", (item_id,))
+        item_name = (cursor.fetchone() or {}).get("Name", "Unknown Item")
 
-        # --------------------
-        # GET ITEM NAME
-        # --------------------
-        cursor.execute("SELECT Name FROM Items WHERE ID=%s", (food_type_id,))
-        item = cursor.fetchone()
-        item_name = item["Name"] if item else "Food"
-
-        # --------------------
-        # INSERT (FIXED)
-        # --------------------
+        # Database Insert
         cursor.execute("""
             INSERT INTO Donations
-            (UserID, FridgeID, Email, Dropoff, Type, Amount, Description, Name)
+            (UserID, FridgeID, Email, Dropoff, Type, Quantity, FoodCategory, Notes)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             current_user.id,
             fridge_id,
             email,
             dropoff_date,
-            "Food",             # ✅ FIXES DataError
+            'food',  # Must match your ENUM values
             int(quantity),
-            item_name,          # actual food type stored here
-            fridge_name
+            item_id,
+            notes if notes and notes.strip() else None
         ))
-
         connection.commit()
+
+        data_dict = {
+            "full_name": full_name,
+            "email": email,
+            "dropoff_date": dropoff_date,
+            "fridge_name": fridge_name,
+            "quantity": quantity,
+            "item_name": item_name,
+            "notes": notes
+        }
+
+        try:
+            # The 'with' block ensures Flask-Mail has access to your config
+            with app.app_context():
+                msg = Message(
+                    subject=f"FridgeNet: Confirmation for your {item_name} donation",
+                    recipients=[email]
+                )
+                msg.body = render_template('email/emailtext.txt', **data_dict)
+                msg.html = render_template('email/emaildropoff.html.jinja', **data_dict)
+                mail.send(msg)
+        except Exception as e:
+            print(f"Mail failed: {e}")
+
         connection.close()
-
-        flash("Food donation scheduled!")
+        flash("Food donation scheduled and confirmation sent!")
         return redirect(url_for("thank"))
+    
+    
+    # --------------------
+    # GET PAGE DATA (Existing)
+    # --------------------
+    cursor.execute("SELECT ID, Name, Image FROM Fridge")
+    fridges_data = cursor.fetchall()
 
+    cursor.execute("SELECT ID, Name, Image FROM Items")
+    food_types_data = cursor.fetchall()
+
+    connection.close()
+
+    return render_template(
+        "donateinfo.html.jinja",
+        fridges=fridges_data,
+        food_types=food_types_data
+    )
+    
     # --------------------
     # GET PAGE DATA
     # --------------------
@@ -444,21 +505,24 @@ def update_fridge(fridge_id):
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
     if request.method == "POST":
-        # Update Fullness
+        # 1. Update the overall Fridge Status (Fullness)
         slider_val = int(request.form.get("fullness", 2))
         mapping = ["empty", "few", "half", "many", "full"]
         cursor.execute("INSERT INTO Fridge_status (FridgeID, Status, Last_updated) VALUES (%s, %s, NOW())", 
                        (fridge_id, mapping[slider_val]))
 
-        # Update Inventory Loop
+        # 2. LOOP THROUGH ALL ITEMS (The Fix)
+        # This looks for any form field starting with "quantity_"
         for key, value in request.form.items():
             if key.startswith("quantity_"):
-                item_id = key.split("_")[1]
+                item_id = key.split("_")[1] # Extracts the ID from "quantity_5" -> 5
                 new_qty = int(value)
                 
                 if new_qty <= 0:
+                    # Remove from fridge if quantity is 0
                     cursor.execute("DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s", (fridge_id, item_id))
                 else:
+                    # Add or Update the item quantity
                     cursor.execute("""
                         INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
                         VALUES (%s, %s, %s)
@@ -467,7 +531,11 @@ def update_fridge(fridge_id):
 
         connection.commit()
         connection.close()
+        flash("Inventory updated successfully!")
         return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+
+    # GET: Load items (already correct in your code)
+    # ... your existing GET code ...
 
     # GET: Load all items for the update list
     cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))

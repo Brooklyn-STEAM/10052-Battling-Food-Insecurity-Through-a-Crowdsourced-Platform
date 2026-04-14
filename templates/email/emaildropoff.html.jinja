@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: sans-serif;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #6366f1, #a855f7); padding: 40px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px;">FridgeNet</h1>
+                            <p style="margin: 10px 0 0 0; color: #ffffff; opacity: 0.9;">Community Support System</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 40px; color: #1e1b2e; line-height: 1.6;">
+                            <h2 style="margin-top: 0; color: #1e1b2e;">Donation Scheduled!</h2>
+                            <p>Hi <strong>{{ full_name }}</strong>,</p>
+                            <p>Thank you for contributing to the community. Your donation helps keep our local fridges stocked for those who need it most.</p>
+
+                            <div style="background-color: #f3f0ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 20px; margin: 25px 0;">
+    <h3 style="margin-top: 0; color: #4c1d95; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">Drop-off Summary</h3>
+    <p style="margin: 5px 0;"><strong>Fridge:</strong> {{ fridge_name }}</p>
+    <p style="margin: 5px 0;"><strong>Item:</strong> {{ item_name }}</p>
+    <p style="margin: 5px 0;"><strong>Quantity:</strong> {{ quantity }}</p>
+    <p style="margin: 5px 0;"><strong>Dropoff Date:</strong> <span style="color: #7c3aed; font-weight: bold;">{{ dropoff_date }}</span></p>
+
+    {# --- Notes section inside the purple box --- #}
+    {% if notes and notes.strip() %}
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd6fe;">
+        <p style="margin: 0; font-size: 14px; color: #4c1d95;"><strong>Your Notes:</strong></p>
+        <p style="margin: 5px 0; font-style: italic; color: #4b5563;">"{{ notes }}"</p>
+    </div>
+    {% endif %}
+</div>
+
+                            <p><strong>Quick Reminders:</strong></p>
+                            <ul style="padding-left: 20px;">
+                                <li>Ensure items are factory-sealed or properly labeled.</li>
+                                <li>Check the "Use By" dates before dropping off.</li>
+                                <li>Place items neatly inside the fridge.</li>
+                            </ul>
+
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="{{ url_for('map_page', _external=True) }}" style="background-color: #ea580c; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Fridge Map</a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="background-color: #1e1b2e; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                            <p style="margin: 0;">&copy; 2026 FridgeNet. Supporting local communities together.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
