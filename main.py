@@ -46,6 +46,7 @@ class User:
         self.email = result["Email"]
         self.address = result["Address"]
         self.id = result["ID"]
+        self.role = result["Role"]
 
     def get_id(self):
         return str(self.id)
@@ -157,7 +158,6 @@ def map_page():
 # ROUTE TO SPECIFIC FRIDGE
 # -----------------------
 @app.route("/route/<int:fridge_id>")
-@login_required
 def route_to_fridge(fridge_id):
     return redirect(url_for("map_page", fridge_id=fridge_id))
 
@@ -174,11 +174,19 @@ def login():
         cursor.execute("SELECT * FROM `User` WHERE `Email`=%s", (email,))
         result = cursor.fetchone()
         connection.close()
+        
         if not result or result["Password"] != password:
-            flash("Invalid email or password")
-            return redirect(url_for("login"))
-        login_user(User(result))
-        return redirect(url_for("index"))
+                flash("Invalid email or password")
+                return redirect(url_for("login"))
+
+        user = User(result)
+        login_user(user)
+
+        if user.role == "restaurant":
+            return redirect(url_for("restaurant_dashboard"))
+        else:
+            return redirect(url_for("index"))
+    
     return render_template("login.html.jinja")
 
 @app.route("/logout")
@@ -196,25 +204,35 @@ def signup():
         password = request.form["password"]
         password_repeat = request.form["repeat_password"]
         address = request.form["address"]
+        role = request.form.get("role")  # no default hiding bugs
+
+        if not role:
+            role = "user"
 
         if password != password_repeat:
             flash("Passwords do not match")
-        elif len(password) < 8:
-            flash("Password must be at least 8 characters long")
-        else:
-            connection = connect_db()
-            cursor = connection.cursor()
-            try:
-                cursor.execute("INSERT INTO `User` (`Name`,`Email`,`Password`,`Address`) VALUES (%s,%s,%s,%s)",
-                               (name, email, password, address))
-            except pymysql.err.IntegrityError:
-                flash("User with that email already exists")
-            else:
-                connection.close()
-                return redirect("/login")
-            connection.close()
-    return render_template("signup.html.jinja")
+            return redirect("/signup")
 
+        connection = connect_db()
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT * FROM User WHERE Email = %s", (email,))
+        if cursor.fetchone():
+            connection.close()
+            flash("Email already registered")
+            return redirect("/signup")
+
+        cursor.execute("""
+            INSERT INTO User (Name, Email, Password, Address, Role)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (name, email, password, address, role))
+
+        connection.commit()
+        connection.close()
+
+        return redirect("/login")
+
+    return render_template("signup.html.jinja")
 # -----------------------
 # DONATE PAGES
 # -----------------------
@@ -320,6 +338,22 @@ def donate_money():
     cursor.execute("SELECT ID, Name, Image FROM Items")
     food_types = cursor.fetchall()
 
+    # Connect and insert into DB
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("""
+        INSERT INTO Donations (UserID, Amount, FridgeID, Email, Dropoff, Type, )
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        current_user.id,
+        final_amount,
+        fridge_id,
+        current_user.email,
+        datetime.now(),
+        "Money",
+        "Monetary donation"
+    ))
+    connection.commit()
     connection.close()
 
     flash("Thank you for your monetary donation!")
@@ -335,9 +369,8 @@ food_types = [{"ID": 1, "Name": "Canned Goods"}, {"ID": 2, "Name": "Fresh Produc
 @app.route("/donate-food", methods=["GET", "POST"])
 @login_required
 def donate_food():
-    connection = connect_db()
+  connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
-
     if request.method == "POST":
         full_name = request.form.get("full_name")
         email = request.form.get("food_email")
@@ -369,6 +402,31 @@ def donate_food():
             item_id,
             notes if notes and notes.strip() else None
         ))
+        connection.commit()
+    # VALIDATION
+    if not quantity or int(quantity) <= 0:
+        flash("Please enter a valid quantity.")
+        return redirect(url_for("donations"))
+
+    if not dropoff_date:
+        flash("Please select a drop-off date.")
+        return redirect(url_for("donations"))
+
+    if not food_type_id:
+        flash("Please select a food type.")
+        return redirect(url_for("donations"))
+
+    if not fridge_id:
+        flash("Please select a fridge.")
+        return redirect(url_for("donations"))
+
+    quantity = int(quantity)
+    fridge_id = int(fridge_id)
+
+
+
+  
+
         connection.commit()
 
         data_dict = {
@@ -434,7 +492,6 @@ def donate_food():
     )
 
 @app.route("/individfridge/<int:fridge_id>", methods=["GET","POST"])
-@login_required
 def personal_fridges(fridge_id):
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -627,9 +684,95 @@ def thank():
 
  
 # -----------------------
-# PROFILE PAGES
+# UPDATE FRIDGE PAGE
+# -----------------------
+@app.route("/update_fridge/<int:fridge_id>", methods=["GET", "POST"])
+@login_required
+def update_fridge(fridge_id):
+
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    current_time = datetime.now()
+    # -------- GET --------
+    if request.method == "GET":
+
+        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
+
+        cursor.execute("""
+        SELECT
+            Items.ID AS ItemsID,
+            Items.Name,
+            Items.Image,
+            IFNULL(Fridge_items.Quantity, 0) AS Quantity
+        FROM Items
+        LEFT JOIN Fridge_items
+        ON Items.ID = Fridge_items.ItemsID
+        AND Fridge_items.FridgeID = %s
+        """, (fridge_id,))
+        items = cursor.fetchall()
+
+        cursor.execute("""
+        SELECT Status, Last_updated
+        FROM Fridge_status
+        WHERE FridgeID=%s
+        ORDER BY Last_updated DESC
+        LIMIT 1
+        """, (fridge_id,))
+        status = cursor.fetchone()
+
+        connection.close()
+        
+        return render_template(
+            "update_fridge.html.jinja",
+            fridge=fridge,
+            items=items,
+            status={'Last_updated': current_time})
+        
+
+    # -------- POST --------
+    # Get fullness status once
+    value = int(request.form.get("fullness", 2))
+    mapping = ["empty", "few", "half", "many", "full"]
+    status_value = mapping[value]
+
+    # Update item quantities
+    for key in request.form:
+        if key.startswith("quantity_"):
+
+            item_id = key.split("_")[1]
+            quantity = int(request.form[key])
+
+            if quantity == 0:
+                cursor.execute("""
+                DELETE FROM Fridge_items
+                WHERE FridgeID=%s AND ItemsID=%s
+                """, (fridge_id, item_id))
+            else:
+                cursor.execute("""
+                INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
+                VALUES (%s,%s,%s)
+                ON DUPLICATE KEY UPDATE Quantity=%s
+                """, (fridge_id, item_id, quantity, quantity))
+
+    # Insert fridge status ONCE
+    cursor.execute("""
+    INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
+    VALUES (%s, %s, NOW())
+""", (fridge_id, status_value))
+
+
+
+    connection.commit()
+    connection.close()
+
+    return redirect(f"/individfridge/{fridge_id}")
+
+# -----------------------
+# PROFILE PAGE
 # -----------------------
 @app.route("/profile_page")
+@login_required
 def account():
     return render_template("components/profile.html.jinja")
 
@@ -679,7 +822,13 @@ def update_picture():
 # -----------------------
 @app.route("/about")
 def about():
-    return render_template("aboutus.html.jinja")
+    stats = {
+        "meals": 12847,        # replace with real query
+        "users": 642,
+        "fridges": 25,
+        "food_saved": 3.4      # tons (or calculate)
+    }
+    return render_template("aboutus.html.jinja", stats=stats)
 
 
 # -----------------------
@@ -796,3 +945,89 @@ def contact():
     # GET
     # --------------------
     return render_template("contact.html.jinja")
+
+
+@app.route("/restaurants-connect", methods=["GET", "POST"])
+def restaurants_connect():
+    if request.method == "POST":
+        name = request.form["restaurant_name"]
+        contact = request.form["contact_person"]
+        email = request.form["email"]
+        phone = request.form["phone"]
+        address = request.form["address"]
+        food_type = request.form["food_type"]
+        delivery = request.form["delivery_method"]
+        
+
+        connection = connect_db()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+        INSERT INTO restaurant_partners 
+        (Name, Spokesperson, Email, Phone, Address, Food_type, Delivery_method)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (name, contact, email, phone, address, food_type, delivery))
+       
+        connection.commit()
+        connection.close()
+
+        return redirect("/thank_you")
+
+    return render_template("restaurant_connect.html.jinja")
+
+@app.route("/restaurant-dashboard")
+@login_required
+def restaurant_dashboard():
+    if current_user.role != "restaurant":
+        return redirect(url_for("index"))
+
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    # 1. TOTAL MEALS DONATED (impact metric)
+    cursor.execute("""
+        SELECT COALESCE(SUM(Quantity), 0) AS total_meals
+        FROM Donations
+        WHERE UserID = %s AND Type = 'food'
+    """, (current_user.id,))
+    total_meals = cursor.fetchone()["total_meals"]
+
+    # 2. MONEY DONATIONS (optional extra metric)
+    cursor.execute("""
+        SELECT COALESCE(SUM(Quantity), 0) AS total_money
+        FROM Donations
+        WHERE UserID = %s AND Type = 'money'
+    """, (current_user.id,))
+    total_money = cursor.fetchone()["total_money"]
+
+    # 3. SCHEDULED PICKUPS (future donations only)
+    cursor.execute("""
+    SELECT ID, Name, Quantity, Dropoff
+    FROM Donations
+    WHERE UserID = %s 
+    AND Type = 'food'
+    AND Dropoff >= CURDATE()
+    ORDER BY Dropoff ASC
+""", (current_user.id,))
+    scheduled_list = cursor.fetchall()
+
+    # 4. UPCOMING COUNT
+    cursor.execute("""
+        SELECT COUNT(*) AS scheduled
+        FROM Donations
+        WHERE UserID = %s 
+        AND Type = 'food'
+        AND Dropoff >= CURDATE()
+    """, (current_user.id,))
+    scheduled = cursor.fetchone()["scheduled"]
+   
+    connection.commit()
+    connection.close()
+
+    return render_template(
+        "restaurant_dashboard.html.jinja",
+        total_meals=total_meals,
+        total_money=total_money,
+        scheduled=scheduled,
+        scheduled_list=scheduled_list
+    )
