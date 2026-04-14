@@ -122,7 +122,7 @@
                         <label class="cursor-pointer">
                             <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
                             <div
-                                class="p-4 text-center rounded-xl border peer-checked:bg-orange-600 hover:bg-orange-100 peer-checked:text-white dark:peer-checked:bg-purple-600 text-gray-300 peer-checked:border-purple-600 dark:hover:bg-[#40376E] transition">
+                                class="p-4 text-center rounded-xl border peer-checked:bg-orange-600 hover:bg-orange-100 peer-checked:text-white dark:peer-checked:bg-purple-600 text-green-800 peer-checked:border-purple-600 dark:hover:bg-[#40376E] transition">
                                 ${{ amount }}
                             </div>
                         </label>
@@ -151,7 +151,7 @@
                         <div id="moneyFridgeMenu" class="dropdown absolute z-10 w-full mt-2 rounded-lg border hidden">
 
                             {% for fridge in fridges %}
-                            <div class="money-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
+                            <div class="money-item flex items-center bg-white gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
                                 data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
 
                                 <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}"
@@ -301,78 +301,104 @@ function setupDropdown(btnId, menuId, itemsClass, inputId, textId) {
             </div>
 
             <!-- 🍱 FOOD FORM -->
-            <div class="form-card rounded-2xl shadow-lg p-6 space-y-5">
+            <div class="form-card rounded-2xl shadow-lg p-6 space-y-6">
 
-                <h2 class="text-2xl font-bold dark:text-white">
-                    Schedule Food Drop-Off
-                </h2>
-
-                <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
-
-                    <input type="text" name="full_name" placeholder="Full Name" class="input">
-                    <input type="email" name="food_email" placeholder="Email" class="input">
-                    <input type="date" name="dropoff_date" class="input">
-                    <input type="number" name="quantity" placeholder="Quantity" class="input">
-                    <!-- 🍱 FOOD TYPE (FROM ITEMS TABLE) -->
-                    <div>
-                        <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2">
-                            Select Food Type
-                        </label>
-
-                        <select name="food_type" class="input" required>
-                            <option value="">Choose food type</option>
-
-                            {% for item in food_types %}
-                            <option value="{{ item['ID'] }}">
-                                {{ item['Name'] }}
-                            </option>
-                            {% endfor %}
-
-                        </select>
-                    </div>
-                    <!-- 🧊 FRIDGE SELECT (KEEPED) -->
-                    <div class="relative">
-                        <label class="block text-sm text-gray-600 dark:text-gray-300 mb-2">
-                            Select a Fridge
-                        </label>
-
-                        <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
-
-                        <button type="button" id="foodFridgeBtn"
-                            class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] dark:text-white flex justify-between">
-
-                            <span id="foodFridgeText">Choose a fridge</span>
-                            <span>▼</span>
-                        </button>
-
-                        <div id="foodFridgeMenu" class="dropdown absolute z-10 w-full mt-2 rounded-lg border hidden">
-
-                            {% for fridge in fridges %}
-                            <div class="food-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]"
-                                data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
-
-                                <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}"
-                                    class="w-10 h-10 rounded-md object-cover border border-gray-300 dark:border-[#40376E]">
-
-                                <span class="text-sm font-medium">
-                                    {{ fridge['Name'] }}
-                                </span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <button
-                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 transition">
-                        Donate Now
-                    </button>
-                </form>
-            </div>
-
-        </div>
+    <div class="border-b border-purple-100 dark:border-purple-900/30 pb-4">
+        <h2 class="text-2xl font-bold dark:text-white">
+            Schedule Food Drop-Off
+        </h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Please fill out the details for your contribution.</p>
     </div>
 
-    <!-- 🌙 DARK MODE -->
+    <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-5">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+                <label for="full_name" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1"> 
+                    Donor Name 
+                </label>
+                <input type="text" name="full_name" placeholder="John Doe" class="input" required>
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="food_email" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1"> 
+                    Email Address 
+                </label>
+                <input type="email" name="food_email" placeholder="email@example.com" class="input" required>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+                <label for="dropoff_date" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1"> 
+                    Dropoff Date 
+                </label>
+                <input type="date" name="dropoff_date" class="input" required>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">
+                    Food Category
+                </label>
+                <select name="food_type" class="input appearance-none bg-no-repeat bg-right pr-10" required>
+                    <option value="" disabled selected>Select category</option>
+                    {% for item in food_types %}
+                    <option value="{{ item['ID'] }}">{{ item['Name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div class="md:col-span-1 space-y-1.5">
+                <label for="quantity" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1"> 
+                    Quantity 
+                </label>
+                <input type="number" name="quantity" placeholder="0" class="input" required>
+            </div>
+
+            <div class="md:col-span-2 space-y-1.5 relative">
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">
+                    Target Fridge
+                </label>
+                <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
+                <button type="button" id="foodFridgeBtn"
+                    class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] dark:text-white flex justify-between items-center text-sm">
+                    <span id="foodFridgeText">Choose a location</span>
+                    <span class="text-[10px] opacity-50">▼</span>
+                </button>
+
+                <div id="foodFridgeMenu" class="dropdown absolute z-20 w-full mt-2 rounded-xl shadow-2xl border overflow-hidden hidden">
+                    {% for fridge in fridges %}
+                    <div class="food-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-50 dark:hover:bg-[#40376E] transition-colors border-b last:border-0 border-gray-100 dark:border-gray-700/50"
+                        data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                        <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}"
+                            class="w-8 h-8 rounded-lg object-cover">
+                        <span class="text-sm font-medium">{{ fridge['Name'] }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="notes" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">
+                Special Instructions (Optional)
+            </label>
+            <textarea 
+                name="notes" 
+                id="notes" 
+                rows="2"
+                class="input resize-none" 
+                placeholder="Where should we look for the items?"></textarea>
+        </div>
+
+        <button class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 shadow-lg hover:shadow-orange-500/20 dark:hover:shadow-purple-500/20 transition-all active:scale-[0.98]">
+            Complete Donation
+        </button>
+    </form>
+</div>
+
 
 
     <!-- 🧊 DROPDOWNS -->

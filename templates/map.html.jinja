@@ -570,6 +570,19 @@ navigator.geolocation.watchPosition(pos => {
             }
         };
 
+        if (res.status === 401) {
+            alert("Please log in to save favorites!");
+            return;
+        }
+        const data = await res.json();
+        console.log("Server response:", data.message);
+        
+        // Refresh the list from the database so the sidebar updates instantly
+        loadFavoritesFromServer();
+        } catch (err) {
+        console.error("Error toggling favorite:", err);
+    }
+};
         // 4. Render the Sidebar Favorites List
         function renderFavoritesList(favorites) {
             const list = document.getElementById("favorites-list");
@@ -676,25 +689,21 @@ navigator.geolocation.watchPosition(pos => {
                 </div>
             </div>
             ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
+        `; 
+        // Updated Listeners
+        li.querySelector(".details-btn").onclick = (e) => {
+            e.stopPropagation();
+            saveRecentlyViewed(f);
+            window.location.href = `/individfridge/${f.id}`;
+        };
+
+        li.querySelector(".fav-btn").onclick = (e) => {
+            e.stopPropagation();
+            window.toggleFavorite(f); // Calls DB Toggle
+        };
         `;
 
-                // ✅ Details button
-                li.querySelector(".details-btn").onclick = (e) => {
-                    e.stopPropagation();
-                    saveRecentlyViewed(f);
-                    window.location.href = `/individfridge/${f.id}`;
-                };
-
-                // ✅ Favorite button (DB sync)
-                li.querySelector(".fav-btn").onclick = (e) => {
-                    e.stopPropagation();
-                    window.toggleFavorite(f);
-                };
-
-                // ✅ Double click list → go to page
-                li.ondblclick = () => {
-                    window.location.href = `/individfridge/${f.id}`;
-                };
+         
 
                 // ✅ Single click → route + focus
                 li.onclick = () => {
