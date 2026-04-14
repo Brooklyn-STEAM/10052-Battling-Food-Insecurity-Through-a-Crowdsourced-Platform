@@ -516,59 +516,6 @@ def personal_fridges(fridge_id):
                            items=items_list, 
                            fridge_status=fridge_status)
 
-@app.route("/update_fridge/<int:fridge_id>", methods=["GET", "POST"])
-@login_required
-def update_fridge(fridge_id):
-    connection = connect_db()
-    cursor = connection.cursor(pymysql.cursors.DictCursor)
-
-    if request.method == "POST":
-        # 1. Update the overall Fridge Status (Fullness)
-        slider_val = int(request.form.get("fullness", 2))
-        mapping = ["empty", "few", "half", "many", "full"]
-        cursor.execute("INSERT INTO Fridge_status (FridgeID, Status, Last_updated) VALUES (%s, %s, NOW())", 
-                       (fridge_id, mapping[slider_val]))
-
-        # 2. LOOP THROUGH ALL ITEMS (The Fix)
-        # This looks for any form field starting with "quantity_"
-        for key, value in request.form.items():
-            if key.startswith("quantity_"):
-                item_id = key.split("_")[1] # Extracts the ID from "quantity_5" -> 5
-                new_qty = int(value)
-                
-                if new_qty <= 0:
-                    # Remove from fridge if quantity is 0
-                    cursor.execute("DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s", (fridge_id, item_id))
-                else:
-                    # Add or Update the item quantity
-                    cursor.execute("""
-                        INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
-                        VALUES (%s, %s, %s)
-                        ON DUPLICATE KEY UPDATE Quantity = %s
-                    """, (fridge_id, item_id, new_qty, new_qty))
-
-        connection.commit()
-        connection.close()
-        flash("Inventory updated successfully!")
-        return redirect(url_for("personal_fridges", fridge_id=fridge_id))
-
-    # GET: Load items (already correct in your code)
-    # ... your existing GET code ...
-
-    # GET: Load all items for the update list
-    cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-    fridge = cursor.fetchone()
-
-    cursor.execute("""
-        SELECT i.ID AS ItemsID, i.Name, i.Image, IFNULL(fi.Quantity, 0) AS Quantity
-        FROM Items i
-        LEFT JOIN Fridge_items fi ON i.ID = fi.ItemsID AND fi.FridgeID = %s
-    """, (fridge_id,))
-    items_list = cursor.fetchall()
-    
-    connection.close()
-    return render_template("update_fridge.html.jinja", fridge=fridge, items=items_list)
-
 # -----------------------
 # API: GET FRIDGES
 # -----------------------
@@ -653,7 +600,6 @@ def update_fridge(fridge_id):
 
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
-    current_time = datetime.now()
     # -------- GET --------
     if request.method == "GET":
 
