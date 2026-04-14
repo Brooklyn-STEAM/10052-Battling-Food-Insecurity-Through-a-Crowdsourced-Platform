@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Dashboard</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+{% include "components/navbar.html.jinja" %}
+
+<div class="flex min-h-screen">
+
+    <aside class="w-64 min-h-screen bg-gray-50 text-gray-800 p-6 border-r border-gray-200 shadow-sm">
+    <div class="mb-10 px-4">
+        <span class="text-xs font-semibold uppercase tracking-wider text-orange-500">Welcome back</span>
+        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+            {{ current_user.name }} <span class="text-lg">🍽️</span>
+        </h2>
+    </div>
+
+    <nav class="space-y-2">
+        <a href="/" class="flex items-center px-4 py-3 rounded-xl bg-green-600 text-white font-medium transition-all shadow-md shadow-green-200">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="Wait, I'll add a home icon logic here"></path>
+                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            </svg>
+            Dashboard
+        </a>
+
+
+
+        <div class="pt-8 mt-8 border-t border-gray-200">
+            <a href="/logout" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                Logout
+            </a>
+        </div>
+    </nav>
+</aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-8">
+
+        <!-- HEADER -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">
+                Welcome back, {{ current_user.name }} 👋
+            </h1>
+            <p class="text-gray-500">
+                Here's your impact today
+            </p>
+        </div>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Meals Donated -->
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h3 class="text-gray-500 text-sm">Meals Donated</h3>
+                <p class="text-3xl font-bold text-blue-600 mt-2">
+                    {{ total_meals }}
+                </p>
+            </div>
+
+            <!-- Meals Saved -->
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h3 class="text-gray-500 text-sm">Meals Saved</h3>
+                <p class="text-3xl font-bold text-green-600 mt-2">
+                    {{ total_meals }}
+                </p>
+            </div>
+
+            <!-- Scheduled -->
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h3 class="text-gray-500 text-sm">Scheduled Pickups</h3>
+                <p class="text-3xl font-bold text-orange-500 mt-2">
+                    {{ scheduled }}
+                </p>
+            </div>
+
+        </div>
+
+        <!-- IMPACT MESSAGE -->
+        <div class="mt-8 bg-green-100 text-green-800 p-6 rounded-xl shadow">
+            <h2 class="text-xl font-semibold">
+                🎉 Amazing Work!
+            </h2>
+            <p class="mt-2">
+                You've helped save <strong>{{ total_meals }}</strong> meals from going to waste.
+                Keep making a difference!
+            </p>
+        </div>
+
+        <div class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <span class="text-orange-500">📅</span> Upcoming Pickups
+        </h2>
+        
+        <a href="/donate" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-transform active:scale-95 shadow-md shadow-green-100">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Schedule Pickup
+        </a>
+    </div>
+
+    {% if scheduled_list %}
+        <ul class="space-y-3">
+            {% for donation in scheduled_list %}
+                <li class="p-4 border border-gray-100 rounded-xl flex justify-between items-center bg-gray-50/50 hover:border-green-200 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-orange-400"></div>
+                        <span class="font-medium text-gray-700">{{ donation.date }}</span>
+                    </div>
+                    <span class="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                        {{ donation.time }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="py-8 text-center border-2 border-dashed border-gray-100 rounded-xl">
+            <p class="text-gray-400">No scheduled pickups yet.</p>
+        </div>
+    {% endif %}
+</div>
+    </main>
+</div>
+{% include "components/footer.html.jinja" %}
+</body>
+</html>
