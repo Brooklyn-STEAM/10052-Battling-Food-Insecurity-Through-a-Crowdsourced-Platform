@@ -369,8 +369,9 @@ food_types = [{"ID": 1, "Name": "Canned Goods"}, {"ID": 2, "Name": "Fresh Produc
 @app.route("/donate-food", methods=["GET", "POST"])
 @login_required
 def donate_food():
-  connection = connect_db()
+    connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
+
     if request.method == "POST":
         full_name = request.form.get("full_name")
         email = request.form.get("food_email")
@@ -378,14 +379,16 @@ def donate_food():
         fridge_id = request.form.get("FridgeID")
         quantity = request.form.get("quantity")
         item_id = request.form.get("food_type")
-        notes = request.form.get("notes") # Captured from your new textarea
+        notes = request.form.get("notes") 
 
-        # Fetch Fridge and Item names
+        # Fetch Fridge and Item names for the email
         cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
-        fridge_name = (cursor.fetchone() or {}).get("Name", "Unknown Fridge")
-        
+        fridge_result = cursor.fetchone()
+        fridge_name = fridge_result.get("Name", "Unknown Fridge") if fridge_result else "Unknown Fridge"
+      
         cursor.execute("SELECT Name FROM Items WHERE ID=%s", (item_id,))
-        item_name = (cursor.fetchone() or {}).get("Name", "Unknown Item")
+        item_result = cursor.fetchone()
+        item_name = item_result.get("Name", "Unknown Item") if item_result else "Unknown Item"
 
         # Database Insert
         cursor.execute("""
@@ -397,36 +400,12 @@ def donate_food():
             fridge_id,
             email,
             dropoff_date,
-            'food',  # Must match your ENUM values
-            int(quantity),
+            'food', 
+            int(quantity) if quantity else 0,
             item_id,
             notes if notes and notes.strip() else None
         ))
-        connection.commit()
-    # VALIDATION
-    if not quantity or int(quantity) <= 0:
-        flash("Please enter a valid quantity.")
-        return redirect(url_for("donations"))
-
-    if not dropoff_date:
-        flash("Please select a drop-off date.")
-        return redirect(url_for("donations"))
-
-    if not food_type_id:
-        flash("Please select a food type.")
-        return redirect(url_for("donations"))
-
-    if not fridge_id:
-        flash("Please select a fridge.")
-        return redirect(url_for("donations"))
-
-    quantity = int(quantity)
-    fridge_id = int(fridge_id)
-
-
-
-  
-
+        
         connection.commit()
 
         data_dict = {
@@ -440,7 +419,6 @@ def donate_food():
         }
 
         try:
-            # The 'with' block ensures Flask-Mail has access to your config
             with app.app_context():
                 msg = Message(
                     subject=f"FridgeNet: Confirmation for your {item_name} donation",
@@ -455,11 +433,9 @@ def donate_food():
         connection.close()
         flash("Food donation scheduled and confirmation sent!")
         return redirect(url_for("thank"))
-    
-    
-    # --------------------
-    # GET PAGE DATA (Existing)
-    # --------------------
+
+    # --- THIS SECTION RUNS ONLY ON 'GET' ---
+    # Now that the POST block is finished, we fetch data to display the form
     cursor.execute("SELECT ID, Name, Image FROM Fridge")
     fridges_data = cursor.fetchall()
 
@@ -473,23 +449,8 @@ def donate_food():
         fridges=fridges_data,
         food_types=food_types_data
     )
-    
-    # --------------------
-    # GET PAGE DATA
-    # --------------------
-    cursor.execute("SELECT ID, Name, Image FROM Fridge")
-    fridges = cursor.fetchall()
 
-    cursor.execute("SELECT ID, Name, Image FROM Items")
-    food_types = cursor.fetchall()
 
-    connection.close()
-
-    return render_template(
-        "donateinfo.html.jinja",
-        fridges=fridges,
-        food_types=food_types
-    )
 
 @app.route("/individfridge/<int:fridge_id>", methods=["GET","POST"])
 def personal_fridges(fridge_id):
