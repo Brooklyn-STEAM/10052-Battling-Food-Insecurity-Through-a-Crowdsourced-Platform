@@ -1,31 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ fridge['Name'] }} - Update Inventory</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = { darkMode: 'class' }
-</script>
-
-<!-- Theme loader -->
-<script>
-(function () {
-  const saved = localStorage.getItem("theme");
-
-  if (saved === "dark") {
-    document.documentElement.classList.add("dark");
-  } else if (saved === "light") {
-    document.documentElement.classList.remove("dark");
-  } else {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.documentElement.classList.toggle("dark", prefersDark);
-  }
-})();
-</script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ fridge['Name'] }} - Update Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>
+        (function () {
+            const saved = localStorage.getItem("theme");
+            if (saved === "dark") document.documentElement.classList.add("dark");
+            else if (saved === "light") document.documentElement.classList.remove("dark");
+            else document.documentElement.classList.toggle("dark", window.matchMedia("(prefers-color-scheme: dark)").matches);
+        })();
+    </script>
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -33,258 +21,158 @@
 {% include "components/navbar.html.jinja" %}
 
 <div class="max-w-4xl mx-auto py-10 px-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-green-800 dark:text-green-400">
+            Update - {{ fridge['Name'] }}
+        </h1>
+        <a href="/individfridge/{{ fridge['ID'] }}" class="text-green-600 hover:underline font-medium">← Back</a>
+    </div>
 
-<!-- Title -->
-<h1 class="text-3xl font-bold text-green-800 dark:text-green-400 mb-6">
-  Update - {{ fridge['Name'] }}
-</h1>
+    <div class="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 text-green-900 dark:text-green-300 rounded-xl p-4 mb-8 flex justify-between items-center">
+        <span><strong>Current Status:</strong> {{ fridge_status['Status'] | capitalize if fridge_status else 'Unknown' }}</span>
+        <span class="text-sm">
+            <strong>Last Update:</strong> 
+            {% if fridge_status and fridge_status['Last_updated'] %}
+                {{ fridge_status['Last_updated'].strftime('%b %d, %I:%M %p') }}
+            {% else %}
+                Never
+            {% endif %}
+        </span>
+    </div>
 
-<!-- Last Updated -->
-<div class="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 text-green-900 dark:text-green-300 rounded-xl p-4 mb-8">
-  <strong>Last Updated:</strong>
-  {% if status %}
-    {{ status["Last_updated"].strftime('%b %d, %Y at %I:%M %p') }}
-  {% else %}
-    No updates yet
-  {% endif %}
+    <form method="POST">
+        <h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4 text-center md:text-left">Items in Fridge</h2>
+        
+        <div class="grid gap-4 mb-10">
+            {% for item in items %}
+            <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-4">
+                    <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                    <div>
+                        <span class="block font-bold text-gray-800 dark:text-gray-200">{{ item['Name'] }}</span>
+                        <span class="text-xs text-gray-400">ID: #{{ item['ItemsID'] }}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="changeQty({{ item['ItemsID'] }}, -1)"
+                        class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 w-10 h-10 rounded-xl font-bold hover:bg-red-200 transition">-</button>
+
+                    <input type="number" id="qty_display_{{ item['ItemsID'] }}" value="{{ item['Quantity'] }}" readonly
+                        class="w-12 text-center font-bold bg-transparent border-none focus:ring-0">
+
+                    <input type="hidden" name="quantity_{{ item['ItemsID'] }}" id="qty_input_{{ item['ItemsID'] }}" value="{{ item['Quantity'] }}">
+
+                    <button type="button" onclick="changeQty({{ item['ItemsID'] }}, 1)"
+                        class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 w-10 h-10 rounded-xl font-bold hover:bg-green-200 transition">+</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4">Overall Fullness</h2>
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-10">
+            <input type="range" name="fullness" id="fullnessSlider" min="0" max="4" step="1" value="2"
+                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                   oninput="updateLabel(this.value)">
+            
+            <div class="flex justify-between text-xs font-bold text-gray-400 mt-4 px-1 uppercase tracking-wider">
+                <span>Empty</span>
+                <span>Few</span>
+                <span>Half</span>
+                <span>Many</span>
+                <span>Full</span>
+            </div>
+
+            <p id="fullnessLabel" class="text-center text-xl font-black text-green-600 mt-6 italic">Half Full</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <button type="button" onclick="undoChanges()"
+                class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl transition">
+                Undo Changes
+            </button>
+            <button type="button" onclick="showResetPopup()"
+                class="bg-orange-100 dark:bg-orange-900/20 text-orange-600 font-bold py-3 px-4 rounded-xl hover:bg-orange-200 transition">
+                Reset to Zero
+            </button>
+        </div>
+
+        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-black py-5 rounded-2xl shadow-lg transition transform active:scale-95 text-lg uppercase tracking-widest">
+            Submit Update
+        </button>
+    </form>
 </div>
 
-<form method="POST">
-
-<!-- INVENTORY -->
-<h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4">
-Inventory
-</h2>
-
-<div class="space-y-4 mb-10">
-
-{% for item in items %}
-<div class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-md transition">
-
-  <div class="flex items-center gap-4">
-    <img src="{{ item['Image'] }}" class="w-8 h-8 rounded">
-    <span class="font-semibold text-green-800 dark:text-green-400">
-      {{ item['Name'] }}
-    </span>
-  </div>
-
-  <div class="flex items-center gap-3">
-
-    <button type="button"
-      onclick="changeQty({{ item['ItemsID'] }}, -1)"
-      class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full transition">
-      -
-    </button>
-
-    <input 
-      type="number" 
-      id="qty_{{ item['ItemsID'] }}"
-      value="{{ item['Quantity'] }}"
-      readonly
-      class="w-14 text-center border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600"
-    >
-
-    <input 
-      type="hidden"
-      name="quantity_{{ item['ItemsID'] }}"
-      id="hidden_qty_{{ item['ItemsID'] }}"
-      value="{{ item['Quantity'] }}"
-    >
-
-    <button type="button"
-      onclick="changeQty({{ item['ItemsID'] }}, 1)"
-      class="bg-green-600 hover:bg-green-700 text-white w-8 h-8 rounded-full transition">
-      +
-    </button>
-
-  </div>
-</div>
-{% endfor %}
-
-</div>
-
-<!-- FULLNESS -->
-<h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4">
-Fridge Fullness
-</h2>
-
-<div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow mb-10">
-
-<input
-type="range"
-name="fullness"
-id="fullnessSlider"
-min="0"
-max="4"
-step="1"
-value="2"
-class="w-full accent-green-600"
-oninput="updateLabel(this.value)"
->
-
-<div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
-<span>Empty</span>
-<span>Few</span>
-<span>Half</span>
-<span>Many</span>
-<span>Full</span>
-</div>
-
-<p id="fullnessLabel" class="text-center text-lg font-semibold text-green-700 dark:text-green-400 mt-4">
-Half
-</p>
-
-</div>
-
-<!-- ACTION BUTTONS -->
-<div class="flex justify-between mt-6 mb-4">
-  <button type="button"
-    onclick="undoChanges()"
-    class="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-4 rounded-xl shadow transition">
-    Undo Changes
-  </button>
-
-  <button type="button"
-    onclick="resetAll()"
-    class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition">
-    Reset All
-  </button>
-</div>
-
-<!-- SUBMIT -->
-<div class="mt-6">
-<button type="submit"
-class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-xl shadow-md transition">
-Submit Update
-</button>
-</div>
-
-</form>
-</div>
-
-<!-- RESET POPUP -->
-<div id="reset-popup"
-class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition z-[9999]">
-
-<div class="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-lg border dark:border-gray-700 w-[380px]">
-
-<h2 class="text-2xl font-bold text-orange-600 mb-4">Reset All Items?</h2>
-
-<p class="text-gray-700 dark:text-gray-300 mb-6">
-This will set every item’s quantity to <strong>0</strong>.
-</p>
-
-<div class="flex justify-between">
-<button id="cancel-reset"
-class="px-5 py-3 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
-Cancel
-</button>
-
-<button id="confirm-reset"
-class="px-5 py-3 rounded-xl text-white bg-orange-600 hover:bg-orange-700">
-Reset
-</button>
-</div>
-
-</div>
+<div id="reset-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 z-[9999]">
+    <div class="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-2xl w-[90%] max-w-md text-center">
+        <div class="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Are you sure?</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-8">This will set <strong>all items</strong> in this fridge to zero. This action cannot be undone after submitting.</p>
+        <div class="flex gap-4">
+            <button onclick="closeResetPopup()" class="flex-1 px-6 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-500">Cancel</button>
+            <button onclick="confirmReset()" class="flex-1 px-6 py-3 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-700">Yes, Reset All</button>
+        </div>
+    </div>
 </div>
 
 {% include "components/footer.html.jinja" %}
 
-<!-- JS -->
 <script>
-/* 1. Global Data: Store original quantities for the Undo feature */
-let originalQuantities = {
+/* 1. Original State for Undo */
+const originalQuantities = {
     {% for item in items %}
         "{{ item['ItemsID'] }}": {{ item['Quantity'] }},
     {% endfor %}
 };
 
-/* 2. Plus/Minus Buttons Logic */
+/* 2. Logic */
 function changeQty(id, amount) {
-    const input = document.getElementById("qty_" + id);
-    const hidden = document.getElementById("hidden_qty_" + id);
-
-    if (input && hidden) {
-        let value = parseInt(input.value) || 0;
-        value = Math.max(0, value + amount);
-        input.value = value;
-        hidden.value = value;
-    }
+    const display = document.getElementById("qty_display_" + id);
+    const hiddenInput = document.getElementById("qty_input_" + id);
+    
+    let currentVal = parseInt(hiddenInput.value);
+    let newVal = Math.max(0, currentVal + amount);
+    
+    display.value = newVal;
+    hiddenInput.value = newVal;
 }
 
-/* 3. Fullness Slider Label Update */
 function updateLabel(val) {
-    const labels = ["Empty", "Few Items", "Half Full", "Many Items", "Full"];
-    const labelEl = document.getElementById("fullnessLabel");
-    if (labelEl) {
-        labelEl.innerText = labels[val];
-    }
+    const labels = ["Completely Empty", "A Few Items", "Half Full", "Mostly Full", "Completely Full"];
+    document.getElementById("fullnessLabel").innerText = labels[val];
 }
 
-/* 4. Undo Changes Logic */
 function undoChanges() {
     for (const id in originalQuantities) {
-        const input = document.getElementById("qty_" + id);
-        const hidden = document.getElementById("hidden_qty_" + id);
-        
-        if (input && hidden) {
-            input.value = originalQuantities[id];
-            hidden.value = originalQuantities[id];
-        }
-    }
-    // Reset slider to "Half Full" (index 2)
-    const slider = document.getElementById("fullnessSlider");
-    if (slider) {
-        slider.value = 2;
-        updateLabel(2);
+        document.getElementById("qty_display_" + id).value = originalQuantities[id];
+        document.getElementById("qty_input_" + id).value = originalQuantities[id];
     }
 }
 
-/* 5. Reset Popup Logic */
-function resetAll() {
-    const popup = document.getElementById("reset-popup");
-    if (popup) {
-        popup.classList.remove("opacity-0", "pointer-events-none");
-    }
+function showResetPopup() {
+    document.getElementById("reset-popup").classList.remove("opacity-0", "pointer-events-none");
 }
 
-/* 6. Event Listeners (Wait for DOM to load) */
-document.addEventListener("DOMContentLoaded", () => {
-    const popup = document.getElementById("reset-popup");
-    const cancelBtn = document.getElementById("cancel-reset");
-    const confirmBtn = document.getElementById("confirm-reset");
+function closeResetPopup() {
+    document.getElementById("reset-popup").classList.add("opacity-0", "pointer-events-none");
+}
 
-    // Close popup on Cancel
-    if (cancelBtn) {
-        cancelBtn.addEventListener("click", () => {
-            popup.classList.add("opacity-0", "pointer-events-none");
-        });
-    }
-
-    // Set everything to 0 on Confirm
-    if (confirmBtn) {
-        confirmBtn.addEventListener("click", () => {
-            // Update all visible and hidden quantity inputs
-            document.querySelectorAll("input[id^='qty_']").forEach(input => input.value = 0);
-            document.querySelectorAll("input[id^='hidden_qty_']").forEach(input => input.value = 0);
-
-            // Reset the slider to Empty
-            const slider = document.getElementById("fullnessSlider");
-            if (slider) {
-                slider.value = 0;
-                updateLabel(0);
-            }
-
-            // Close the popup
-            popup.classList.add("opacity-0", "pointer-events-none");
-        });
-    }
-    
-    // Initial label update based on slider starting value
+function confirmReset() {
+    document.querySelectorAll("input[id^='qty_display_']").forEach(el => el.value = 0);
+    document.querySelectorAll("input[id^='qty_input_']").forEach(el => el.value = 0);
     const slider = document.getElementById("fullnessSlider");
-    if (slider) updateLabel(slider.value);
-});
+    slider.value = 0;
+    updateLabel(0);
+    closeResetPopup();
+}
+
+// Init Label
+updateLabel(document.getElementById("fullnessSlider").value);
 </script>
 
 </body>

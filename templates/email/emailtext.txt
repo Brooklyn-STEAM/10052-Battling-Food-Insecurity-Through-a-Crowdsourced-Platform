@@ -1,0 +1,16 @@
+Hi {{ full_name }},
+
+Thank you for your donation!
+
+Summary:
+Fridge: {{ fridge_name }}
+Item: {{ item_name }}
+Quantity: {{ quantity }}
+Date: {{ dropoff_date }}
+
+{% if notes %}
+Notes: {{ notes }}
+{% endif %}
+
+Best,
+FridgeNet Team
