@@ -477,9 +477,19 @@ def personal_fridges(fridge_id):
     # Fridge Info
     cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
     fridge = cursor.fetchone()
+
     if not fridge:
         connection.close()
         abort(404)
+
+    # INVENTORY
+    cursor.execute("""
+        SELECT i.Name, i.Image, fi.Quantity 
+        FROM Fridge_items fi
+        JOIN Items i ON fi.ItemsID = i.ID 
+        WHERE fi.FridgeID = %s AND fi.Quantity > 0
+    """, (fridge_id,))
+    items_list = cursor.fetchall()
 
     # Status
     cursor.execute("""
@@ -500,20 +510,13 @@ def personal_fridges(fridge_id):
     """, (fridge_id,))
     reviews = cursor.fetchall()
 
-    # Inventory (Current Stock Only)
-    cursor.execute("""
-        SELECT i.Name, i.Image, fi.Quantity 
-        FROM Fridge_items fi
-        JOIN Items i ON fi.ItemsID = i.ID 
-        WHERE fi.FridgeID = %s AND fi.Quantity > 0
-    """, (fridge_id,))
-    items_list = cursor.fetchall()
+    
 
     connection.close()
     return render_template("fridge.html.jinja", 
                            fridge=fridge, 
+                           items=items_list, # Passes the specific list to the template
                            reviews=reviews, 
-                           items=items_list, 
                            fridge_status=fridge_status)
 
 # -----------------------
