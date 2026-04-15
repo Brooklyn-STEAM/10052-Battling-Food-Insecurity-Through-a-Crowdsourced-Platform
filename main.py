@@ -46,7 +46,7 @@ class User:
         self.email = result["Email"]
         self.address = result["Address"]
         self.id = result["ID"]
-        self.role = result["Role"]
+        self.profile_picture = result.get("ProfilePicture")
 
     def get_id(self):
         return str(self.id)
@@ -716,11 +716,24 @@ def update_password():
 @login_required
 def update_picture():
     picture_url = request.form.get("picture_url", "").strip()
+
+    if picture_url and not picture_url.startswith(("https://", "/static/")):
+        flash("Invalid image URL")
+        flash("Please provide a valid URL starting with https:// or a path to a static image.")
+        return redirect("/profile_page")
     connection = connect_db()
     cursor = connection.cursor()
-    cursor.execute("UPDATE User SET ProfilePicture = %s WHERE ID = %s", (picture_url or None, current_user.id))
+
+    cursor.execute(
+        "UPDATE User SET ProfilePicture = %s WHERE ID = %s",
+        (picture_url or None, current_user.id)
+    )
+
+    connection.commit()  # ✅ THIS LINE FIXES IT
     connection.close()
+
     current_user.profile_picture = picture_url or None
+
     flash("Profile picture updated!")
     return redirect("/profile_page")
 
