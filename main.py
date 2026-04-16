@@ -30,9 +30,6 @@ mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "/login"
 
-if __name__ == "__main__":
-    app.run(debug=True)
-
 # -----------------------
 # USER CLASS
 # -----------------------
@@ -44,6 +41,7 @@ class User:
     def __init__(self, result):
         self.name = result["Name"]
         self.email = result["Email"]
+        self.role = result.get("Role", "user")
         self.address = result["Address"]
         self.id = result["ID"]
         self.profile_picture = result.get("ProfilePicture")
@@ -463,7 +461,6 @@ def personal_fridges(fridge_id):
         comment = request.form.get("Comment")
         
         if rating and comment:
-            # Ensure table/column names match your DB exactly (lowercase check)
             cursor.execute("""
                 INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp) 
                 VALUES (%s, %s, %s, %s, NOW())
@@ -482,7 +479,7 @@ def personal_fridges(fridge_id):
         connection.close()
         abort(404)
 
-    # INVENTORY
+    # ✅ MOVE THIS OUTSIDE THE if-block
     cursor.execute("""
         SELECT i.Name, i.Image, fi.Quantity 
         FROM Fridge_items fi
@@ -496,11 +493,14 @@ def personal_fridges(fridge_id):
         SELECT Status, Last_updated 
         FROM Fridge_status 
         WHERE FridgeID=%s 
-        ORDER BY Last_updated DESC LIMIT 1
+        ORDER BY Last_updated DESC, ID DESC LIMIT 1
     """, (fridge_id,))
-    fridge_status = cursor.fetchone() or {"Status": "unknown", "Last_updated": datetime.now()}
+    fridge_status = cursor.fetchone() or {
+        "Status": "Unknown", 
+        "Last_updated": datetime.now()
+    }
 
-    # Reviews (Alias lowercase to match Jinja template requirements)
+    # Reviews
     cursor.execute("""
         SELECT r.rating AS Rating, r.comment AS Comment, r.Timestamp, u.Name AS user_name 
         FROM Reviews r 
@@ -510,14 +510,15 @@ def personal_fridges(fridge_id):
     """, (fridge_id,))
     reviews = cursor.fetchall()
 
-    
-
     connection.close()
-    return render_template("fridge.html.jinja", 
-                           fridge=fridge, 
-                           items=items_list, # Passes the specific list to the template
-                           reviews=reviews, 
-                           fridge_status=fridge_status)
+
+    return render_template(
+        "fridge.html.jinja",
+        fridge=fridge,
+        items=items_list,   # ✅ now correctly populated
+        reviews=reviews,
+        fridge_status=fridge_status
+    )
 
 # -----------------------
 # API: GET FRIDGES
@@ -623,21 +624,22 @@ def update_fridge(fridge_id):
         items = cursor.fetchall()
 
         cursor.execute("""
-        SELECT Status, Last_updated
-        FROM Fridge_status
-        WHERE FridgeID=%s
-        ORDER BY Last_updated DESC
-        LIMIT 1
+            SELECT Status, Last_updated FROM Fridge_status 
+            WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1
         """, (fridge_id,))
-        status = cursor.fetchone()
+        
+        # Store it in a variable named to match your template
+        fridge_status_data = cursor.fetchone()
 
+        current_time = datetime.now()
         connection.close()
         
+        # In update_fridge GET:
         return render_template(
-            "update_fridge.html.jinja",
-            fridge=fridge,
-            items=items,
-            status={'Last_updated': current_time})
+    "update_fridge.html.jinja",
+    fridge=fridge,
+    items=items,
+    Fridge_status=fridge_status_data) # Match the name in the template!
         
 
     # -------- POST --------
@@ -649,28 +651,32 @@ def update_fridge(fridge_id):
     # Update item quantities
     for key in request.form:
         if key.startswith("quantity_"):
+            try:
+                # Extract ID from the input name (e.g., "quantity_5" -> 5)
+                item_id = int(key.split("_")[1])
+                quantity = int(request.form[key])
+            except (ValueError, IndexError):
+                    continue
 
-            item_id = key.split("_")[1]
-            quantity = int(request.form[key])
-
-            if quantity == 0:
-                cursor.execute("""
-                DELETE FROM Fridge_items
+        if quantity <= 0:
+            # If user sets it to 0, remove it from the fridge display
+            cursor.execute("""
+                DELETE FROM Fridge_items 
                 WHERE FridgeID=%s AND ItemsID=%s
-                """, (fridge_id, item_id))
-            else:
-                cursor.execute("""
+            """, (fridge_id, item_id))
+        else:
+            # This triggers the "UPDATE" because of the indexes in your screenshot
+            cursor.execute("""
                 INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
-                VALUES (%s,%s,%s)
-                ON DUPLICATE KEY UPDATE Quantity=%s
-                """, (fridge_id, item_id, quantity, quantity))
+                VALUES (%s, %s, %s)
+                ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
+            """, (fridge_id, item_id, quantity))
 
     # Insert fridge status ONCE
     cursor.execute("""
     INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
     VALUES (%s, %s, NOW())
 """, (fridge_id, status_value))
-
 
 
     connection.commit()
@@ -954,3 +960,6 @@ def restaurant_dashboard():
         scheduled=scheduled,
         scheduled_list=scheduled_list
     )
+
+if __name__ == "__main__":
+    app.run(debug=True)
