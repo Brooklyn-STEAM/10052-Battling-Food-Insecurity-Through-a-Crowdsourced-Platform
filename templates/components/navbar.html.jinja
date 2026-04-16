@@ -116,9 +116,27 @@
           <li><a href="/login" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">Sign In</a></li>
           <li><a href="/signup" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">Register</a></li>
           {% else %}
-          <li><a href="/profile_page" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">Profile</a></li>
-          <li><a href="/logout" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-red-600">Logout</a></li>
+          <li>
+            <a href="/profile_page" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">
+              Profile
+            </a>
+          </li>
+
+          {% if current_user.role == "restaurant" %}
+          <li>
+            <a href="/restaurant-dashboard" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-[#40376E]">
+              Dashboard
+            </a>
+          </li>
           {% endif %}
+
+          <li>
+            <a href="/logout" class="block px-4 py-2 hover:bg-green-700 dark:hover:bg-red-600">
+              Logout
+            </a>
+          </li>
+          {% endif %}
+
 
         </ul>
       </div>
