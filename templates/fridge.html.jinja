@@ -121,30 +121,20 @@
           <h2 class="text-2xl font-bold text-green-800 dark:text-green-400 mb-4">Available Items</h2>
 
           <ul id="list" class="grid gap-2">
-            {% for item in items %}
-            {% if item['Quantity'] > 0 %}
-            <li
-              class="flex items-center justify-between bg-white dark:bg-gray-800 p-2 pr-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <div class="flex items-center space-x-3">
-                <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
-                <p class="font-medium text-gray-800 dark:text-gray-200">{{ item['Name'] }}</p>
-              </div>
-
-              <div class="flex items-center">
-                <span
-                  class="text-xs font-bold px-2 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-md">
-                  {{ item['Quantity'] }} left
-                </span>
-              </div>
-            </li>
-            {% endif %}
-            {% else %}
-            <li
-              class="p-6 text-center bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
-              <p class="text-gray-500 italic text-sm">No items currently listed.</p>
-            </li>
-            {% endfor %}
-          </ul>
+  {% for item in items %}
+    <li class="flex items-center justify-between ...">
+      <div class="flex items-center space-x-3">
+        <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover">
+        <p class="font-medium">{{ item['Name'] }}</p>
+      </div>
+      <span class="...">{{ item['Quantity'] }} left</span>
+    </li>
+  {% else %}
+    <li class="p-6 text-center ...">
+      <p class="text-gray-500 italic text-sm">This fridge is currently empty.</p>
+    </li>
+  {% endfor %}
+</ul>
         </div>
 
       </div>

@@ -65,25 +65,44 @@
       <!-- Account Dropdown -->
       <div class="relative group hidden md:block">
 
-        <button class="flex items-center gap-2 hover:text-gray-200 dark:hover:text-gray-300 focus:outline-none">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
+<button class="flex items-center gap-2 hover:text-gray-200 dark:hover:text-gray-300 focus:outline-none">
 
-          {% if current_user.is_authenticated %}
-          <span>Hi {{ current_user.name }}</span>
-          {% else %}
-          <span>Account</span>
-          {% endif %}
+  {% if current_user.is_authenticated and current_user.profile_picture %}
+    <img src="{{ current_user.profile_picture }}"
+         class="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-purple-300"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
 
-          <svg class="w-4 h-4" fill="none" stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              stroke-width="2" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
+    <!-- fallback (initials) -->
+    <div class="w-8 h-8 rounded-full bg-green-800 hidden items-center justify-center text-sm font-bold">
+      {{ current_user.name[0] | upper }}
+    </div>
+
+  {% else %}
+    <!-- default icon -->
+    <div class="w-8 h-8 rounded-full bg-green-800 flex items-center justify-center">
+      <span class="text-sm font-bold">
+        {% if current_user.is_authenticated %}
+          {{ current_user.name[0] | upper }}
+        {% else %}
+          ?
+        {% endif %}
+      </span>
+    </div>
+  {% endif %}
+
+  {% if current_user.is_authenticated %}
+    <span>Hi {{ current_user.name }}</span>
+  {% else %}
+    <span>Account</span>
+  {% endif %}
+
+  <svg class="w-4 h-4" fill="none" stroke="currentColor"
+    viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round"
+      stroke-width="2" d="M19 9l-7 7-7-7"/>
+  </svg>
+
+</button>
 
         <!-- Dropdown -->
         <ul class="absolute right-0 w-40 
