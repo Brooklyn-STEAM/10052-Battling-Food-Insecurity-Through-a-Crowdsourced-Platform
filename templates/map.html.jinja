@@ -99,6 +99,10 @@
         html {
             transition: background-color 0.3s ease, color 0.3s ease;
         }
+        nav {
+    position: relative; /* or fixed/sticky depending on your navbar design */
+    z-index: 2000;      /* Higher than Leaflet's default z-index */
+}
     </style>
 </head>
 
