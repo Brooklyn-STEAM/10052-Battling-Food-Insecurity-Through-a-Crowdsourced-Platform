@@ -45,6 +45,7 @@ class User:
         self.address = result["Address"]
         self.id = result["ID"]
         self.profile_picture = result.get("ProfilePicture")
+        self.role = result.get("Role", "user")
 
     def get_id(self):
         return str(self.id)
@@ -309,7 +310,7 @@ def donate_money():
         # Insert donation
         cursor.execute("""
             INSERT INTO Donations
-            (UserID, Amount, FridgeID, Email, Dropoff, Type, Description, Name)
+            (UserID, Quantity, FridgeID, Email, Dropoff, Type, Description, Name)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             current_user.id,
@@ -340,7 +341,7 @@ def donate_money():
     connection = connect_db()
     cursor = connection.cursor()
     cursor.execute("""
-        INSERT INTO Donations (UserID, Amount, FridgeID, Email, Dropoff, Type, )
+        INSERT INTO Donations (UserID, Quantity, FridgeID, Email, Dropoff, Type, )
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     """, (
         current_user.id,
@@ -751,14 +752,90 @@ def update_picture():
 # -----------------------
 @app.route("/about")
 def about():
-    stats = {
-        "meals": 12847,        # replace with real query
-        "users": 642,
-        "fridges": 25,
-        "food_saved": 3.4      # tons (or calculate)
-    }
-    return render_template("aboutus.html.jinja", stats=stats)
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
 
+    # -----------------------
+    # TOTAL USERS
+    # -----------------------
+    cursor.execute("SELECT COUNT(*) AS total_users FROM User")
+    users = cursor.fetchone()["total_users"]
+
+    # -----------------------
+    # TOTAL FRIDGES
+    # -----------------------
+    cursor.execute("SELECT COUNT(*) AS total_fridges FROM Fridge")
+    fridges = cursor.fetchone()["total_fridges"]
+
+    # -----------------------
+    # TOTAL DONATIONS
+    # -----------------------
+    cursor.execute("SELECT COUNT(*) AS total_donations FROM Donations")
+    meals = cursor.fetchone()["total_donations"]
+
+    # -----------------------
+    # FOOD DONATIONS
+    # -----------------------
+    cursor.execute("""
+        SELECT COALESCE(SUM(Quantity), 0) AS total_food
+        FROM Donations
+        WHERE Type = 'food'
+    """)
+    food_saved = cursor.fetchone()["total_food"]
+
+    # -----------------------
+    # MONEY DONATIONS
+    # -----------------------
+    cursor.execute("""
+        SELECT COALESCE(SUM(Quantity), 0) AS total_money
+        FROM Donations
+        WHERE Type = 'money'
+    """)
+    money = cursor.fetchone()["total_money"]
+
+    connection.close()
+
+    # -----------------------
+    # BUILD STATS OBJECT (FIX)
+    # -----------------------
+    stats = {
+        "meals": meals,
+        "users": users,
+        "fridges": fridges,
+        "food_saved": food_saved,
+        "money": money
+    }
+
+    return render_template("aboutus.html.jinja", stats=stats)
+@app.route("/api/stats")
+def api_stats():
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    cursor.execute("SELECT COUNT(*) AS total_users FROM User")
+    users = cursor.fetchone()["total_users"]
+
+    cursor.execute("SELECT COUNT(*) AS total_fridges FROM Fridge")
+    fridges = cursor.fetchone()["total_fridges"]
+
+    cursor.execute("SELECT COUNT(*) AS total_donations FROM Donations")
+    meals = cursor.fetchone()["total_donations"]
+
+    cursor.execute("SELECT COALESCE(SUM(Quantity),0) AS total_food FROM Donations WHERE Type='food'")
+    food_saved = cursor.fetchone()["total_food"]
+
+    cursor.execute("SELECT COALESCE(SUM(Quantity),0) AS total_money FROM Donations WHERE Type='money'")
+    money = cursor.fetchone()["total_money"]
+
+    connection.close()
+
+    return jsonify({
+        "users": users,
+        "fridges": fridges,
+        "meals": meals,
+        "food_saved": food_saved,
+        "money": money
+    })
 
 # -----------------------
 # FAVORITES 
@@ -931,7 +1008,7 @@ def restaurant_dashboard():
 
     # 3. SCHEDULED PICKUPS (future donations only)
     cursor.execute("""
-    SELECT ID, Name, Quantity, Dropoff
+    SELECT ID, Quantity, Dropoff
     FROM Donations
     WHERE UserID = %s 
     AND Type = 'food'
