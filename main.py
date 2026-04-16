@@ -909,7 +909,7 @@ def restaurant_dashboard():
 
     # 3. SCHEDULED PICKUPS (future donations only)
     cursor.execute("""
-    SELECT ID, Name, Quantity, Dropoff
+    SELECT ID, Quantity, Dropoff
     FROM Donations
     WHERE UserID = %s 
     AND Type = 'food'

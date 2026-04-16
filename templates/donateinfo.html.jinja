@@ -187,8 +187,6 @@
         <!-- DATE -->
         <input type="date" name="dropoff_date" class="input" required>
 
-        <!-- QUANTITY -->
-        <input type="number" name="quantity" placeholder="Number of meals" class="input" required>
 
         <!-- 🍱 FOOD CATEGORY (NEW SIMPLIFIED VERSION) -->
         <div>
@@ -401,68 +399,55 @@ function setupDropdown(btnId, menuId, itemsClass, inputId, textId) {
 
 
 
-    <!-- 🧊 DROPDOWNS -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Handling the Money Form Dropdown
-            setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
+document.addEventListener("DOMContentLoaded", function () {
 
-            // Handling the Food Form Dropdown
-            setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
+    function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
+        const btn = document.getElementById(btnId);
+        const menu = document.getElementById(menuId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+        const btnText = document.getElementById(textId);
 
-            function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
-                const btn = document.getElementById(btnId);
-                const menu = document.getElementById(menuId);
-                const hiddenInput = document.getElementById(hiddenInputId);
-                const btnText = document.getElementById(textId);
+        if (!btn || !menu || !hiddenInput || !btnText) return;
 
-                // Toggle menu visibility
-                btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menu.classList.toggle("hidden");
+        });
 
-                // Handle item selection
-                menu.querySelectorAll(itemClass).forEach(item => {
-                    item.addEventListener('click', function () {
-                        const id = this.getAttribute('data-id');
-                        const name = this.getAttribute('data-name');
+        menu.querySelectorAll(itemClass).forEach(item => {
+            item.addEventListener("click", () => {
+                hiddenInput.value = item.dataset.id;
+                btnText.textContent = item.dataset.name;
+                menu.classList.add("hidden");
+            });
+        });
 
-                        hiddenInput.value = id;      // This sends the ID to your SQL database
-                        btnText.innerText = name;    // This shows the user what they picked
-                        menu.classList.add('hidden'); // Close menu
-                    });
-                });
+        document.addEventListener("click", (e) => {
+            if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.add("hidden");
             }
         });
+    }
 
-    </script>
+    setupDropdown(
+        "foodFridgeBtn",
+        "foodFridgeMenu",
+        "foodFridgeValue",
+        "foodFridgeText",
+        ".food-item"
+    );
 
-    <!-- 💰 AMOUNT LOGIC -->
-    <script>
-        const customInput = document.getElementById("customAmount");
-        const presetRadios = document.querySelectorAll('input[name="amount"]');
+    setupDropdown(
+        "moneyFridgeBtn",
+        "moneyFridgeMenu",
+        "moneyFridgeValue",
+        "moneyFridgeText",
+        ".money-item"
+    );
 
-        if (customInput) {
-            customInput.addEventListener("input", () => {
-                if (customInput.value !== "") {
-                    presetRadios.forEach(r => r.checked = false);
-                }
-            });
-        }
-
-// INIT
-setupDropdown("foodFridgeBtn", "foodFridgeMenu", "food-item", "foodFridgeValue", "foodFridgeText");
+});
 </script>
-        presetRadios.forEach(radio => {
-            radio.addEventListener("change", () => {
-                if (radio.checked) customInput.value = "";
-            });
-        });
-    </script>
-    <script>
-        if ('scrollRestoration' in history) {
-            history.scrollRestoration = 'manual';
-        }
-    </script>
-
 </body>
 
 </html>
