@@ -161,31 +161,61 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Dropdown setup
-    function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
-        const btn = document.getElementById(btnId);
-        const menu = document.getElementById(menuId);
-        const hiddenInput = document.getElementById(hiddenInputId);
-        const btnText = document.getElementById(textId);
+   <!-- 🧊 DROPDOWNS -->
+   <script>
+       document.addEventListener('DOMContentLoaded', function () {
+           // Handling the Money Form Dropdown
+           setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
 
-        if (!btn || !menu) return;
 
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('hidden');
-        });
+           // Handling the Food Form Dropdown
+           setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
 
-        menu.querySelectorAll(itemClass).forEach(item => {
-            item.addEventListener('click', function () {
-                hiddenInput.value = this.dataset.id;
-                btnText.innerText = this.dataset.name;
-                menu.classList.add('hidden');
-            });
-        });
-    }
 
-    setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
-    setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
+           function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
+               const btn = document.getElementById(btnId);
+               const menu = document.getElementById(menuId);
+               const hiddenInput = document.getElementById(hiddenInputId);
+               const btnText = document.getElementById(textId);
+
+
+               // Toggle menu visibility
+               btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+
+
+               // Handle item selection
+               menu.querySelectorAll(itemClass).forEach(item => {
+                   item.addEventListener('click', function () {
+                       const id = this.getAttribute('data-id');
+                       const name = this.getAttribute('data-name');
+
+
+                       hiddenInput.value = id;      // This sends the ID to your SQL database
+                       btnText.innerText = name;    // This shows the user what they picked
+                       menu.classList.add('hidden'); // Close menu
+                   });
+               });
+           }
+       });
+
+
+   </script>
+
+
+   <!-- 💰 AMOUNT LOGIC -->
+   <script>
+       const customInput = document.getElementById("customAmount");
+       const presetRadios = document.querySelectorAll('input[name="amount"]');
+
+
+       if (customInput) {
+           customInput.addEventListener("input", () => {
+               if (customInput.value !== "") {
+                   presetRadios.forEach(r => r.checked = false);
+               }
+           });
+       }
+
 
     // Close dropdowns
     document.addEventListener('click', () => {
