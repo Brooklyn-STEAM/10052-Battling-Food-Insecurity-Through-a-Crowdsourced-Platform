@@ -4,48 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurants Connect - FridgeNet</title>
+    <link rel="icon" type="image/png" href="/static/images/logo.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- DARK MODE INIT (IMPORTANT for navbar too) -->
+    <script>
+        (function () {
+            const saved = localStorage.getItem("theme");
+
+            if (saved === "dark") {
+                document.documentElement.classList.add("dark");
+            } else if (saved === "light") {
+                document.documentElement.classList.remove("dark");
+            } else {
+                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                document.documentElement.classList.toggle("dark", prefersDark);
+            }
+        })();
+    </script>
+
+    <style>
+        html { 
+            scroll-behavior: smooth;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
+
+<body class="bg-gray-50 dark:bg-[#1b1730] min-h-screen flex flex-col text-gray-900 dark:text-gray-100 transition-colors">
 
 {% include "components/navbar.html.jinja" %}
 
-<!-- Hero -->
-<section class="bg-green-200 py-16 text-center">
-    <h1 class="text-4xl font-bold mb-4 text-gray-900">Restaurants Connect</h1>
-    <p class="text-lg text-gray-700 mb-8">
+<!-- HERO -->
+<section class="bg-green-200 dark:bg-gradient-to-r dark:from-[#2a2545] dark:to-[#1e1b2e] py-16 text-center px-6 transition-colors">
+    <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+        Restaurants Connect
+    </h1>
+    <p class="text-lg text-gray-700 dark:text-gray-300 mb-8">
         Partner with us to reduce food waste and support your community
     </p>
-    <a href="/signup" 
-       class="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition">
-        Login / Sign Up
+      {% if current_user.is_authenticated %}
+    <a href="/restaurant-dashboard" 
+       class="bg-green-600 hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition">
+        Dashboard
     </a>
+      {% else %}
+
+    <a href="/signup" 
+       class="bg-green-600 hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition">
+      Sign Up
+    </a>
+        {% endif %}
 </section>
 
-<!-- Benefits -->
+<!-- BENEFITS -->
 <section class="max-w-6xl mx-auto py-12 px-6 grid md:grid-cols-3 gap-6">
-    <div class="bg-white p-6 rounded-xl shadow">
+
+    <div class="bg-white dark:bg-[#2a2545] p-6 rounded-xl shadow border border-gray-200 dark:border-[#40376E] transition">
         <h2 class="font-bold text-xl mb-2">Reduce Waste</h2>
-        <p>Turn surplus food into meaningful impact instead of throwing it away.</p>
+        <p class="text-gray-600 dark:text-gray-300">
+            Turn surplus food into meaningful impact instead of throwing it away.
+        </p>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow">
+
+    <div class="bg-white dark:bg-[#2a2545] p-6 rounded-xl shadow border border-gray-200 dark:border-[#40376E] transition">
         <h2 class="font-bold text-xl mb-2">Help Community</h2>
-        <p>Support local families through community fridges.</p>
+        <p class="text-gray-600 dark:text-gray-300">
+            Support local families through community fridges.
+        </p>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow">
+
+    <div class="bg-white dark:bg-[#2a2545] p-6 rounded-xl shadow border border-gray-200 dark:border-[#40376E] transition">
         <h2 class="font-bold text-xl mb-2">Get Recognized</h2>
-        <p>Your restaurant will be featured on our platform.</p>
+        <p class="text-gray-600 dark:text-gray-300">
+            Your restaurant will be featured on our platform.
+        </p>
     </div>
+
 </section>
 
-<!-- How It Works -->
-<section class="bg-gray-100 py-12 text-center">
-    <h2 class="text-3xl font-bold mb-8">How It Works</h2>
-    <div class="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto px-6">
-        <div>1️⃣ Login / Sign Up</div>
-        <div>2️⃣ Submit Food</div>
-        <div>3️⃣ Pickup / Drop-off</div>
-        <div>4️⃣ Feed the Community</div>
+<!-- HOW IT WORKS -->
+<section class="bg-gray-100 dark:bg-[#1e1b2e] py-12 text-center transition-colors">
+    <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
+        How It Works
+    </h2>
+
+    <div class="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto px-6 text-gray-700 dark:text-gray-300">
+        <div class="p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E]">1️⃣ Login / Sign Up</div>
+        <div class="p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E]">2️⃣ Submit Food</div>
+        <div class="p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E]">3️⃣ Pickup / Drop-off</div>
+        <div class="p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E]">4️⃣ Feed the Community</div>
     </div>
 </section>
 

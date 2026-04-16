@@ -33,7 +33,6 @@
 
   {% include "components/navbar.html.jinja" %}
 
-  <!-- ✅ SAME STRUCTURE AS DONATE PAGE -->
   <div class="relative overflow-x-hidden">
 
     <!-- BACKGROUND GLOW -->
@@ -61,38 +60,52 @@
     </section>
 
     <!-- STATS -->
-<!-- STATS -->
-<section class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6 mb-16 text-center">
+    <section class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-6 px-6 mb-16 text-center">
 
-  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
-    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
-      {{ "{:,}".format(stats.meals) }}+
-    </p>
-    <p class="text-sm text-gray-600 dark:text-gray-400">Meals Shared</p>
-  </div>
+      <!-- Meals -->
+      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+        <p id="meals" class="text-2xl font-bold text-green-600 dark:text-purple-300">
+          {{ "{:,}".format(stats.meals or 0) }}+
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Donations Made</p>
+      </div>
 
-  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
-    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
-      {{ "{:,}".format(stats.users) }}+
-    </p>
-    <p class="text-sm text-gray-600 dark:text-gray-400">Active Users</p>
-  </div>
+      <!-- Users -->
+      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+        <p id="users" class="text-2xl font-bold text-green-600 dark:text-purple-300">
+          {{ "{:,}".format(stats.users or 0) }}+
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Active Users</p>
+      </div>
 
-  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
-    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
-      {{ stats.fridges }}+
-    </p>
-    <p class="text-sm text-gray-600 dark:text-gray-400">Fridges</p>
-  </div>
+      <!-- Fridges -->
+      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+        <p id="fridges" class="text-2xl font-bold text-green-600 dark:text-purple-300">
+          {{ stats.fridges or 0 }}+
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Community Fridges</p>
+      </div>
 
-  <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
-    <p class="text-2xl font-bold text-green-600 dark:text-purple-300">
-      {{ stats.food_saved }} Tons
-    </p>
-    <p class="text-sm text-gray-600 dark:text-gray-400">Food Saved</p>
-  </div>
+      <!-- Food Saved -->
+      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+        <p id="food_saved" class="text-2xl font-bold text-green-600 dark:text-purple-300">
+          {{ "{:,}".format((stats.food_saved or 0)|int) }}
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Food Items Shared</p>
+      </div>
 
-</section>
+      <!-- OPTIONAL: Money (only if you pass it later) -->
+      {% if stats.money is defined %}
+    <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+      <p id="money"
+        data-raw="{{ stats.money or 0 }}" class="text-2xl font-bold text-green-600 dark:text-purple-300">
+        ${{ "{:,}".format(stats.money|int) }}
+      </p>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Money Donated</p>
+    </div>
+      {% endif %}
+
+    </section>
 
     <!-- CONTENT -->
     <section class="max-w-5xl mx-auto px-6 pb-20 grid gap-8 md:grid-cols-2 relative z-10">
@@ -123,7 +136,7 @@
                   shadow-lg hover:shadow-2xl hover:-translate-y-1 transition">
         <h2 class="text-xl font-bold mb-2 text-green-700 dark:text-purple-300">📊 Our Impact</h2>
         <p class="text-gray-600 dark:text-gray-400">
-          Reduce waste, lower emissions, and support families locally.
+          Real-time impact powered directly from community contributions.
         </p>
       </div>
 
@@ -165,6 +178,64 @@
   </div>
 
   {% include "components/footer.html.jinja" %}
+<script>
+function animateValue(el, start, end, isMoney = false, duration = 1000) {
+  let startTime = null;
 
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const value = Math.floor(progress * (end - start) + start);
+
+    el.innerText = isMoney
+      ? `$${value.toLocaleString()}`
+      : value.toLocaleString();
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+function update(id, newValue, isMoney = false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const current = parseInt(el.dataset.raw || el.innerText.replace(/[^0-9]/g, "")) || 0;
+
+  if (current !== newValue) {
+    el.dataset.raw = newValue;
+    animateValue(el, current, newValue, isMoney);
+  }
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch("/api/stats");
+    const data = await res.json();
+
+    update("users", data.users);
+    update("fridges", data.fridges);
+    update("meals", data.meals);
+    update("food_saved", data.food_saved);
+
+    if (document.getElementById("money")) {
+      update("money", data.money, true);
+    }
+
+  } catch (err) {
+    console.error("Failed to load stats:", err);
+  }
+}
+
+// initial load
+loadStats();
+
+// refresh every 5 seconds
+setInterval(loadStats, 5000);
+</script>
 </body>
 </html>
