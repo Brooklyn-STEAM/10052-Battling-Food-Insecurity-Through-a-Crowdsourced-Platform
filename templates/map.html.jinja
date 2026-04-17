@@ -99,75 +99,161 @@
         html {
             transition: background-color 0.3s ease, color 0.3s ease;
         }
+        nav {
+    position: relative; /* or fixed/sticky depending on your navbar design */
+    z-index: 2000;      /* Higher than Leaflet's default z-index */
+}
     </style>
 </head>
 
-<body class="bg-gray-100 font-sans">
-    {% include "components/navbar.html.jinja" %}
+<body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 font-sans">
 
-    <div class="relative w-full h-screen overflow-hidden flex flex-col md:flex-row">
-        <div id="map" class="absolute inset-0 md:relative md:w-2/3 h-full z-0 order-1 md:order-2"></div>
+{% include "components/navbar.html.jinja" %}
 
-        <button id="toggle-sidebar" class="md:hidden fixed bottom-6 right-6 z-[1001] bg-green-600 text-white p-4 rounded-full shadow-2xl flex items-center justify-center">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-        </button>
+<div class="relative w-full h-screen overflow-hidden flex flex-col md:flex-row">
 
-        <aside id="sidebar" class="fixed inset-x-0 bottom-0 z-[1000] w-full h-[70vh] bg-white transition-transform duration-300 transform translate-y-full md:translate-y-0 md:static md:w-1/3 md:h-full overflow-hidden flex flex-col border-t md:border-t-0 md:border-r border-gray-200 order-2 md:order-1">
-            
-            <div id="close-sidebar" class="md:hidden w-full flex flex-col items-center py-3 cursor-pointer">
-                <div class="w-12 h-1.5 bg-gray-300 rounded-full mb-1"></div>
-                <span class="text-[10px] text-gray-400 font-bold uppercase">Close List</span>
-            </div>
+    <!-- MAP (UNCHANGED) -->
+    <div id="map" class="absolute inset-0 md:relative md:w-2/3 h-full z-0 order-1 md:order-2"></div>
 
-            <div class="p-6 overflow-y-auto flex-grow">
-                <div id="routing-directions" class="hidden mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
-                    <div class="flex justify-between items-center mb-2 border-b border-green-200 pb-2">
-                        <h3 class="font-bold text-green-800 text-sm uppercase">Route Instructions</h3>
-                        <button onclick="window.clearRoute()" class="text-[10px] text-red-500 font-bold hover:underline">CLEAR</button>
-                    </div>
-                    <div id="itinerary-container"></div>
-                </div>
+    <!-- FLOAT BUTTON -->
+    <button id="toggle-sidebar"
+        class="md:hidden fixed bottom-6 right-6 z-[1001]
+        bg-green-600 text-white p-4 rounded-full shadow-2xl
+        dark:bg-purple-600 dark:hover:bg-purple-700 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
 
-                <h2 class="text-2xl font-bold mb-4">Nearby Fridges</h2>
+    <!-- SIDEBAR -->
+    <aside id="sidebar"
+        class="fixed inset-x-0 bottom-0 z-[1000] w-full h-[70vh]
+        bg-white dark:bg-[#1b1730]
+        transition-transform duration-300 transform translate-y-full
+        md:translate-y-0 md:static md:w-1/3 md:h-full
+        overflow-hidden flex flex-col
+        border-t md:border-t-0 md:border-r
+        border-gray-200 dark:border-[#40376E]">
 
-                <div class="mb-4">
-                    <label class="font-semibold text-xs text-gray-600 block mb-1">Starting Location</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="start-location" placeholder="Enter address" class="flex-grow p-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-green-500" />
-                        <button id="set-start" class="bg-green-500 text-white px-3 py-1 rounded-lg font-bold text-sm">Set</button>
-                    </div>
-                </div>
-                <div id="directions-modal" class="fixed inset-0 z-[2000] hidden bg-black/50 flex items-end md:hidden">
-    <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto shadow-2xl">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-green-800 uppercase tracking-wide">Route Directions</h3>
-            <button onclick="closeDirectionsModal()" class="text-gray-400 p-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
+        <!-- CLOSE HANDLE -->
+        <div id="close-sidebar"
+            class="md:hidden w-full flex flex-col items-center py-3 cursor-pointer">
+            <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mb-1"></div>
+            <span class="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">
+                Close List
+            </span>
         </div>
-        <div id="mobile-itinerary-container"></div>
-        <button onclick="window.clearRoute(); closeDirectionsModal();" class="w-full mt-4 py-3 bg-red-50 text-red-500 font-bold rounded-xl text-sm">Cancel Route</button>
-    </div>
-</div>
 
-                <input type="text" id="fridge-search" placeholder="Search fridges..." class="w-full p-2 border rounded-lg mb-4 text-sm bg-gray-50 outline-none" />
+        <div class="p-6 overflow-y-auto flex-grow">
 
-                <div class="grid grid-cols-3 gap-2 mb-6">
-                    <label class="cursor-pointer"><input type="radio" name="transport" value="foot" class="hidden peer" checked><div class="p-2 border-2 rounded-xl text-center peer-checked:border-green-600 peer-checked:bg-green-50 text-[10px] font-bold uppercase">Walk</div></label>
-                    <label class="cursor-pointer"><input type="radio" name="transport" value="bicycle" class="hidden peer"><div class="p-2 border-2 rounded-xl text-center peer-checked:border-green-600 peer-checked:bg-green-50 text-[10px] font-bold uppercase">Bike</div></label>
-                    <label class="cursor-pointer"><input type="radio" name="transport" value="car" class="hidden peer"><div class="p-2 border-2 rounded-xl text-center peer-checked:border-green-600 peer-checked:bg-green-50 text-[10px] font-bold uppercase">Drive</div></label>
+            <!-- ROUTE BOX -->
+            <div id="routing-directions"
+                class="hidden mb-6 p-4 rounded-xl border
+                bg-green-50 border-green-200
+                dark:bg-[#2a2545] dark:border-[#40376E]">
+
+                <div class="flex justify-between items-center mb-2 border-b pb-2
+                    border-green-200 dark:border-[#40376E]">
+                    <h3 class="font-bold text-green-800 dark:text-purple-300 text-sm uppercase">
+                        Route Instructions
+                    </h3>
+                    <button onclick="window.clearRoute()"
+                        class="text-[10px] text-red-500 font-bold hover:underline">
+                        CLEAR
+                    </button>
                 </div>
-                <h3 class="text-sm font-bold mb-2 text-gray-500">Favorites</h3>
-                <ul id="favorites-list" class="space-y-2 mb-4"></ul>
 
-                <h3 class="text-sm font-bold mb-2 text-gray-500">Recently Viewed</h3>
-                <ul id="recent-list" class="space-y-2 mb-4"></ul>
-
-                <ul id="fridge-list" class="space-y-3 font-semibold pb-10"></ul>
+                <div id="itinerary-container"></div>
             </div>
-        </aside>
-    </div>
 
+            <h2 class="text-2xl font-bold mb-4 dark:text-white">
+                Nearby Fridges
+            </h2>
+
+            <!-- START LOCATION -->
+            <div class="mb-4">
+                <label class="font-semibold text-xs text-gray-600 dark:text-gray-400 block mb-1">
+                    Starting Location
+                </label>
+
+                <div class="flex gap-2">
+                    <input type="text" id="start-location"
+                        placeholder="Enter address"
+                        class="flex-grow p-2 border rounded-lg text-sm
+                        bg-gray-50 dark:bg-[#2a2545]
+                        border-gray-200 dark:border-[#40376E]
+                        text-gray-900 dark:text-white
+                        outline-none focus:ring-2 focus:ring-green-500" />
+
+                    <button id="set-start"
+                        class="bg-green-500 text-white px-3 py-1 rounded-lg font-bold text-sm
+                        dark:bg-purple-600 dark:hover:bg-purple-700">
+                        Set
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEARCH -->
+            <input type="text" id="fridge-search"
+                placeholder="Search fridges..."
+                class="w-full p-2 border rounded-lg mb-4 text-sm
+                bg-gray-50 dark:bg-[#2a2545]
+                border-gray-200 dark:border-[#40376E]
+                text-gray-900 dark:text-white outline-none" />
+
+            <!-- TRANSPORT -->
+            <div class="grid grid-cols-3 gap-2 mb-6">
+
+                <label class="cursor-pointer">
+                    <input type="radio" name="transport" value="foot" class="hidden peer" checked>
+                    <div class="p-2 border-2 rounded-xl text-center text-[10px] font-bold uppercase
+                        border-gray-200 dark:border-[#40376E]
+                        peer-checked:border-green-600
+                        peer-checked:bg-green-50 dark:peer-checked:bg-[#2a2545]">
+                        Walk
+                    </div>
+                </label>
+
+                <label class="cursor-pointer">
+                    <input type="radio" name="transport" value="bicycle" class="hidden peer">
+                    <div class="p-2 border-2 rounded-xl text-center text-[10px] font-bold uppercase
+                        border-gray-200 dark:border-[#40376E]
+                        peer-checked:border-green-600
+                        peer-checked:bg-green-50 dark:peer-checked:bg-[#2a2545]">
+                        Bike
+                    </div>
+                </label>
+
+                <label class="cursor-pointer">
+                    <input type="radio" name="transport" value="car" class="hidden peer">
+                    <div class="p-2 border-2 rounded-xl text-center text-[10px] font-bold uppercase
+                        border-gray-200 dark:border-[#40376E]
+                        peer-checked:border-green-600
+                        peer-checked:bg-green-50 dark:peer-checked:bg-[#2a2545]">
+                        Drive
+                    </div>
+                </label>
+            </div>
+
+            <!-- FAVORITES -->
+            <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
+                Favorites
+            </h3>
+            <ul id="favorites-list" class="space-y-2 mb-4"></ul>
+
+            <!-- RECENT -->
+            <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
+                Recently Viewed
+            </h3>
+            <ul id="recent-list" class="space-y-2 mb-4"></ul>
+
+            <!-- LIST -->
+            <ul id="fridge-list" class="space-y-3 font-semibold pb-10"></ul>
+
+        </div>
+    </aside>
+</div>
 <script>
     
 const sidebar = document.getElementById('sidebar');
@@ -266,7 +352,7 @@ window.routeToFridge = function(lat, lng) {
             
             // Build the HTML for the steps
             let stepsHtml = `
-    <div class="mb-4 p-4 bg-green-600 rounded-xl text-white shadow-md">
+<div class="mb-4 p-4 bg-green-600 dark:bg-purple-600 rounded-xl text-white shadow-md">
         <div class="flex justify-between items-center gap-2">
             <div class="flex flex-col">
                 <span class="text-[10px] uppercase opacity-80 font-bold">Distance</span>
@@ -284,11 +370,11 @@ window.routeToFridge = function(lat, lng) {
             routeData.properties.legs[0].steps.forEach((step, i) => {
                 const stepDist = (step.distance * 0.000621371).toFixed(2);
                 stepsHtml += `
-                    <div class="text-sm py-3 border-b border-gray-100 last:border-0 flex gap-3">
-                        <span class="font-bold text-green-600">${i + 1}.</span> 
+                    <div class="text-sm py-3 border-b border-gray-100 dark:border-[#40376E] last:border-0 flex gap-3">
+                        <span class="font-bold text-green-600 dark:text-purple-400">${i + 1}.</span> 
                         <div class="flex-grow">
-                            <p class="text-gray-800">${step.instruction.text}</p>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase">${stepDist > 0 ? stepDist + ' mi' : ''}</span>
+                            <p class="text-gray-800 dark:text-gray-200">${step.instruction.text}</p>
+                            <span class="text-[10px] text-gray-400 dark:text-gray-200 font-bold uppercase">${stepDist}</span>
                         </div>
                     </div>
                 `;
@@ -334,15 +420,24 @@ function renderFridges(fridges) {
     // ✅ Marker (FIXED)
     const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon })
         .addTo(map)
-        .bindPopup(`
-            <div class="p-2 text-center">
-                <b class="text-lg">${f.name}</b><br>
-                <button onclick="window.routeToFridge(${f.lat},${f.lng})"
-                    class="bg-green-600 text-white px-3 py-1 rounded-lg mt-2 w-full font-bold">
-                    Get Directions
-                </button>
-            </div>
-        `);
+.bindPopup(`
+    <div class="p-3 text-center rounded-xl
+        text-gray-900 dark:text-white">
+
+        <b class="text-lg text-black">${f.name}</b><br>
+
+        <span class="text-[10px] text-gray-500 dark:text-gray-600 uppercase">
+            ${f.status || 'Active'}
+        </span><br>
+
+        <button onclick="window.routeToFridge(${f.lat},${f.lng})"
+            class="bg-green-600 dark:bg-purple-600
+            hover:bg-green-700 dark:hover:bg-purple-700
+            text-white px-3 py-1 rounded-lg mt-2 w-full font-bold transition">
+            Get Directions
+        </button>
+    </div>
+`);
 
     // ✅ Double click on marker → go to page
     marker.on('dblclick', () => {
@@ -353,18 +448,18 @@ function renderFridges(fridges) {
 
     // ✅ Sidebar item
     const li = document.createElement("li");
-    li.className = "p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-green-50 flex justify-between items-center transition-colors";
+    li.className = "p-4 bg-gray-50 dark:bg-[#2a2545] border border-transparent dark:border-[#40376E] rounded-xl cursor-pointer hover:bg-green-50 dark:hover:bg-[#40376E] transition-all flex justify-between items-center";
 
     li.innerHTML = `
         <div class="flex flex-col">
-            <span class="font-bold text-gray-900">${f.name}</span>
-            <span class="text-[10px] text-gray-400 uppercase">${f.status || 'Active'}</span>
+                <span class="font-bold text-gray-900 dark:text-white">${f.name}</span>
+                <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase">${f.status || 'Active'}</span>
             <div class="flex gap-2 mt-2">
                 <button class="details-btn text-[10px] bg-green-600 text-white px-2 py-1 rounded">Details</button>
                 <button class="fav-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded">⭐</button>
             </div>
         </div>
-        ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
+        ${f.distance ? `<span class="text-xs font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-[#1f1a3a] px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
     `;
 
     // Existing buttons (unchanged)
@@ -501,7 +596,7 @@ function renderFavoritesList(favorites) {
         const fLng = f.Longitude || f.lng;
 
         // Container styling
-        li.className = "p-2 bg-yellow-50 border border-yellow-200 rounded-xl mb-2 flex justify-between items-center shadow-sm";
+        li.className = "p-2 bg-yellow-50 dark:bg-[#2a2545] border border-yellow-200 dark:border-[#40376E] rounded-xl flex justify-between items-center gap-2";
         
         li.innerHTML = `
             <span class="font-semibold text-sm cursor-pointer hover:text-yellow-700 flex-grow py-1">⭐ ${fName}</span>
@@ -542,62 +637,6 @@ function renderFavoritesList(favorites) {
 
 // 5. Update renderFridges to use the DB toggle
 // (Modified part of your existing renderFridges function)
-function renderFridges(fridges) {
-    const list = document.getElementById("fridge-list");
-    list.innerHTML = "";
-    fridgeMarkers.forEach(m => map.removeLayer(m));
-    fridgeMarkers = [];
-
-    const fridgesWithData = fridges.map(f => ({
-        ...f,
-        distance: userLat ? getDistance(userLat, userLng, f.lat, f.lng) : null
-    })).sort((a, b) => (a.distance || 999) - (b.distance || 999));
-
-    fridgesWithData.forEach(f => {
-        const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon }).addTo(map)
-            .bindPopup(`
-                <div class="p-2 text-center">
-                    <b class="text-lg">${f.name}</b><br>
-                    <button onclick="window.routeToFridge(${f.lat},${f.lng})" class="bg-green-600 text-white px-3 py-1 rounded-lg mt-2 w-full font-bold">Get Directions</button>
-                </div>
-            `);
-        fridgeMarkers.push(marker);
-
-        const li = document.createElement("li");
-        li.className = "p-4 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:bg-green-50 flex justify-between items-center transition-all shadow-sm";
-        li.innerHTML = `
-            <div class="flex flex-col">
-                <span class="font-bold text-gray-900">${f.name}</span>
-                <span class="text-[10px] text-gray-400 uppercase tracking-tighter">${f.status || 'Active'}</span>
-                <div class="flex gap-2 mt-2">
-                    <button class="details-btn text-[10px] bg-green-600 text-white px-3 py-1 rounded-lg font-bold">Details</button>
-                    <button class="fav-btn text-[10px] bg-yellow-500 text-white px-3 py-1 rounded-lg font-bold">⭐ Favorite</button>
-                </div>
-            </div>
-            ${f.distance ? `<span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>` : ''}
-        `;
-
-        // Updated Listeners
-        li.querySelector(".details-btn").onclick = (e) => {
-            e.stopPropagation();
-            saveRecentlyViewed(f);
-            window.location.href = `/individfridge/${f.id}`;
-        };
-
-        li.querySelector(".fav-btn").onclick = (e) => {
-            e.stopPropagation();
-            window.toggleFavorite(f); // Calls DB Toggle
-        };
-
-        li.onclick = () => {
-            saveRecentlyViewed(f);
-            map.setView([f.lat, f.lng], 16);
-            marker.openPopup();
-            window.routeToFridge(f.lat, f.lng);
-        };
-        list.appendChild(li);
-    });
-}
 
 // 6. Recently Viewed (Stays in LocalStorage)
 function saveRecentlyViewed(fridge) {
@@ -623,7 +662,7 @@ function renderRecent() {
 
     data.forEach(f => {
         const li = document.createElement("li");
-        li.className = "p-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-sm hover:bg-gray-100 mb-1 transition-colors";
+        li.className = "p-2 bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] rounded-lg";
         li.textContent = f.name;
         li.onclick = () => window.location.href = `/individfridge/${f.id}`;
         list.appendChild(li);
