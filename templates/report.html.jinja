@@ -101,20 +101,18 @@
                 </form>
             </div>
 
-            <!-- Right Side: Info & Image -->
-            <div class="w-full lg:w-1/2 space-y-8">
-                <div class="relative group">
-                    <div
-                        class="absolute -inset-3 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000">
-                    </div>
-                    <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }} Image">
+        <!-- Right Side: Info & Image -->
+          <div class="w-full lg:w-1/2 space-y-8">
+            <div class="relative group">
+              <div class="absolute -inset-3 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000">
                 </div>
-
+                  <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }} Image">
+                </div>
                 <div class="bg-green-50 dark:bg-green-900/20 p-6 rounded-xl border border-green-100 dark:border-green-800 text-center">
                 <p class="text-green-900 dark:text-green-300 font-medium text-lg">{{fridge['Name']}}</p>
                 <br>
-                    <h3 class="text-green-800 dark:text-green-400 font-bold uppercase tracking-widest text-xs mb-2">Location</h3>
-                    <p class="text-green-900 dark:text-green-300 font-medium text-lg">{{fridge['Address']}}</p>
+                  <h3 class="text-green-800 dark:text-green-400 font-bold uppercase tracking-widest text-xs mb-2">Location</h3>
+                  <p class="text-green-900 dark:text-green-300 font-medium text-lg">{{fridge['Address']}}</p>
                 </div>
             </div>
 
