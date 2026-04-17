@@ -1,270 +1,174 @@
 <!DOCTYPE html>
 <html lang="en" id="htmlRoot">
-
 <head>
     <meta charset="UTF-8">
     <title>FridgeNet - Community Support</title>
-    <link rel="icon" type="image/png" href="/static/images/logo.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
+        // Dark mode initialization
+        if (localStorage.getItem("theme") === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
     </script>
-
-    <!-- DARK MODE INIT -->
-    <script>
-        (function () {
-            const saved = localStorage.getItem("theme");
-            if (saved === "dark") {
-                document.documentElement.classList.add("dark");
-            } else if (saved === "light") {
-                document.documentElement.classList.remove("dark");
-            } else {
-                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                document.documentElement.classList.toggle("dark", prefersDark);
-            }
-        })();
-    </script>
-
     <style>
-        .input {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            border: 1px solid #d1d5db;
-            background: #f8fafc;
-            transition: 0.25s;
-        }
-
-        .input:focus {
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
-        }
-
-        .form-card {
-            background: linear-gradient(135deg, #ffffff, #f3f0ff);
-            border: 1px solid #cac2d2;
-        }
-
-        .dark .form-card {
-            background: linear-gradient(135deg, #1e1b2e, #2a2545);
-            border: 1px solid #40376E;
-        }
-
-        .dark .input {
-            background: #2a2545;
-            border-color: #40376E;
-            color: #fff;
-        }
-
-        .dropdown {
-            background: white;
-        }
-
-        .dark .dropdown {
-            background: #2a2545;
-            border-color: #40376E;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+        .input { width: 100%; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #d1d5db; background: #f8fafc; transition: 0.25s; }
+        .input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3); outline: none; }
+        .form-card { background: linear-gradient(135deg, #ffffff, #f3f0ff); border: 1px solid #cac2d2; }
+        .dark .form-card { background: linear-gradient(135deg, #1e1b2e, #2a2545); border: 1px solid #40376E; }
+        .dark .input { background: #2a2545; border-color: #40376E; color: #fff; }
+        html { scroll-behavior: smooth; transition: background-color 0.3s ease; }
     </style>
 </head>
-
 <body class="bg-white text-gray-800 dark:bg-[#1b1730] dark:text-gray-100 transition-colors duration-300">
+    {% include "components/navbar.html.jinja" %}
 
-{% include "components/navbar.html.jinja" %}
+    <div class="max-w-5xl mx-auto px-4 py-10">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white">Help People In Need</h1>
+                <p class="text-gray-600 dark:text-gray-300 mt-2">Donate money or food to support local communities.</p>
+            </div>
+            <button onclick="toggleDarkMode()" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white">🌙 Theme</button>
+        </div>
 
-<div class="max-w-5xl mx-auto px-4 py-10">
-
-    <!-- HEADER -->
-    <div class="mb-10">
-        <h1 class="text-4xl font-extrabold">Help People In Need</h1>
-        <p class="text-gray-600 dark:text-gray-300 mt-2">
-            Donate money or food to support local communities.
-        </p>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <!-- 💳 MONEY FORM -->
-        <div class="form-card rounded-2xl shadow-lg p-6 space-y-5">
-
-            <h2 class="text-2xl font-bold">Donate Money</h2>
-
-            <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm" class="space-y-5">
-
-                <!-- AMOUNTS -->
-                <div class="grid grid-cols-3 gap-3 font-semibold">
-                    {% for amount in [10, 25, 50] %}
-                    <label class="cursor-pointer">
-                        <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
-                        <div class="p-4 text-center rounded-xl border peer-checked:bg-orange-600 hover:bg-orange-100 peer-checked:text-white dark:peer-checked:bg-purple-600 peer-checked:border-purple-600 transition">
-                            ${{ amount }}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {% if current_user.role != "restaurant" %}
+            <div class="form-card rounded-2xl shadow-lg p-6 space-y-5">
+                <h2 class="text-2xl font-bold dark:text-white">Donate Money</h2>
+                <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm" class="space-y-5">
+                    <div class="grid grid-cols-3 gap-3 font-semibold">
+                        {% for amount in [10, 25, 50] %}
+                        <label class="cursor-pointer">
+                            <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
+                            <div class="p-4 text-center rounded-xl border peer-checked:bg-orange-600 peer-checked:text-white dark:peer-checked:bg-purple-600 transition">
+                                ${{ amount }}
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <input type="number" name="custom_amount" id="customAmount" placeholder="Custom amount" class="input" min="1">
+                    
+                    <div class="relative">
+                        <label class="block text-sm mb-2">Select a Fridge</label>
+                        <input type="hidden" name="FridgeID" id="moneyFridgeValue" required>
+                        <button type="button" id="moneyFridgeBtn" class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] flex justify-between">
+                            <span id="moneyFridgeText">Choose a fridge</span><span>▼</span>
+                        </button>
+                        <div id="moneyFridgeMenu" class="absolute z-50 w-full mt-2 rounded-lg border bg-white dark:bg-[#2a2545] hidden shadow-xl max-h-60 overflow-y-auto">
+                            {% for fridge in fridges %}
+                            <div class="money-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]" data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                                <img src="{{ fridge['Image'] }}" class="w-10 h-10 rounded-md object-cover">
+                                <span class="text-sm font-medium">{{ fridge['Name'] }}</span>
+                            </div>
+                            {% endfor %}
                         </div>
-                    </label>
-                    {% endfor %}
-                </div>
+                    </div>
+                    <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold dark:bg-purple-600">Donate Now</button>
+                </form>
+            </div>
+            {% endif %}
 
-                <!-- CUSTOM -->
-                <input type="number" name="custom_amount" id="customAmount"
-                       placeholder="$ Custom amount"
-                       class="input" min="1" max="10000">
-
-                <!-- FRIDGE -->
-                <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
-
-                <button type="submit"
-                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 transition">
-                    Donate Now
-                </button>
-            </form>
-        </div>
-
-        <!-- 🍱 FOOD FORM -->
-        <div class="form-card rounded-2xl shadow-lg p-6 space-y-6">
-
-            <h2 class="text-2xl font-bold">Schedule Food Drop-Off</h2>
-
-            <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-5">
-
-                <input type="text" name="full_name" placeholder="Full Name" class="input" required>
-                <input type="email" name="food_email" placeholder="Email" class="input" required>
-
-                <input type="date" name="dropoff_date" id="dropoffDate" class="input" required>
-
-                <select name="food_type" class="input" required>
-                    <option disabled selected>Select category</option>
-                    {% for item in food_types %}
-                    <option value="{{ item['ID'] }}">{{ item['Name'] }}</option>
-                    {% endfor %}
-                </select>
-
-                <input type="number" name="quantity" placeholder="Quantity" class="input" required>
-
-                <input type="hidden" name="food_fridge_id" id="foodFridgeValue" required>
-
-                <textarea name="notes" rows="2" class="input" placeholder="Optional notes"></textarea>
-
-                <button type="submit"
-                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700">
-                    Complete Donation
-                </button>
-            </form>
+            <div class="form-card rounded-2xl shadow-lg p-6 space-y-5">
+                <h2 class="text-2xl font-bold dark:text-white">Schedule Food Drop-Off</h2>
+                <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
+                    <input type="text" name="full_name" placeholder="Name or Organization" class="input" required>
+                    <input type="date" name="dropoff_date" class="input" required>
+                    <select name="food_category" class="input" required>
+                        <option value="">Select category</option>
+                        <option value="packaged_meals">Packaged Meals</option>
+                        <option value="packed_groceries">Packed Groceries</option>
+                    </select>
+                    <input type="number" name="quantity" placeholder="Quantity" class="input" required>
+                    
+                    <div class="relative">
+                        <label class="block text-sm mb-2">Select Drop-off Location</label>
+                        <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
+                        <button type="button" id="foodFridgeBtn" class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] flex justify-between">
+                            <span id="foodFridgeText">Choose a location</span><span>▼</span>
+                        </button>
+<div id="foodFridgeMenu" 
+     class="dropdown absolute z-[100] w-full mt-2 rounded-lg border hidden shadow-xl bg-white dark:bg-[#2a2545]">
+                                 {% for fridge in fridges %}
+                            <div class="food-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-100 dark:hover:bg-[#40376E]" data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                                <img src="{{ fridge['Image'] }}" class="w-10 h-10 rounded-md object-cover">
+                                <span class="text-sm font-medium">{{ fridge['Name'] }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-semibold dark:bg-purple-600">Complete Donation</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- 🔧 SCRIPTS -->
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    // 1. Dark Mode Toggle
+function toggleDarkMode() {
+    const root = document.documentElement;
+    root.classList.toggle('dark');
+    const isDark = root.classList.contains('dark');
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+}
 
-   <!-- 🧊 DROPDOWNS -->
-   <script>
-       document.addEventListener('DOMContentLoaded', function () {
-           // Handling the Money Form Dropdown
-           setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
+// 2. Dropdown Logic
+function setupDropdown(btnId, menuId, inputId, textId, itemClass) {
+    const btn = document.getElementById(btnId);
+    const menu = document.getElementById(menuId);
+    const hiddenInput = document.getElementById(inputId);
+    const btnText = document.getElementById(textId);
 
+    if (!btn || !menu) return;
 
-           // Handling the Food Form Dropdown
-           setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
-
-
-           function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
-               const btn = document.getElementById(btnId);
-               const menu = document.getElementById(menuId);
-               const hiddenInput = document.getElementById(hiddenInputId);
-               const btnText = document.getElementById(textId);
-
-
-               // Toggle menu visibility
-               btn.addEventListener('click', () => menu.classList.toggle('hidden'));
-
-
-               // Handle item selection
-               menu.querySelectorAll(itemClass).forEach(item => {
-                   item.addEventListener('click', function () {
-                       const id = this.getAttribute('data-id');
-                       const name = this.getAttribute('data-name');
-
-
-                       hiddenInput.value = id;      // This sends the ID to your SQL database
-                       btnText.innerText = name;    // This shows the user what they picked
-                       menu.classList.add('hidden'); // Close menu
-                   });
-               });
-           }
-       });
-
-
-   </script>
-
-
-   <!-- 💰 AMOUNT LOGIC -->
-   <script>
-       const customInput = document.getElementById("customAmount");
-       const presetRadios = document.querySelectorAll('input[name="amount"]');
-
-
-       if (customInput) {
-           customInput.addEventListener("input", () => {
-               if (customInput.value !== "") {
-                   presetRadios.forEach(r => r.checked = false);
-               }
-           });
-       }
-
-
-    // Close dropdowns
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.dropdown').forEach(m => m.classList.add('hidden'));
+    // Toggle menu
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevents the 'document click' from closing it immediately
+        menu.classList.toggle("hidden");
     });
 
-    // Date restriction
-    const dateInput = document.getElementById("dropoffDate");
-    if (dateInput) {
-        dateInput.min = new Date().toISOString().split("T")[0];
-    }
+    // Select item
+    menu.querySelectorAll(itemClass).forEach(item => {
+        item.addEventListener("click", () => {
+            const id = item.getAttribute("data-id");
+            const name = item.getAttribute("data-name");
 
-    // Money validation
-    document.getElementById("moneyForm").addEventListener("submit", function(e) {
-        const selected = document.querySelector('input[name="amount"]:checked');
-        const custom = document.getElementById("customAmount").value;
-
-        if (!selected && (!custom || custom <= 0)) {
-            e.preventDefault();
-            alert("Please select or enter a valid donation amount.");
-        }
-    });
-
-    // Loading state
-    document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("submit", () => {
-            const btn = form.querySelector("button[type='submit']");
-            if (btn) {
-                btn.innerText = "Processing...";
-                btn.disabled = true;
+            if (hiddenInput) hiddenInput.value = id;
+            if (btnText) {
+                btnText.innerText = name;
+                btnText.classList.remove('text-gray-500'); // Optional: change color on select
             }
+
+            menu.classList.add("hidden");
         });
     });
+}
 
-    // Amount toggle
-    const customInput = document.getElementById("customAmount");
-    const presetRadios = document.querySelectorAll('input[name="amount"]');
+// 3. Initialize on Load
+document.addEventListener("DOMContentLoaded", function () {
+    setupDropdown(
+        "moneyFridgeBtn",
+        "moneyFridgeMenu",
+        "moneyFridgeValue",
+        "moneyFridgeText",
+        ".money-item"
+    );
 
-    customInput?.addEventListener("input", () => {
-        presetRadios.forEach(r => r.checked = false);
-    });
+    setupDropdown(
+        "foodFridgeBtn",
+        "foodFridgeMenu",
+        "foodFridgeValue",
+        "foodFridgeText",
+        ".food-item"
+    );
 
-    presetRadios.forEach(radio => {
-        radio.addEventListener("change", () => {
-            customInput.value = "";
-        });
+    // Global click to close all dropdowns
+    document.addEventListener("click", () => {
+        document.getElementById("moneyFridgeMenu").classList.add("hidden");
+        document.getElementById("foodFridgeMenu").classList.add("hidden");
     });
 });
 </script>
-
 </body>
 </html>
