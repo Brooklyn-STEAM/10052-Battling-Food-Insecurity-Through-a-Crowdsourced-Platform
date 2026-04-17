@@ -28,19 +28,23 @@
         <a href="/individfridge/{{ fridge['ID'] }}" class="text-green-600 hover:underline font-medium">← Back</a>
     </div>
 
-    <div class="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 text-green-900 dark:text-green-300 rounded-xl p-4 mb-8 flex justify-between items-center">
-        <span><strong>Current Status:</strong> {{ fridge_status['Status'] | capitalize if fridge_status else 'Unknown' }}</span>
-        <span class="text-sm">
-            <strong>Last Update:</strong> 
-            {% if fridge_status and fridge_status['Last_updated'] %}
-                {{ fridge_status['Last_updated'].strftime('%b %d, %I:%M %p') }}
-            {% else %}
-                Never
-            {% endif %}
-        </span>
-    </div>
+    <div class="bg-green-600 dark:bg-green-900/30...">
+    <span>
+        <strong>Current Status:</strong> 
+        {# Check for Fridge_status (capital) or fridge_status (lower) based on your preference #}
+        {{ Fridge_status['Status'] | capitalize if Fridge_status else 'Unknown' }}
+    </span>
+    <span class="text-md text-end">
+        <strong>Last Update:</strong> 
+        {% if Fridge_status and Fridge_status['Last_updated'] %}
+            {{ Fridge_status['Last_updated'].strftime('%b %d, %I:%M %p') }}
+        {% else %}
+            Never
+        {% endif %}
+    </span>
+</div>
 
-    <form method="POST">
+    <form method="POST" onsubmit="return validateForm()">
         <h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4 text-center md:text-left">Items in Fridge</h2>
         
         <div class="grid gap-4 mb-10">
@@ -50,7 +54,6 @@
                     <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
                     <div>
                         <span class="block font-bold text-gray-800 dark:text-gray-200">{{ item['Name'] }}</span>
-                        <span class="text-xs text-gray-400">ID: #{{ item['ItemsID'] }}</span>
                     </div>
                 </div>
 
@@ -72,10 +75,9 @@
 
         <h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4">Overall Fullness</h2>
         <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-10">
-            <input type="range" name="fullness" id="fullnessSlider" min="0" max="4" step="1" value="2"
-                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
-                   oninput="updateLabel(this.value)">
-            
+            <input type="range" name="fullness" id="fullnessSlider" min="0" max="4" step="1" value="0"
+       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+       oninput="updateLabel(this.value)" required>
             <div class="flex justify-between text-xs font-bold text-gray-400 mt-4 px-1 uppercase tracking-wider">
                 <span>Empty</span>
                 <span>Few</span>
@@ -173,6 +175,20 @@ function confirmReset() {
 
 // Init Label
 updateLabel(document.getElementById("fullnessSlider").value);
+
+function validateForm() {
+    const slider = document.getElementById("fullnessSlider");
+    const label = document.getElementById("fullnessLabel");
+
+    // If you want to ensure they didn't just leave it at the default
+    // You could check if a "hasInteracted" variable is true.
+    
+    // Simple visual feedback before submitting
+    if (confirm("Are you sure the fridge is " + label.innerText + "?")) {
+        return true;
+    }
+    return false;
+}
 </script>
 
 </body>
