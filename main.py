@@ -625,14 +625,11 @@ def update_fridge(fridge_id):
         items = cursor.fetchall()
 
         cursor.execute("""
-            SELECT Status, Last_updated FROM Fridge_status 
-            WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1
-        """, (fridge_id,))
-        
-        # Store it in a variable named to match your template
-        fridge_status_data = cursor.fetchone()
+        SELECT Status, Last_updated FROM Fridge_status 
+        WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1
+    """, (fridge_id,))
+        db_status = cursor.fetchone()
 
-        current_time = datetime.now()
         connection.close()
         
         # In update_fridge GET:
@@ -640,7 +637,7 @@ def update_fridge(fridge_id):
     "update_fridge.html.jinja",
     fridge=fridge,
     items=items,
-    Fridge_status=fridge_status_data) # Match the name in the template!
+    Fridge_status=db_status) # Match the name in the template!
         
 
     # -------- POST --------
@@ -653,25 +650,21 @@ def update_fridge(fridge_id):
     for key in request.form:
         if key.startswith("quantity_"):
             try:
-                # Extract ID from the input name (e.g., "quantity_5" -> 5)
                 item_id = int(key.split("_")[1])
                 quantity = int(request.form[key])
+                
+                # THESE SHOULD BE INSIDE THE IF STARTWSWITH
+                if quantity <= 0:
+                    cursor.execute("DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s", (fridge_id, item_id))
+                else:
+                    cursor.execute("""
+                        INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
+                        VALUES (%s, %s, %s)
+                        ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
+                    """, (fridge_id, item_id, quantity))
             except (ValueError, IndexError):
-                    continue
-
-        if quantity <= 0:
-            # If user sets it to 0, remove it from the fridge display
-            cursor.execute("""
-                DELETE FROM Fridge_items 
-                WHERE FridgeID=%s AND ItemsID=%s
-            """, (fridge_id, item_id))
-        else:
-            # This triggers the "UPDATE" because of the indexes in your screenshot
-            cursor.execute("""
-                INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
-                VALUES (%s, %s, %s)
-                ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
-            """, (fridge_id, item_id, quantity))
+                continue
+        
 
     # Insert fridge status ONCE
     cursor.execute("""
