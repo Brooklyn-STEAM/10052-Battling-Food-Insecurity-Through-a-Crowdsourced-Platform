@@ -638,7 +638,7 @@ def update_fridge(fridge_id):
             "update_fridge.html.jinja",
             fridge=fridge,
             items=items,
-            status={'Last_updated': current_time})
+            status=status)
         
 
     # -------- POST --------
