@@ -57,13 +57,21 @@
         </div>
 
         <!-- STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             <!-- Meals Donated -->
             <div class="bg-white p-6 rounded-xl shadow">
                 <h3 class="text-gray-500 text-sm">Meals Donated</h3>
                 <p class="text-3xl font-bold text-blue-600 mt-2">
                     {{ total_meals }}
+                </p>
+            </div>
+
+            <!-- Money Donated -->
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h3 class="text-gray-500 text-sm">Money Donated</h3>
+                <p class="text-3xl font-bold text-green-600 mt-2">
+                   $ {{ total_money }}
                 </p>
             </div>
 
