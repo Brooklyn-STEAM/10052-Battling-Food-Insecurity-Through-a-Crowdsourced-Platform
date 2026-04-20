@@ -5,131 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurants Connect - FridgeNet</title>
     <link rel="icon" type="image/png" href="/static/images/logo.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { darkMode: 'class' }
+        tailwind.config = { 
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#f97316',
+                            dark: '#1b1730',
+                            card: '#2a2545'
+                        }
+                    }
+                }
+            }
+        }
     </script>
 
-    <!-- DARK MODE INIT (IMPORTANT for navbar too) -->
     <script>
         (function () {
             const saved = localStorage.getItem("theme");
-
-            if (saved === "dark") {
+            if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
                 document.documentElement.classList.add("dark");
-            } else if (saved === "light") {
-                document.documentElement.classList.remove("dark");
-            } else {
-                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                document.documentElement.classList.toggle("dark", prefersDark);
             }
         })();
     </script>
 
     <style>
-        html { 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif;
             scroll-behavior: smooth;
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .float {
-            animation: float 6s ease-in-out infinite;
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.03);
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+        .hero-gradient {
+            background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.1), transparent),
+                        radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.05), transparent);
         }
     </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-[#1b1730] min-h-screen flex flex-col text-gray-900 dark:text-gray-100 transition-colors">
+<body class="bg-[#fcfcfd] dark:bg-brand-dark min-h-screen flex flex-col text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
 {% include "components/navbar.html.jinja" %}
 
-<!-- HERO -->
-<section class="bg-green-200 dark:bg-gradient-to-r dark:from-[#2a2545] dark:to-[#1e1b2e] py-16 text-center px-6 transition-colors">
-    <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-        Restaurants Connect
-    </h1>
-    <p class="text-lg text-gray-700 dark:text-gray-300 mb-8">
-        Partner with us to reduce food waste and support your community
-    </p>
-      {% if current_user.is_authenticated %}
-    <a href="/restaurant-dashboard" 
-       class="bg-green-600 hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition">
-        Dashboard
-    </a>
-      {% else %}
-
-    <a href="/signup" 
-       class="bg-green-600 hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition">
-      Sign Up
-    </a>
-        {% endif %}
+<section class="relative overflow-hidden hero-gradient py-24 px-6 text-center border-b border-gray-100 dark:border-gray-800">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <span class="inline-block py-1 px-3 mb-4 text-xs font-semibold tracking-widest text-orange-600 uppercase bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400 rounded-full">
+            Sustainability Partnership
+        </span>
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">
+            RESTAURANTS <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">CONNECT</span>
+        </h1>
+        <p class="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Bridge the gap between surplus food and community need. Join our network of responsible local eateries.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {% if current_user.is_authenticated %}
+            <a href="/restaurant-dashboard"
+               class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold px-10 py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-1">
+                Access Dashboard
+            </a>
+            {% else %}
+            <a href="/signup" 
+               class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold px-10 py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-1">
+              Join the Network
+            </a>
+            <a href="#how-it-works" class="text-gray-500 hover:text-orange-500 font-medium transition-colors">
+                Learn how it works &rarr;
+            </a>
+            {% endif %}
+        </div>
+    </div>
 </section>
 
-<!-- BENEFITS -->
-<section class="max-w-6xl mx-auto py-12 px-6 grid md:grid-cols-3 gap-8">
-
-    <div class="group bg-white dark:bg-[#2a2545] p-8 rounded-2xl shadow-sm border-t-4 border-t-orange-500 border border-gray-200 dark:border-[#40376E] hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <span class="text-2xl">♻️</span>
+<section class="max-w-7xl mx-auto py-20 px-6">
+    <div class="grid md:grid-cols-3 gap-10">
+        <div class="group relative p-8 rounded-3xl bg-white dark:bg-brand-card border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all hover:border-orange-500/50">
+            <div class="mb-6 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-50 dark:bg-orange-500/10 text-orange-500 text-3xl group-hover:scale-110 transition-transform">
+                ♻️
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Reduce Waste</h3>
+            <p class="text-gray-500 dark:text-gray-400 leading-relaxed">
+                Transform high-quality surplus into meals. Reduce your environmental footprint while optimizing your kitchen's output.
+            </p>
         </div>
-        <h2 class="font-bold text-2xl mb-3 group-hover:text-orange-500 transition-colors">Reduce Waste</h2>
-        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-            Turn surplus food into meaningful impact instead of throwing it away. Save the planet while helping others.
-        </p>
-    </div>
 
-    <div class="group bg-white dark:bg-[#2a2545] p-8 rounded-2xl shadow-sm border-t-4 border-t-orange-500 border border-gray-200 dark:border-[#40376E] hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <span class="text-2xl">🤝</span>
+        <div class="group relative p-8 rounded-3xl bg-white dark:bg-brand-card border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all hover:border-green-500/50">
+            <div class="mb-6 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-green-50 dark:bg-green-500/10 text-green-500 text-3xl group-hover:scale-110 transition-transform">
+                🤝
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Support Local</h3>
+            <p class="text-gray-500 dark:text-gray-400 leading-relaxed">
+                Connect directly with community fridges. Your donation stays local, feeding neighbors who need it most.
+            </p>
         </div>
-        <h2 class="font-bold text-2xl mb-3 group-hover:text-orange-500 transition-colors">Help Community</h2>
-        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-            Support local families through community fridges and direct donations. Building a stronger neighborhood together.
-        </p>
-    </div>
 
-    <div class="group bg-white dark:bg-[#2a2545] p-8 rounded-2xl shadow-sm border-t-4 border-t-orange-500 border border-gray-200 dark:border-[#40376E] hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <span class="text-2xl">⭐</span>
+        <div class="group relative p-8 rounded-3xl bg-white dark:bg-brand-card border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all hover:border-blue-500/50">
+            <div class="mb-6 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-500 text-3xl group-hover:scale-110 transition-transform">
+                ⭐
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Brand Impact</h3>
+            <p class="text-gray-500 dark:text-gray-400 leading-relaxed">
+                Gain visibility as a socially conscious business. Earn badges and recognition that resonate with modern diners.
+            </p>
         </div>
-        <h2 class="font-bold text-2xl mb-3 group-hover:text-orange-500 transition-colors">Get Recognized</h2>
-        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-            Showcase your restaurant's social responsibility. Get featured on our platform and attract conscious diners.
-        </p>
     </div>
-
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="bg-gray-100 dark:bg-[#1e1b2e] py-12 text-center transition-colors">
-    <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
-        How It Works
-    </h2>
+<section id="how-it-works" class="bg-gray-100/50 dark:bg-white/5 py-24 transition-colors">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+        <h2 class="text-3xl font-bold mb-16">Simple 4-Step Process</h2>
+        
+        <div class="grid md:grid-cols-4 gap-4 relative">
+            <a href="/signup" class="relative z-10 p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent hover:border-orange-500 transition-all hover:shadow-2xl group">
+                <span class="block text-4xl mb-4 group-hover:animate-bounce">📱</span>
+                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 01</span>
+                <h4 class="font-bold">Register Profile</h4>
+            </a>
 
-    <div class="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto px-6 text-gray-700 dark:text-gray-300">
+            <div class="p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent transition-all">
+                <span class="block text-4xl mb-4">🍱</span>
+                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 02</span>
+                <h4 class="font-bold">Log Surplus</h4>
+            </div>
 
-    <a href="/signup" class="group p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] hover:bg-gray-50 dark:hover:bg-[#352f54] hover:text-orange-500 transition-colors">
-        1️⃣ Login / Sign Up
-    </a>
+            <a href="/donate" class="p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent hover:border-orange-500 transition-all hover:shadow-2xl group">
+                <span class="block text-4xl mb-4 group-hover:animate-bounce">🚗</span>
+                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 03</span>
+                <h4 class="font-bold">Coordination</h4>
+            </a>
 
-    <div class="group p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] transition-colors">
-        2️⃣ Submit Food
+            <div class="p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent transition-all">
+                <span class="block text-4xl mb-4">❤️</span>
+                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 04</span>
+                <h4 class="font-bold">Direct Impact</h4>
+            </div>
+        </div>
     </div>
-
-    <a href="/donate" class="group p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] hover:bg-gray-50 dark:hover:bg-[#352f54] hover:text-orange-500 transition-colors">
-        3️⃣ Pickup / Drop-off
-    </a>
-
-    <div class="group p-4 rounded-lg bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E]  transition-colors">
-        4️⃣ Feed the Community
-    </div>
-
-</div>
 </section>
 
 </body>

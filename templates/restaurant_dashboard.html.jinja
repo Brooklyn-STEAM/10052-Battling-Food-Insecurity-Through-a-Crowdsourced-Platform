@@ -23,16 +23,12 @@
     </div>
 
     <nav class="space-y-2">
-        <a href="/" class="flex items-center px-4 py-3 rounded-xl bg-green-600 text-white font-medium transition-all shadow-md shadow-green-200">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="Wait, I'll add a home icon logic here"></path>
-                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-            </svg>
-            Dashboard
-        </a>
+        <a href="/restaurant-dashboard" class="flex items-center px-4 py-3 rounded-xl bg-green-600 text-white font-medium transition-all shadow-md shadow-green-200">
+    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+    </svg>
+    Dashboard
+</a>
 
 
 
@@ -61,20 +57,12 @@
         </div>
 
         <!-- STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             <!-- Meals Donated -->
             <div class="bg-white p-6 rounded-xl shadow">
                 <h3 class="text-gray-500 text-sm">Meals Donated</h3>
                 <p class="text-3xl font-bold text-blue-600 mt-2">
-                    {{ total_meals }}
-                </p>
-            </div>
-
-            <!-- Meals Saved -->
-            <div class="bg-white p-6 rounded-xl shadow">
-                <h3 class="text-gray-500 text-sm">Meals Saved</h3>
-                <p class="text-3xl font-bold text-green-600 mt-2">
                     {{ total_meals }}
                 </p>
             </div>
@@ -90,7 +78,7 @@
         </div>
 
         <!-- IMPACT MESSAGE -->
-        <div class="mt-8 bg-green-100 text-green-800 p-6 rounded-xl shadow">
+        <div class="mt-8 bg-white text-orange-500 p-6 rounded-xl shadow">
             <h2 class="text-xl font-semibold">
                 🎉 Amazing Work!
             </h2>
@@ -114,28 +102,120 @@
         </a>
     </div>
 
-    {% if scheduled_list %}
-        <ul class="space-y-3">
-            {% for donation in scheduled_list %}
-                <li class="p-4 border border-gray-100 rounded-xl flex justify-between items-center bg-gray-50/50 hover:border-green-200 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-orange-400"></div>
-                        <span class="font-medium text-gray-700">{{ donation.date }}</span>
-                    </div>
-                    <span class="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                        {{ donation.time }}
-                    </span>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <div class="py-8 text-center border-2 border-dashed border-gray-100 rounded-xl">
-            <p class="text-gray-400">No scheduled pickups yet.</p>
+    {% for donation in scheduled_list %}
+    <li onclick="showDonationDetails({{ donation.ID }})" 
+        class="cursor-pointer p-4 border border-gray-100 rounded-xl bg-green-100 flex justify-between items-center bg-gray-50/50 hover:bg-white hover:border-green-400 hover:shadow-md transition-all group">
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-orange-400 group-hover:scale-125 transition-transform"></div>
+            <div>
+                <span class="block font-medium text-gray-700">
+                    {{ donation.Dropoff.strftime('%B %d, %Y') }}
+                </span>
+                <span class="text-xs text-gray-400">
+                    {{ donation.Quantity }} meals scheduled
+                </span>
+            </div>
         </div>
-    {% endif %}
+        <span class="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">
+            {{ donation.Dropoff.strftime('%I:%M %p') }}
+        </span>
+    </li>
+{% endfor %}
 </div>
     </main>
 </div>
+<div id="donationModal" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Donation Summary</h3>
+                <button onclick="closeDonationModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <div id="modalLoading" class="py-10 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent"></div>
+            </div>
+
+            <div id="modalBody" class="hidden space-y-6">
+                <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-100">
+                    <img id="detItemImg" src="" class="w-16 h-16 rounded-lg object-cover bg-white">
+                    <div>
+                        <p class="text-xs font-bold text-green-600 uppercase tracking-wider">Inventory Added</p>
+                        <p class="text-lg font-bold text-gray-800"><span id="detQty"></span>x <span id="detItemName"></span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="space-y-1">
+                        <p class="text-gray-400 font-medium uppercase text-[10px]">Destination</p>
+                        <p id="detFridge" class="font-semibold text-gray-700"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-gray-400 font-medium uppercase text-[10px]">Scheduled Time</p>
+                        <p id="detTime" class="font-semibold text-gray-700"></p>
+                    </div>
+                </div>
+
+                <div id="detNotesContainer" class="hidden border-t pt-4">
+                    <p class="text-gray-400 font-medium uppercase text-[10px] mb-1">Notes</p>
+                    <p id="detNotes" class="text-sm italic text-gray-600 bg-gray-50 p-3 rounded-lg"></p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 flex justify-end">
+            <button onclick="closeDonationModal()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg transition-colors">Close</button>
+        </div>
+    </div>
+</div>
 {% include "components/footer.html.jinja" %}
 </body>
+<script>
+function showDonationDetails(id) {
+    const modal = document.getElementById('donationModal');
+    const body = document.getElementById('modalBody');
+    const loader = document.getElementById('modalLoading');
+    
+    modal.classList.remove('hidden');
+    body.classList.add('hidden');
+    loader.classList.remove('hidden');
+
+    fetch(`/api/donation-details/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            // Fill Data
+            document.getElementById('detItemImg').src = data.ItemImage || '/static/default-food.png';
+            document.getElementById('detItemName').innerText = data.ItemName;
+            document.getElementById('detQty').innerText = data.Quantity;
+            document.getElementById('detFridge').innerText = data.FridgeName;
+            document.getElementById('detTime').innerText = `${data.FormattedDate} at ${data.FormattedTime}`;
+            
+            // Handle Notes
+            const notesContainer = document.getElementById('detNotesContainer');
+            if (data.Notes && data.Notes.trim() !== "") {
+                document.getElementById('detNotes').innerText = data.Notes;
+                notesContainer.classList.remove('hidden');
+            } else {
+                notesContainer.classList.add('hidden');
+            }
+
+            // Show Body
+            loader.classList.add('hidden');
+            body.classList.remove('hidden');
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Could not load donation details.");
+            closeDonationModal();
+        });
+}
+
+function closeDonationModal() {
+    document.getElementById('donationModal').classList.add('hidden');
+}
+
+// Close on escape key
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDonationModal();
+});
+</script>
 </html>
