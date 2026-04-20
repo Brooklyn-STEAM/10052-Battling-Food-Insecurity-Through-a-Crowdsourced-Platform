@@ -605,6 +605,7 @@ def update_fridge(fridge_id):
 
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
+
     # -------- GET --------
     if request.method == "GET":
 
@@ -625,53 +626,54 @@ def update_fridge(fridge_id):
         items = cursor.fetchall()
 
         cursor.execute("""
-        SELECT Status, Last_updated FROM Fridge_status 
-        WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1
-    """, (fridge_id,))
-        db_status = cursor.fetchone()
+        SELECT Status, Last_updated 
+        FROM Fridge_status 
+        WHERE FridgeID=%s 
+        ORDER BY Last_updated DESC 
+        LIMIT 1
+        """, (fridge_id,))
+        status = cursor.fetchone()
 
         connection.close()
-        
-        # In update_fridge GET:
+
         return render_template(
-    "update_fridge.html.jinja",
-    fridge=fridge,
-    items=items,
-    Fridge_status=db_status) # Match the name in the template!
-        
+            "update_fridge.html.jinja",
+            fridge=fridge,
+            items=items,
+            fridge_status=status
+
+        )
 
     # -------- POST --------
-    # Get fullness status once
     value = int(request.form.get("fullness", 2))
     mapping = ["empty", "few", "half", "many", "full"]
     status_value = mapping[value]
 
-    # Update item quantities
     for key in request.form:
         if key.startswith("quantity_"):
             try:
                 item_id = int(key.split("_")[1])
                 quantity = int(request.form[key])
-                
-                # THESE SHOULD BE INSIDE THE IF STARTWSWITH
+
                 if quantity <= 0:
-                    cursor.execute("DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s", (fridge_id, item_id))
+                    cursor.execute(
+                        "DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s",
+                        (fridge_id, item_id)
+                    )
                 else:
                     cursor.execute("""
                         INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
                         VALUES (%s, %s, %s)
                         ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
                     """, (fridge_id, item_id, quantity))
+
             except (ValueError, IndexError):
                 continue
-        
 
-    # Insert fridge status ONCE
     cursor.execute("""
-    INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
-    VALUES (%s, %s, NOW())
-""", (fridge_id, status_value))
-
+        INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
+        VALUES (%s, %s, NOW())
+    """, (fridge_id, status_value))
 
     connection.commit()
     connection.close()
