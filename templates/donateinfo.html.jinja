@@ -112,15 +112,26 @@
             <input type="date" name="dropoff_date" id="dropoffDate" class="input" required>
         </div>
 
-        <div class="space-y-1">
-            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Type of Food</label>
-            <select name="food_type" class="input" required>
-                <option disabled selected>Select category</option>
-                {% for item in food_types %}
-                <option value="{{ item['ID'] }}">{{ item['Name'] }}</option>
-                {% endfor %}
-            </select>
+        <div class="space-y-1 relative">
+    <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Type of Food</label>
+    
+    <input type="hidden" name="food_type" id="foodTypeValue" required>
+    
+    <button type="button" id="foodTypeBtn" class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] border-gray-200 dark:border-gray-700 dark:text-white flex justify-between items-center text-sm shadow-sm hover:border-orange-500/50 transition-colors">
+        <span id="foodTypeText">Select category</span>
+        <span class="text-[10px] opacity-50">▼</span>
+    </button>
+
+    <div id="foodTypeMenu" class="absolute z-20 w-full mt-2 rounded-xl shadow-2xl border bg-white dark:bg-[#2a2545] border-gray-100 dark:border-gray-700 overflow-hidden hidden">
+        {% for item in food_types %}
+        <div class="food-type-item flex items-center gap-3 p-3 cursor-pointer hover:bg-orange-50 dark:hover:bg-[#40376E] border-b last:border-0 border-gray-100 dark:border-gray-700/50 transition-colors"
+            data-id="{{ item['ID'] }}" data-name="{{ item['Name'] }}">
+            
+            <span class="text-sm font-medium">{{ item['Name'] }}</span>
         </div>
+        {% endfor %}
+    </div>
+</div>
 
         <div class="space-y-1">
             <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Quantity</label>
@@ -193,7 +204,35 @@ setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeT
     document.addEventListener('click', () => {
         document.querySelectorAll('.dropdown').forEach(m => m.classList.add('hidden'));
     });
+    const typeBtn = document.getElementById('foodTypeBtn');
+    const typeMenu = document.getElementById('foodTypeMenu');
+    const typeValue = document.getElementById('foodTypeValue');
+    const typeText = document.getElementById('foodTypeText');
 
+    typeBtn.addEventListener('click', () => {
+        typeMenu.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('.food-type-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.getAttribute('data-id');
+            const name = item.getAttribute('data-name');
+            
+            typeValue.value = id;
+            typeText.innerText = name;
+            typeMenu.classList.add('hidden');
+            
+            // Visual feedback
+            typeBtn.classList.add('border-orange-500');
+        });
+    });
+
+    // Close menus when clicking outside
+    window.addEventListener('click', (e) => {
+        if (!typeBtn.contains(e.target) && !typeMenu.contains(e.target)) {
+            typeMenu.classList.add('hidden');
+        }
+    });
     // 2. Amount Toggle Logic
     const customInput = document.getElementById("customAmount");
     const presetRadios = document.querySelectorAll('input[name="amount"]');
