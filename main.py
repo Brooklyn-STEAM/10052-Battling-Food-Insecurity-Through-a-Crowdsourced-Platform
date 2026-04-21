@@ -372,52 +372,68 @@ def donate_food():
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
     if request.method == "POST":
+        # 1. Retrieve data
         full_name = request.form.get("full_name")
         email = request.form.get("food_email")
         dropoff_date = request.form.get("dropoff_date")
-        fridge_id = request.form.get("FridgeID")
+        fridge_id = request.form.get("FridgeID")  # <--- This was coming in as None
         quantity = request.form.get("quantity")
         item_id = request.form.get("food_type")
         notes = request.form.get("notes") 
 
-        # Fetch Fridge and Item names for the email
-        cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
-        fridge_result = cursor.fetchone()
-        fridge_name = fridge_result.get("Name", "Unknown Fridge") if fridge_result else "Unknown Fridge"
-      
-        cursor.execute("SELECT Name FROM Items WHERE ID=%s", (item_id,))
-        item_result = cursor.fetchone()
-        item_name = item_result.get("Name", "Unknown Item") if item_result else "Unknown Item"
+        # ---------------------------------------------------------
+        # 2. VALIDATION BLOCK (Add this right here!)
+        # ---------------------------------------------------------
+        if not fridge_id or fridge_id == "":
+            connection.close()
+            flash("Error: Please select a target fridge location.")
+            return redirect(url_for("donations")) # Redirect back to selection
 
-        # Database Insert
-        cursor.execute("""
-            INSERT INTO Donations
-            (UserID, FridgeID, Email, Dropoff, Type, Quantity, FoodCategory, Notes)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            current_user.id,
-            fridge_id,
-            email,
-            dropoff_date,
-            'food', 
-            int(quantity) if quantity else 0,
-            item_id,
-            notes if notes and notes.strip() else None
-        ))
-        
-        connection.commit()
-
-        data_dict = {
-            "full_name": full_name,
-            "email": email,
-            "dropoff_date": dropoff_date,
-            "fridge_name": fridge_name,
-            "quantity": quantity,
-            "item_name": item_name,
-            "notes": notes
-        }
+        if not item_id:
+            connection.close()
+            flash("Error: Please select a food category.")
+            return redirect(url_for("donations"))
+        # ---------------------------------------------------------
 
         try:
+            # 3. Fetch names for the email
+            cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
+            fridge_result = cursor.fetchone()
+            fridge_name = fridge_result.get("Name", "Unknown Fridge") if fridge_result else "Unknown Fridge"
+          
+            cursor.execute("SELECT Name FROM Items WHERE ID=%s", (item_id,))
+            item_result = cursor.fetchone()
+            item_name = item_result.get("Name", "Unknown Item") if item_result else "Unknown Item"
+
+            # 4. Database Insert
+            cursor.execute("""
+                INSERT INTO Donations
+                (UserID, FridgeID, Email, Dropoff, Type, Quantity, FoodCategory, Notes)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                current_user.id,
+                fridge_id,
+                email,
+                dropoff_date,
+                'food', 
+                int(quantity) if quantity else 0,
+                item_id,
+                notes if notes and notes.strip() else None
+            ))
+            
+            connection.commit()
+
+            # 5. Email Logic
+            data_dict = {
+                "full_name": full_name,
+                "email": email,
+                "dropoff_date": dropoff_date,
+                "fridge_name": fridge_name,
+                "quantity": quantity,
+                "item_name": item_name,
+                "notes": notes
+            }
+            
             with app.app_context():
                 msg = Message(
                     subject=f"FridgeNet: Confirmation for your {item_name} donation",
@@ -426,15 +442,17 @@ def donate_food():
                 msg.body = render_template('email/emailtext.txt', **data_dict)
                 msg.html = render_template('email/emaildropoff.html.jinja', **data_dict)
                 mail.send(msg)
-        except Exception as e:
-            print(f"Mail failed: {e}")
 
-        connection.close()
+        except Exception as e:
+            print(f"Error during donation process: {e}")
+            flash("An error occurred while processing your donation.")
+        finally:
+            connection.close()
+
         flash("Food donation scheduled and confirmation sent!")
         return redirect(url_for("thank"))
 
-    # --- THIS SECTION RUNS ONLY ON 'GET' ---
-    # Now that the POST block is finished, we fetch data to display the form
+    # --- GET SECTION ---
     cursor.execute("SELECT ID, Name, Image FROM Fridge")
     fridges_data = cursor.fetchall()
 
@@ -605,6 +623,7 @@ def update_fridge(fridge_id):
 
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
+
     # -------- GET --------
     if request.method == "GET":
 
@@ -625,53 +644,54 @@ def update_fridge(fridge_id):
         items = cursor.fetchall()
 
         cursor.execute("""
-        SELECT Status, Last_updated FROM Fridge_status 
-        WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1
-    """, (fridge_id,))
-        db_status = cursor.fetchone()
+        SELECT Status, Last_updated 
+        FROM Fridge_status 
+        WHERE FridgeID=%s 
+        ORDER BY Last_updated DESC 
+        LIMIT 1
+        """, (fridge_id,))
+        status = cursor.fetchone()
 
         connection.close()
-        
-        # In update_fridge GET:
+
         return render_template(
-    "update_fridge.html.jinja",
-    fridge=fridge,
-    items=items,
-    Fridge_status=db_status) # Match the name in the template!
-        
+            "update_fridge.html.jinja",
+            fridge=fridge,
+            items=items,
+            fridge_status=status
+
+        )
 
     # -------- POST --------
-    # Get fullness status once
     value = int(request.form.get("fullness", 2))
     mapping = ["empty", "few", "half", "many", "full"]
     status_value = mapping[value]
 
-    # Update item quantities
     for key in request.form:
         if key.startswith("quantity_"):
             try:
                 item_id = int(key.split("_")[1])
                 quantity = int(request.form[key])
-                
-                # THESE SHOULD BE INSIDE THE IF STARTWSWITH
+
                 if quantity <= 0:
-                    cursor.execute("DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s", (fridge_id, item_id))
+                    cursor.execute(
+                        "DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s",
+                        (fridge_id, item_id)
+                    )
                 else:
                     cursor.execute("""
                         INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
                         VALUES (%s, %s, %s)
                         ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
                     """, (fridge_id, item_id, quantity))
+
             except (ValueError, IndexError):
                 continue
-        
 
-    # Insert fridge status ONCE
     cursor.execute("""
-    INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
-    VALUES (%s, %s, NOW())
-""", (fridge_id, status_value))
-
+        INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
+        VALUES (%s, %s, NOW())
+    """, (fridge_id, status_value))
 
     connection.commit()
     connection.close()
@@ -977,52 +997,57 @@ def restaurants_connect():
 @app.route("/restaurant-dashboard")
 @login_required
 def restaurant_dashboard():
+    # Security Check: Only restaurants allowed
     if current_user.role != "restaurant":
         return redirect(url_for("index"))
 
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-    # 1. TOTAL MEALS DONATED (impact metric)
-    cursor.execute("""
-        SELECT COALESCE(SUM(Quantity), 0) AS total_meals
-        FROM Donations
-        WHERE UserID = %s AND Type = 'food'
-    """, (current_user.id,))
-    total_meals = cursor.fetchone()["total_meals"]
+    try:
+        # 1. TOTAL MEALS DONATED (impact metric)
+        cursor.execute("""
+            SELECT COALESCE(SUM(Quantity), 0) AS total_meals 
+            FROM Donations
+            WHERE UserID = %s AND Type = 'food'
+        """, (current_user.id,))
+        total_meals = cursor.fetchone()["total_meals"]
 
-    # 2. MONEY DONATIONS (optional extra metric)
-    cursor.execute("""
-        SELECT COALESCE(SUM(Quantity), 0) AS total_money
-        FROM Donations
-        WHERE UserID = %s AND Type = 'money'
-    """, (current_user.id,))
-    total_money = cursor.fetchone()["total_money"]
+        # 2. MONEY DONATIONS
+        cursor.execute("""
+            SELECT COALESCE(SUM(Quantity), 0) AS total_money
+            FROM Donations
+            WHERE UserID = %s AND Type = 'money'
+        """, (current_user.id,))
+        total_money = cursor.fetchone()["total_money"]
 
-    # 3. SCHEDULED PICKUPS (future donations only)
-    cursor.execute("""
-    SELECT ID, Quantity, Dropoff
-    FROM Donations
-    WHERE UserID = %s 
-    AND Type = 'food'
-    AND Dropoff >= CURDATE()
-    ORDER BY Dropoff ASC
-""", (current_user.id,))
-    scheduled_list = cursor.fetchall()
+        # 3. SCHEDULED PICKUPS (Fetch future donations)
+        # Note: We fetch Quantity and Dropoff to display in the list
+        cursor.execute("""
+            SELECT ID, Quantity, Dropoff
+            FROM Donations
+            WHERE UserID = %s 
+            AND Type = 'food'
+            AND Dropoff >= CURDATE()
+            ORDER BY Dropoff ASC
+        """, (current_user.id,))
+        scheduled_list = cursor.fetchall()
 
-    # 4. UPCOMING COUNT
-    cursor.execute("""
-        SELECT COUNT(*) AS scheduled
-        FROM Donations
-        WHERE UserID = %s 
-        AND Type = 'food'
-        AND Dropoff >= CURDATE()
-    """, (current_user.id,))
-    scheduled = cursor.fetchone()["scheduled"]
-   
-    connection.commit()
-    connection.close()
+        # 4. UPCOMING COUNT (The number for the stat card)
+        cursor.execute("""
+            SELECT COUNT(*) AS scheduled_count
+            FROM Donations
+            WHERE UserID = %s 
+            AND Type = 'food'
+            AND Dropoff >= CURDATE()
+        """, (current_user.id,))
+        scheduled_data = cursor.fetchone()
+        scheduled = scheduled_data["scheduled_count"]
 
+    finally:
+        connection.close()
+
+    # Render the dashboard with all collected stats
     return render_template(
         "restaurant_dashboard.html.jinja",
         total_meals=total_meals,
@@ -1030,6 +1055,34 @@ def restaurant_dashboard():
         scheduled=scheduled,
         scheduled_list=scheduled_list
     )
+
+@app.route("/api/donation-details/<int:donation_id>")
+@login_required
+def donation_details(donation_id):
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    
+    # Get donation details + Fridge Name + Item Name/Image
+    query = """
+        SELECT d.*, f.Name as FridgeName, i.Name as ItemName, i.Image as ItemImage
+        FROM Donations d
+        JOIN Fridge f ON d.FridgeID = f.ID
+        LEFT JOIN Items i ON d.FoodCategory = i.ID
+        WHERE d.ID = %s AND d.UserID = %s
+    """
+    cursor.execute(query, (donation_id, current_user.id))
+    details = cursor.fetchone()
+    connection.close()
+    
+    if not details:
+        return jsonify({"error": "Donation not found"}), 404
+        
+    # Format the date for the JavaScript display
+    if details['Dropoff']:
+        details['FormattedDate'] = details['Dropoff'].strftime('%B %d, %Y')
+        details['FormattedTime'] = details['Dropoff'].strftime('%I:%M %p')
+    
+    return jsonify(details)
 
 if __name__ == "__main__":
     app.run(debug=True)
