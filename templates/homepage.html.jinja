@@ -31,6 +31,21 @@
         document.documentElement.classList.toggle("dark", prefersDark);
       }
     })();
+    
+ 
+  document.addEventListener("DOMContentLoaded", function() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    // This now waits until the HTML is loaded to find the elements
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  });
+
   </script>
 
   <style>
@@ -42,6 +57,19 @@
     body {
       transition: background-color 0.3s ease, color 0.3s ease;
     }
+
+    .reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-200 { transition-delay: 0.2s; }
+.reveal-delay-400 { transition-delay: 0.4s; }
   </style>
 
 </head>
@@ -71,12 +99,12 @@
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
 
         <a href="/map"
-           class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl shadow-md dark:bg-[#7209b7] dark:hover:bg-[#2a2545] transition">
+           class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md dark:bg-[#7209b7] dark:hover:bg-[#2a2545] transition">
           Find a Fridge
         </a>
 
         <a href="/donations"
-           class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow-md dark:bg-[#7b2cbf] dark:hover:bg-[#2a2545] transition">
+           class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow-md font-semibold dark:bg-[#7b2cbf] dark:hover:bg-[#2a2545] transition">
           Donate Food
         </a>
 
@@ -107,52 +135,25 @@
     </section>
 
     <!-- FEATURES -->
-    <section class="py-20 px-6 bg-green-50 dark:bg-[#1f1b35]">
+    <section class="py-20 px-6 bg-green-50 dark:bg-[#1f1b35] overflow-hidden">
+  <div class="max-w-6xl mx-auto text-center">
+    
+    <h2 class="reveal text-4xl font-bold text-green-800 dark:text-white mb-12">
+      How FridgeNet Helps
+    </h2>
 
-      <div class="max-w-6xl mx-auto text-center">
-
-        <h2 class="text-4xl font-bold text-green-800 dark:text-white mb-12">
-          How FridgeNet Helps
-        </h2>
-
-        <div class="grid md:grid-cols-3 gap-8">
-
-          <div class="bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow">
-            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">
-              Find Fridges
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300">
-              Locate nearby community fridges instantly.
-            </p>
-          </div>
-
-          <div class="bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow">
-            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">
-              Donate Food
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300">
-              Share extra food easily with your community.
-            </p>
-          </div>
-
-          <div class="bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow">
-            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">
-              Support Network
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300">
-              Keep fridges stocked and maintained.
-            </p>
-          </div>
-
-        </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="reveal bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow transition-all duration-300 hover:-translate-y-2">
+        <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">Find Fridges</h3>
+        <p class="text-gray-600 dark:text-gray-300">Locate nearby community fridges instantly.</p>
       </div>
     </section>
 
     <!-- CTA / SIGNUP -->
-<div class="relative py-20 px-6 text-center overflow-hidden
-            bg-gradient-to-r from-green-400 to-emerald-400
-            dark:from-purple-700 dark:to-indigo-700
-            text-white transition-colors">
+<div class="text-center py-24 px-6
+                bg-gradient-to-r from-green-300 via-green-200 to-emerald-200
+                dark:from-[#1e1b2e] dark:via-[#2a2545] dark:to-[#1b1730]
+                transition-colors">
 
   <!-- subtle glow -->
   <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/20 blur-3xl rounded-full"></div>
