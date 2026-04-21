@@ -187,7 +187,7 @@
                         outline-none focus:ring-2 focus:ring-green-500" />
 
                     <button id="set-start"
-                        class="bg-green-500 text-white px-3 py-1 rounded-lg font-bold text-sm
+                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg font-bold text-sm
                         dark:bg-purple-600 dark:hover:bg-purple-700">
                         Set
                     </button>
@@ -243,11 +243,28 @@
             <ul id="favorites-list" class="space-y-2 mb-4"></ul>
 
             <!-- RECENT -->
-            <h3 class="text-md font-bold mb-2 text-gray-500 dark:text-gray-400">
-                Recently Viewed
-            </h3>
-            <ul id="recent-list" class="space-y-2 mb-4 text-sm font-semibold"></ul>
+<div class="flex justify-between items-center mb-2">
+    <h3 class="text-md font-bold text-gray-500 dark:text-gray-400">
+        Recently Viewed
+    </h3>
 
+    <div class="flex gap-2 items-center">
+        <button id="undo-recents"
+            class="text-[10px] font-bold uppercase text-blue-500 hover:underline hidden">
+            Undo
+        </button>
+
+        <button id="clear-recents"
+            class="text-[10px] font-bold uppercase text-gray-400 hover:text-red-500">
+            Clear
+        </button>
+    </div>
+</div>
+<ul id="recent-list" 
+    class="space-y-2 mb-4 text-sm font-medium 
+           text-gray-700 dark:text-gray-300 
+           transition-colors">
+</ul>
             <!-- LIST -->
             <ul id="fridge-list" class="space-y-3 font-semibold pb-10"></ul>
 
@@ -295,6 +312,8 @@ L.control.zoom({ position: 'topright' }).addTo(map);
 const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35, 35] });
 const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45, 45] });
 
+let recentsBackup = null;
+let undoTimeout = null;
 let userLat, userLng, userMarker;
 let currentRouteLayer = null; // Stores the polyline
 let currentTargetFridge = null;
@@ -461,6 +480,11 @@ function renderFridges(fridges) {
     });
 
     fridgeMarkers.push(marker);
+    marker.on('click', () => {
+    saveRecentlyViewed(f);   // ✅ this is what you were missing
+    map.setView([f.lat, f.lng], 16);
+    window.routeToFridge(f.lat, f.lng);
+});
 
     // ✅ Sidebar item
     const li = document.createElement("li");
@@ -660,7 +684,7 @@ function saveRecentlyViewed(fridge) {
     // Remove if already exists, then add to front
     recent = recent.filter(f => f.id !== (fridge.id || fridge.ID));
     recent.unshift({ id: fridge.id || fridge.ID, name: fridge.name || fridge.Name });
-    recent = recent.slice(0, 3);
+    recent = recent.slice(0, 5);
     localStorage.setItem("recentFridges", JSON.stringify(recent));
     renderRecent();
 }
@@ -672,18 +696,61 @@ function renderRecent() {
     list.innerHTML = "";
     
     if (data.length === 0) {
-        list.innerHTML = '<li class="p-2 text-xs text-gray-400 italic">None recently viewed.</li>';
+        list.innerHTML = '<li class="p-3 text-xs text-gray-400 italic text-center bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] rounded-xl"> No recent activity </li>';
         return;
     }
 
     data.forEach(f => {
         const li = document.createElement("li");
-        li.className = "p-2 bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] rounded-lg";
-        li.textContent = f.name;
+        li.className = `p-3 bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] rounded-xl flex justify-between items-center cursor-pointer hover:bg-green-50 dark:hover:bg-[#40376E] transition-all
+`;       li.innerHTML = `
+    <div class="flex items-center gap-2 flex-grow">
+        <span class="text-xs">🕒</span>
+        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+            ${f.name}
+        </span>
+    </div>
+    <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">
+        View
+    </span>
+`;
         li.onclick = () => window.location.href = `/individfridge/${f.id}`;
         list.appendChild(li);
     });
 }
+document.getElementById("clear-recents").onclick = () => {
+    const current = localStorage.getItem("recentFridges");
+
+    if (!current) return;
+
+    recentsBackup = current;
+
+    localStorage.removeItem("recentFridges");
+    renderRecent();
+
+    const undoBtn = document.getElementById("undo-recents");
+    undoBtn.classList.remove("hidden");
+
+    clearTimeout(undoTimeout);
+    undoTimeout = setTimeout(() => {
+        recentsBackup = null;
+        undoBtn.classList.add("hidden");
+    }, 3000);
+};
+
+
+document.getElementById("undo-recents").onclick = () => {
+    if (!recentsBackup) return;
+
+    localStorage.setItem("recentFridges", recentsBackup);
+    renderRecent();
+
+    recentsBackup = null;
+
+    document.getElementById("undo-recents").classList.add("hidden");
+
+    clearTimeout(undoTimeout);
+};
 </script>
 
 </body>
