@@ -70,6 +70,16 @@
 }
 .reveal-delay-200 { transition-delay: 0.2s; }
 .reveal-delay-400 { transition-delay: 0.4s; }
+.flash-message {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.flash-hide {
+  opacity: 0;
+  transform: translateY(-10px);
+}
   </style>
 
 </head>
@@ -86,7 +96,16 @@
     <section class="text-center py-24 px-6 
                     bg-gradient-to-r from-green-100 to-emerald-50
                     dark:from-[#1e1b2e] dark:to-[#1b1730]">
-
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash-message mb-4 px-4 py-3 rounded-xl 
+                  bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
       <h1 class="text-5xl md:text-6xl font-extrabold text-green-800 dark:text-white mb-6">
         Share Food. Support Community. Reduce Waste.
       </h1>
@@ -208,6 +227,22 @@
   </main>
 
   {% include "components/footer.html.jinja" %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const messages = document.querySelectorAll(".flash-message");
 
+  messages.forEach((msg) => {
+    // wait before fading out
+    setTimeout(() => {
+      msg.classList.add("flash-hide");
+
+      // remove from DOM after animation
+      setTimeout(() => {
+        msg.remove();
+      }, 600);
+    }, 3000); // visible for 3 seconds
+  });
+});
+</script>
 </body>
 </html>
