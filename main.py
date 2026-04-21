@@ -168,24 +168,39 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
+
         connection = connect_db()
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM `User` WHERE `Email`=%s", (email,))
         result = cursor.fetchone()
-        connection.close()
-        
+
         if not result or result["Password"] != password:
-                flash("Invalid email or password")
-                return redirect(url_for("login"))
+            connection.close()
+            flash("Invalid email or password", "error")
+            return redirect(url_for("login"))
 
         user = User(result)
+
+        # ✅ LOGIN COUNT / FIRST LOGIN LOGIC GOES HERE
+        if result["LoginCount"] == 0:
+            flash(f"Welcome to FridgeNet, {user.name}! 🎉", "success")
+        else:
+            flash(f"Welcome back, {user.name}! 👋", "success")
+
+        cursor.execute(
+            "UPDATE User SET LoginCount = LoginCount + 1 WHERE Email=%s",
+            (email,)
+        )
+        connection.commit()
+        connection.close()
+
         login_user(user)
 
         if user.role == "restaurant":
             return redirect(url_for("restaurant_dashboard"))
         else:
             return redirect(url_for("index"))
-    
+
     return render_template("login.html.jinja")
 
 @app.route("/logout")
@@ -221,14 +236,16 @@ def signup():
             flash("Email already registered")
             return redirect("/signup")
 
+        default_pic = "/static/images/default-profile.png"
+
         cursor.execute("""
-            INSERT INTO User (Name, Email, Password, Address, Role)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (name, email, password, address, role))
+            INSERT INTO User (Name, Email, Password, Address, Role, ProfilePicture)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (name, email, password, address, role, default_pic))
 
         connection.commit()
         connection.close()
-
+        flash("Account created successfully! Please log in.", "success")
         return redirect("/login")
 
     return render_template("signup.html.jinja")
