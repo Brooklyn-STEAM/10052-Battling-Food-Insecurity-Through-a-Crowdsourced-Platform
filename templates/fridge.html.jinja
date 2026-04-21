@@ -94,15 +94,17 @@
               Report Issue
             </a>
             {% if current_user.is_authenticated %}
-            <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}"
-              class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
-              <svg id="heart-icon" class="h-6 w-6 transition-all duration-200 fill-none stroke-gray-400 stroke-2"
-                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </button>
-            {% endif %}
+              <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}"
+                class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
+
+                <svg id="star-icon" class="h-6 w-6 p-transition-all duration-200 fill-none stroke-gray-400 stroke-1.5"
+                  xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
+                  <path stroke-linecap="round" stroke-linejoin="round" 
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
+                </svg>
+
+              </button>
+              {% endif %}
           </div>
         </div>
       </div>
@@ -254,61 +256,71 @@ class="p-6 text-center bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border
     </div>
   </div>
   <script>
-    const openBtn = document.getElementById('open-review-btn');
-    const popup = document.getElementById('review-popup');
+document.addEventListener("DOMContentLoaded", async () => {
 
+  // ---------- REVIEW POPUP ----------
+  const openBtn = document.getElementById('open-review-btn');
+  const popup = document.getElementById('review-popup');
+
+  if (openBtn && popup) {
     openBtn.addEventListener('click', () => {
       popup.classList.remove('opacity-0', 'pointer-events-none');
     });
 
-    // Close when clicking outside
     popup.addEventListener('click', (e) => {
-      if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none');
-    });
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      const favBtn = document.getElementById('fav-btn');
-      const heartIcon = document.getElementById('heart-icon');
-      if (!favBtn) return;
-
-      const fridgeId = favBtn.dataset.fridgeId;
-
-      const updateHeartUI = (isFavorited) => {
-        if (isFavorited) {
-          heartIcon.classList.add('fill-red-500', 'stroke-red-500');
-          heartIcon.classList.remove('fill-none', 'stroke-gray-400');
-        } else {
-          heartIcon.classList.remove('fill-red-500', 'stroke-red-500');
-          heartIcon.classList.add('fill-none', 'stroke-gray-400');
-        }
-      };
-
-      // 1. Initial Check
-      try {
-        const response = await fetch('/get-favorites');
-        const favorites = await response.json();
-        // Use ID (caps) to match your DB return
-        const isFavorited = favorites.some(f => (f.ID || f.id) == fridgeId);
-        if (isFavorited) updateHeartUI(true);
-      } catch (err) {
-        console.log("Not logged in or fetch error");
+      if (e.target === popup) {
+        popup.classList.add('opacity-0', 'pointer-events-none');
       }
-
-      // 2. Click Toggle
-      favBtn.addEventListener('click', async () => {
-        const res = await fetch('/toggle-favorite', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fridge_id: fridgeId })
-        });
-
-        if (res.ok) {
-          const isCurrentlyRed = heartIcon.classList.contains('fill-red-500');
-          updateHeartUI(!isCurrentlyRed);
-        }
-      });
     });
-  </script>
+  }
+
+  // ---------- FAVORITE BUTTON ----------
+  const favBtn = document.getElementById('fav-btn');
+  const starIcon = document.getElementById('star-icon'); // ✅ FIXED
+
+  if (!favBtn || !starIcon) return;
+
+  const fridgeId = favBtn.dataset.fridgeId;
+
+  const updateStarUI = (isFavorited) => {
+    if (isFavorited) {
+      starIcon.classList.add('fill-yellow-400', 'stroke-yellow-500');
+      starIcon.classList.remove('fill-none', 'stroke-gray-400');
+    } else {
+      starIcon.classList.remove('fill-yellow-400', 'stroke-yellow-500');
+      starIcon.classList.add('fill-none', 'stroke-gray-400');
+    }
+  };
+
+  // ---------- INITIAL LOAD ----------
+  try {
+    const response = await fetch('/get-favorites');
+    const favorites = await response.json();
+
+    const isFavorited = favorites.some(f => (f.ID || f.id) == fridgeId);
+    updateStarUI(isFavorited);
+
+  } catch (err) {
+    console.log("Not logged in or fetch error");
+  }
+
+  // ---------- CLICK TOGGLE ----------
+  favBtn.addEventListener('click', async () => {
+    const res = await fetch('/toggle-favorite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fridge_id: fridgeId })
+    });
+
+    if (res.ok) {
+      // 🔥 Don’t rely on class state — track logically
+      const isActive = starIcon.classList.contains('fill-yellow-400');
+      updateStarUI(!isActive);
+    }
+  });
+
+});
+</script>
 </body>
 {% include "components/footer.html.jinja" %}
 
