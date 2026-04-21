@@ -11,15 +11,12 @@
         tailwind.config = { darkMode: 'class' }
     </script>
 
-    <!-- DARK MODE INIT -->
     <script>
         (function () {
             const saved = localStorage.getItem("theme");
-            if (saved === "dark") {
-                document.documentElement.classList.add("dark");
-            } else if (saved === "light") {
-                document.documentElement.classList.remove("dark");
-            } else {
+            if (saved === "dark") document.documentElement.classList.add("dark");
+            else if (saved === "light") document.documentElement.classList.remove("dark");
+            else {
                 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                 document.documentElement.classList.toggle("dark", prefersDark);
             }
@@ -28,48 +25,16 @@
 
     <style>
         .input {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            border: 1px solid #d1d5db;
-            background: #f8fafc;
-            transition: 0.25s;
+            width: 100%; padding: 0.75rem; border-radius: 0.75rem;
+            border: 1px solid #d1d5db; background: #f8fafc; transition: 0.25s;
         }
-
-        .input:focus {
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
-        }
-
-        .form-card {
-            background: linear-gradient(135deg, #ffffff, #f3f0ff);
-            border: 1px solid #cac2d2;
-        }
-
-        .dark .form-card {
-            background: linear-gradient(135deg, #1e1b2e, #2a2545);
-            border: 1px solid #40376E;
-        }
-
-        .dark .input {
-            background: #2a2545;
-            border-color: #40376E;
-            color: #fff;
-        }
-
-        .dropdown {
-            background: white;
-        }
-
-        .dark .dropdown {
-            background: #2a2545;
-            border-color: #40376E;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+        .input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3); }
+        .form-card { background: linear-gradient(135deg, #ffffff, #f3f0ff); border: 1px solid #cac2d2; }
+        .dark .form-card { background: linear-gradient(135deg, #1e1b2e, #2a2545); border: 1px solid #40376E; }
+        .dark .input { background: #2a2545; border-color: #40376E; color: #fff; }
+        .dropdown { background: white; }
+        .dark .dropdown { background: #2a2545; border-color: #40376E; }
+        html { scroll-behavior: smooth; transition: background-color 0.3s ease, color 0.3s ease; }
     </style>
 </head>
 
@@ -79,185 +44,187 @@
 
 <div class="max-w-5xl mx-auto px-4 py-10">
 
-    <!-- HEADER -->
     <div class="mb-10">
         <h1 class="text-4xl font-extrabold">Help People In Need</h1>
-        <p class="text-gray-600 dark:text-gray-300 mt-2">
-            Donate money or food to support local communities.
-        </p>
+        <p class="text-gray-600 dark:text-gray-300 mt-2">Donate money or food to support local communities.</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        <!-- 💳 MONEY FORM -->
         <div class="form-card rounded-2xl shadow-lg p-6 space-y-5">
-
             <h2 class="text-2xl font-bold">Donate Money</h2>
 
             <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm" class="space-y-5">
-
-                <!-- AMOUNTS -->
                 <div class="grid grid-cols-3 gap-3 font-semibold">
                     {% for amount in [10, 25, 50] %}
                     <label class="cursor-pointer">
                         <input type="radio" name="amount" value="{{ amount }}" class="hidden peer">
-                        <div class="p-4 text-center rounded-xl border peer-checked:bg-orange-600 hover:bg-orange-100 peer-checked:text-white dark:peer-checked:bg-purple-600 peer-checked:border-purple-600 transition">
+                        <div class="p-4 text-center rounded-xl border peer-checked:bg-orange-600 hover:bg-orange-100 peer-checked:text-white dark:peer-checked:bg-purple-600 transition">
                             ${{ amount }}
                         </div>
                     </label>
                     {% endfor %}
                 </div>
 
-                <!-- CUSTOM -->
-                <input type="number" name="custom_amount" id="customAmount"
-                       placeholder="$ Custom amount"
-                       class="input" min="1" max="10000">
+                <input type="number" name="custom_amount" id="customAmount" placeholder="$ Custom amount" class="input" min="1" max="10000">
 
-                <!-- FRIDGE -->
-                <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
+                <div class="relative space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Target Fridge</label>
+                    <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
+                    <button type="button" id="moneyFridgeBtn" class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] dark:text-white flex justify-between items-center text-sm">
+                        <span id="moneyFridgeText">Choose a fridge</span>
+                        <span class="text-[10px] opacity-50">▼</span>
+                    </button>
+                    <div id="moneyFridgeMenu" class="dropdown absolute z-20 w-full mt-2 rounded-xl shadow-2xl border overflow-hidden hidden">
+                        {% for fridge in fridges %}
+                        <div class="money-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-50 dark:hover:bg-[#40376E] border-b last:border-0 border-gray-100 dark:border-gray-700/50"
+                            data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                            <img src="{{ fridge['Image'] }}" class="w-8 h-8 rounded-lg object-cover">
+                            <span class="text-sm font-medium">{{ fridge['Name'] }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
 
-                <button type="submit"
-                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 transition">
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 font-semibold text-white py-3 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 transition">
                     Donate Now
                 </button>
             </form>
         </div>
 
-        <!-- 🍱 FOOD FORM -->
         <div class="form-card rounded-2xl shadow-lg p-6 space-y-6">
+    <h2 class="text-2xl font-bold">Schedule Food Drop-Off</h2>
 
-            <h2 class="text-2xl font-bold">Schedule Food Drop-Off</h2>
+    <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
 
-            <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-5">
-
-                <input type="text" name="full_name" placeholder="Full Name" class="input" required>
-                <input type="email" name="food_email" placeholder="Email" class="input" required>
-
-                <input type="date" name="dropoff_date" id="dropoffDate" class="input" required>
-
-                <select name="food_type" class="input" required>
-                    <option disabled selected>Select category</option>
-                    {% for item in food_types %}
-                    <option value="{{ item['ID'] }}">{{ item['Name'] }}</option>
-                    {% endfor %}
-                </select>
-
-                <input type="number" name="quantity" placeholder="Quantity" class="input" required>
-
-                <input type="hidden" name="food_fridge_id" id="foodFridgeValue" required>
-
-                <textarea name="notes" rows="2" class="input" placeholder="Optional notes"></textarea>
-
-                <button type="submit"
-                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700">
-                    Complete Donation
-                </button>
-            </form>
+        <div class="space-y-1">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Name</label>
+            <input type="text" name="full_name" placeholder="Full Name" class="input" required>
         </div>
-    </div>
+
+        <div class="space-y-1">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Email</label>
+            <input type="email" name="food_email" placeholder="Email" class="input" required>
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Dropoff Date</label>
+            <input type="date" name="dropoff_date" id="dropoffDate" class="input" required>
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Type of Food</label>
+            <select name="food_type" class="input" required>
+                <option disabled selected>Select category</option>
+                {% for item in food_types %}
+                <option value="{{ item['ID'] }}">{{ item['Name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Quantity</label>
+            <input type="number" name="quantity" placeholder="Quantity" class="input" required>
+        </div>
+
+        <div class="space-y-1 relative">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Target Fridge</label>
+            <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
+            <button type="button" id="foodFridgeBtn" class="w-full p-3 rounded-lg border bg-white dark:bg-[#2a2545] dark:text-white flex justify-between items-center text-sm">
+                <span id="foodFridgeText">Choose a location</span>
+                <span class="text-[10px] opacity-50">▼</span>
+            </button>
+            <div id="foodFridgeMenu" class="dropdown absolute z-20 w-full mt-2 rounded-xl shadow-2xl border overflow-hidden hidden">
+                {% for fridge in fridges %}
+                <div class="food-item flex items-center gap-3 p-3 cursor-pointer hover:bg-purple-50 dark:hover:bg-[#40376E] border-b last:border-0 border-gray-100 dark:border-gray-700/50"
+                    data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                    <img src="{{ fridge['Image'] }}" class="w-8 h-8 rounded-lg object-cover">
+                    <span class="text-sm font-medium">{{ fridge['Name'] }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 ml-1">Notes</label>
+            <textarea name="notes" rows="2" class="input" placeholder="Optional notes"></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-orange-600 font-semibold hover:bg-orange-700 text-white py-4 rounded-xl dark:bg-purple-600 dark:hover:bg-purple-700 transition mt-2">
+            Complete Donation
+        </button>
+    </form>
 </div>
 
-<!-- 🔧 SCRIPTS -->
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // 1. Dropdown Logic
+    function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
+        const btn = document.getElementById(btnId);
+        const menu = document.getElementById(menuId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+        const btnText = document.getElementById(textId);
 
-   <!-- 🧊 DROPDOWNS -->
-   
-       document.addEventListener('DOMContentLoaded', function () {
-           // Handling the Money Form Dropdown
-           setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
+        if (!btn || !menu) return;
 
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close other dropdowns first
+            document.querySelectorAll('.dropdown').forEach(m => {
+                if(m !== menu) m.classList.add('hidden');
+            });
+            menu.classList.toggle('hidden');
+        });
 
-           // Handling the Food Form Dropdown
-           setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
+        menu.querySelectorAll(itemClass).forEach(item => {
+            item.addEventListener('click', function () {
+                hiddenInput.value = this.getAttribute('data-id');
+                btnText.innerText = this.getAttribute('data-name');
+                menu.classList.add('hidden');
+            });
+        });
+    }
 
+setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
+setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
 
-           function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
-               const btn = document.getElementById(btnId);
-               const menu = document.getElementById(menuId);
-               const hiddenInput = document.getElementById(hiddenInputId);
-               const btnText = document.getElementById(textId);
-
-
-               // Toggle menu visibility
-               btn.addEventListener('click', () => menu.classList.toggle('hidden'));
-
-
-               // Handle item selection
-               menu.querySelectorAll(itemClass).forEach(item => {
-                   item.addEventListener('click', function () {
-                       const id = this.getAttribute('data-id');
-                       const name = this.getAttribute('data-name');
-
-
-                       hiddenInput.value = id;      // This sends the ID to your SQL database
-                       btnText.innerText = name;    // This shows the user what they picked
-                       menu.classList.add('hidden'); // Close menu
-                   });
-               });
-           }
-       });
-
-
-   <!-- 💰 AMOUNT LOGIC -->
-   
-       const customInput = document.getElementById("customAmount");
-       const presetRadios = document.querySelectorAll('input[name="amount"]');
-
-
-       if (customInput) {
-           customInput.addEventListener("input", () => {
-               if (customInput.value !== "") {
-                   presetRadios.forEach(r => r.checked = false);
-               }
-           });
-       }
-
-
-    // Close dropdowns
+    // Close on outside click
     document.addEventListener('click', () => {
         document.querySelectorAll('.dropdown').forEach(m => m.classList.add('hidden'));
     });
 
-    // Date restriction
-    const dateInput = document.getElementById("dropoffDate");
-    if (dateInput) {
-        dateInput.min = new Date().toISOString().split("T")[0];
-    }
-
-    // Money validation
-    document.getElementById("moneyForm").addEventListener("submit", function(e) {
-        const selected = document.querySelector('input[name="amount"]:checked');
-        const custom = document.getElementById("customAmount").value;
-
-        if (!selected && (!custom || custom <= 0)) {
-            e.preventDefault();
-            alert("Please select or enter a valid donation amount.");
-        }
-    });
-
-    // Loading state
-    document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("submit", () => {
-            const btn = form.querySelector("button[type='submit']");
-            if (btn) {
-                btn.innerText = "Processing...";
-                btn.disabled = true;
-            }
-        });
-    });
-
-    // Amount toggle
+    // 2. Amount Toggle Logic
     const customInput = document.getElementById("customAmount");
     const presetRadios = document.querySelectorAll('input[name="amount"]');
 
     customInput?.addEventListener("input", () => {
-        presetRadios.forEach(r => r.checked = false);
+        if (customInput.value !== "") presetRadios.forEach(r => r.checked = false);
     });
 
     presetRadios.forEach(radio => {
-        radio.addEventListener("change", () => {
-            customInput.value = "";
+        radio.addEventListener("change", () => { if(radio.checked) customInput.value = ""; });
+    });
+
+    // 3. Validation & Loading
+    document.getElementById("moneyForm").addEventListener("submit", function(e) {
+        const selected = document.querySelector('input[name="amount"]:checked');
+        if (!selected && (!customInput.value || customInput.value <= 0)) {
+            e.preventDefault();
+            alert("Please provide a donation amount.");
+        }
+    });
+
+    const dateInput = document.getElementById("dropoffDate");
+    if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
+
+    document.querySelectorAll("form").forEach(form => {
+        form.addEventListener("submit", (e) => {
+            if (!e.defaultPrevented) {
+                const btn = form.querySelector("button[type='submit']");
+                btn.innerText = "Processing...";
+                btn.disabled = true;
+            }
         });
     });
 });
