@@ -6,6 +6,8 @@ import random
 from dynaconf import Dynaconf
 import json
 from flask_mail import Mail, Message
+import smtplib
+from email.mime.text import MIMEText
 
 app = Flask(__name__)       
 config = Dynaconf(settings_file=["settings.toml"])
@@ -129,6 +131,7 @@ def email():
         return "Email sent successfully!"
 
     return render_template('donateinfo.html.jinja')
+
 # -----------------------
 # MAP PAGE (OPTIONAL TARGET FRIDGE)
 # -----------------------
@@ -161,7 +164,7 @@ def route_to_fridge(fridge_id):
     return redirect(url_for("map_page", fridge_id=fridge_id))
 
 # -----------------------
-# LOGIN / LOGOUT / SIGNUP
+# LOGIN PAGE
 # -----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -203,6 +206,9 @@ def login():
 
     return render_template("login.html.jinja")
 
+# --------------------
+# LOGOUT FUNCTION 
+# --------------------
 @app.route("/logout")
 @login_required
 def logout():
@@ -210,6 +216,9 @@ def logout():
     flash("You have been logged out.")
     return redirect("/")
 
+# --------------------
+# SIGNUP PAGE 
+# --------------------
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -249,6 +258,7 @@ def signup():
         return redirect("/login")
 
     return render_template("signup.html.jinja")
+
 # -----------------------
 # DONATE PAGES
 # -----------------------
@@ -289,9 +299,6 @@ def donations():
 @app.route("/donate-money", methods=["GET", "POST"])
 @login_required
 def donate_money():
-    connection = connect_db()
-    cursor = connection.cursor(pymysql.cursors.DictCursor)
-
     if request.method == "POST":
         amount = request.form.get("amount")
         custom_amount = request.form.get("custom_amount")
@@ -341,8 +348,7 @@ def donate_money():
 
         connection.commit()
         connection.close()
-
-        flash("Donation successful!")
+        flash("Thank you for your donation!")
         return redirect(url_for("thank"))
 
     cursor.execute("SELECT ID, Name, Image FROM Fridge")
@@ -378,7 +384,7 @@ def donate_food():
         notes = request.form.get("notes") 
 
         # ---------------------------------------------------------
-        # 2. VALIDATION BLOCK (Add this right here!)
+        # 2. VALIDATION BLOCK 
         # ---------------------------------------------------------
         if not fridge_id or fridge_id == "":
             connection.close()
@@ -389,7 +395,6 @@ def donate_food():
             connection.close()
             flash("Error: Please select a food category.")
             return redirect(url_for("donations"))
-        # ---------------------------------------------------------
 
         try:
             # 3. Fetch names for the email
@@ -463,74 +468,92 @@ def donate_food():
         food_types=food_types_data
     )
 
-
-
-@app.route("/individfridge/<int:fridge_id>", methods=["GET","POST"])
+# -----------------------------
+# FRIDGE PAGE
+# -----------------------------
+@app.route("/individfridge/<int:fridge_id>", methods=["GET", "POST"])
 def personal_fridges(fridge_id):
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
     # --- 1. HANDLE POST (Review Submission) ---
     if request.method == "POST":
+        # Ensure user is logged in before allowing a review
+        if not current_user.is_authenticated:
+            flash("You must be logged in to leave a review.", "error")
+            return redirect(url_for("login"))
+
         rating = request.form.get("Rating")
         comment = request.form.get("Comment")
         
         if rating and comment:
-            cursor.execute("""
-                INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp) 
-                VALUES (%s, %s, %s, %s, NOW())
-            """, (fridge_id, rating, comment, current_user.id))
-            connection.commit()
+            try:
+                cursor.execute("""
+                    INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp) 
+                    VALUES (%s, %s, %s, %s, NOW())
+                """, (fridge_id, rating, comment, current_user.id))
+                connection.commit()
+                flash("Review submitted! Thank you for sharing.", "review-success")
             
-        connection.close()
-        return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+            except IntegrityError as e:
+                # 1062 is the MySQL code for Duplicate Entry
+                if e.args[0] == 1062:
+                    flash("You have already reviewed this fridge! You can edit your existing review below.", "error")
+                else:
+                    flash("An error occurred. Please try again later.", "error")
+            
+            finally:
+                connection.close()
+                # Redirect immediately after POST to prevent "Form Resubmission" popups
+                return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
     # --- 2. HANDLE GET (Page Display) ---
-    # Fridge Info
-    cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-    fridge = cursor.fetchone()
+    try:
+        # Fridge Info
+        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
 
-    if not fridge:
+        if not fridge:
+            abort(404)
+
+        # Inventory Items
+        cursor.execute("""
+            SELECT i.Name, i.Image, fi.Quantity 
+            FROM Fridge_items fi
+            JOIN Items i ON fi.ItemsID = i.ID 
+            WHERE fi.FridgeID = %s AND fi.Quantity > 0
+        """, (fridge_id,))
+        items_list = cursor.fetchall()
+
+        # Fridge Status
+        cursor.execute("""
+            SELECT Status, Last_updated 
+            FROM Fridge_status 
+            WHERE FridgeID=%s 
+            ORDER BY Last_updated DESC, ID DESC LIMIT 1
+        """, (fridge_id,))
+        fridge_status = cursor.fetchone() or {
+            "Status": "Unknown", 
+            "Last_updated": datetime.now()
+        }
+
+        # Reviews
+        cursor.execute("""
+            SELECT r.ID AS ReviewID, r.rating AS Rating, r.comment AS Comment, r.Timestamp, u.Name AS user_name, r.UserID 
+            FROM Reviews r 
+            JOIN User u ON r.UserID = u.ID 
+            WHERE r.FridgeID = %s 
+            ORDER BY r.Timestamp DESC
+        """, (fridge_id,))
+        reviews = cursor.fetchall()
+
+    finally:
         connection.close()
-        abort(404)
-
-    # ✅ MOVE THIS OUTSIDE THE if-block
-    cursor.execute("""
-        SELECT i.Name, i.Image, fi.Quantity 
-        FROM Fridge_items fi
-        JOIN Items i ON fi.ItemsID = i.ID 
-        WHERE fi.FridgeID = %s AND fi.Quantity > 0
-    """, (fridge_id,))
-    items_list = cursor.fetchall()
-
-    # Status
-    cursor.execute("""
-        SELECT Status, Last_updated 
-        FROM Fridge_status 
-        WHERE FridgeID=%s 
-        ORDER BY Last_updated DESC, ID DESC LIMIT 1
-    """, (fridge_id,))
-    fridge_status = cursor.fetchone() or {
-        "Status": "Unknown", 
-        "Last_updated": datetime.now()
-    }
-
-    # Reviews
-    cursor.execute("""
-        SELECT r.rating AS Rating, r.comment AS Comment, r.Timestamp, u.Name AS user_name 
-        FROM Reviews r 
-        JOIN User u ON r.UserID = u.ID 
-        WHERE r.FridgeID = %s 
-        ORDER BY r.Timestamp DESC
-    """, (fridge_id,))
-    reviews = cursor.fetchall()
-
-    connection.close()
 
     return render_template(
         "fridge.html.jinja",
         fridge=fridge,
-        items=items_list,   # ✅ now correctly populated
+        items=items_list,
         reviews=reviews,
         fridge_status=fridge_status
     )
@@ -569,32 +592,85 @@ def get_fridges():
 # -----------------------
 # REPORT FRIDGE ISSUE
 # -----------------------
-@app.route("/report/<int:fridge_id>", methods=["GET","POST"])
+@app.route("/report/<int:fridge_id>", methods=["GET", "POST"])
 @login_required
 def report_fridge(fridge_id):
-    connection = connect_db()
-    cursor = connection.cursor()
-
+    # --- 1. HANDLE POST (Form Submission) ---
     if request.method == "POST":
         priority = request.form.get("priority")
         reproducibility = request.form.get("reproducibility")
         description = request.form.get("issue_description")
-        user_id = current_user.id if current_user.is_authenticated else None
+        
+        connection = connect_db()
+        try:
+            cursor = connection.cursor(pymysql.cursors.DictCursor)
+            
+            # 1. Fetch fridge info
+            cursor.execute("SELECT Name, Address FROM Fridge WHERE ID=%s", (fridge_id,))
+            fridge = cursor.fetchone()
 
-        cursor.execute("""
-            INSERT INTO maintenance_reports
-            (FridgeID, Reported_by, Description, Status, Timestamp, UserID, Priority, Reproducibility)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (fridge_id, user_id, description, "Open", datetime.now(), user_id, priority, reproducibility))
+            # 2. Database Insert
+            cursor.execute("""
+                INSERT INTO maintenance_reports
+                (FridgeID, Reported_by, Description, Status, Timestamp, UserID, Priority, Reproducibility)
+                VALUES (%s, %s, %s, %s, NOW(), %s, %s, %s)
+            """, (fridge_id, current_user.id, description, "Open", current_user.id, priority, reproducibility))
+            connection.commit()
+
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            email_body = f"""
+            --------------------------------------------------
+            NEW MAINTENANCE TICKET: {fridge['Name'] if fridge else 'Unknown'}
+            --------------------------------------------------
+            DATE/TIME:   {timestamp}
+            PRIORITY:    {priority.upper()}
+            FREQUENCY:   {reproducibility}
+
+            FRIDGE INFO:
+            - Name:      {fridge['Name'] if fridge else 'N/A'}
+            - Address:   {fridge['Address'] if fridge else 'N/A'}
+
+            REPORTED BY:
+            - User:      {current_user.name}
+            - Email:     {current_user.email}
+
+            ISSUE DESCRIPTION:
+            {description}
+            --------------------------------------------------
+                        """
+            # -------------------------------------------------------
+            # Email Logic
+            sender_email = app.config['MAIL_USERNAME']
+            app_password = app.config['MAIL_PASSWORD']
+
+            msg = MIMEText(email_body) # Use the new email_body variable here
+            msg['Subject'] = f"🚨 [{priority}] Repair Request - {fridge['Name'] if fridge else 'Unknown'}"
+            msg['From'] = sender_email
+            msg['To'] = "fridge.net5@gmail.com"
+
+            with smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT']) as server:
+                server.starttls()
+                server.login(sender_email, app_password)
+                server.send_message(msg)
+
+            flash("Report submitted successfully!", "success")
+            return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+
+        except Exception as e:
+            print(f"Database/Email Error: {e}")
+            flash("An error occurred. Please try again.")
+        finally:
+            connection.close()
+
+    # --- 2. HANDLE GET (Displaying the Form) ---
+    connection = connect_db()
+    try:
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
+    finally:
         connection.close()
-
-        flash("Maintenance report submitted!")
-        return redirect(url_for("index"))
-    
-    cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-
-    fridge = cursor.fetchone()
-    connection.close()
 
     if not fridge:
         abort(404)
@@ -702,6 +778,8 @@ def update_fridge(fridge_id):
 def account():
     return render_template("components/profile.html.jinja")
 
+
+# PROFILE USERNAME
 @app.route("/profile/update-username", methods=["POST"])
 @login_required
 def update_username():
@@ -717,6 +795,8 @@ def update_username():
     flash("Username updated!", "profile_success")
     return redirect("/profile_page")
 
+
+# PROFILE PASSWORD 
 @app.route("/profile/update-password", methods=["POST"])
 @login_required
 def update_password():
@@ -731,6 +811,8 @@ def update_password():
     flash("Password updated!", "profile_success")
     return redirect("/profile_page")
 
+
+# PROFILE PICTURE 
 @app.route("/profile/update-picture", methods=["POST"])
 @login_required
 def update_picture():
@@ -764,27 +846,22 @@ def about():
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-    # -----------------------
+   
     # TOTAL USERS
-    # -----------------------
     cursor.execute("SELECT COUNT(*) AS total_users FROM User")
     users = cursor.fetchone()["total_users"]
 
-    # -----------------------
+ 
     # TOTAL FRIDGES
-    # -----------------------
     cursor.execute("SELECT COUNT(*) AS total_fridges FROM Fridge")
     fridges = cursor.fetchone()["total_fridges"]
 
-    # -----------------------
+    
     # TOTAL DONATIONS
-    # -----------------------
     cursor.execute("SELECT COUNT(*) AS total_donations FROM Donations")
     meals = cursor.fetchone()["total_donations"]
 
-    # -----------------------
     # FOOD DONATIONS
-    # -----------------------
     cursor.execute("""
         SELECT COALESCE(SUM(Quantity), 0) AS total_food
         FROM Donations
@@ -792,9 +869,8 @@ def about():
     """)
     food_saved = cursor.fetchone()["total_food"]
 
-    # -----------------------
+    
     # MONEY DONATIONS
-    # -----------------------
     cursor.execute("""
         SELECT COALESCE(SUM(Quantity), 0) AS total_money
         FROM Donations
@@ -804,9 +880,8 @@ def about():
 
     connection.close()
 
-    # -----------------------
+  
     # BUILD STATS OBJECT (FIX)
-    # -----------------------
     stats = {
         "meals": meals,
         "users": users,
@@ -816,6 +891,10 @@ def about():
     }
 
     return render_template("aboutus.html.jinja", stats=stats)
+
+# -----------------------
+# STATISTICS PAGE 
+# -----------------------
 @app.route("/api/stats")
 def api_stats():
     connection = connect_db()
@@ -917,9 +996,7 @@ def contact():
         email = request.form.get("email")
         message = request.form.get("message")
 
-        # --------------------
         # VALIDATION
-        # --------------------
         if not name or not email or not message:
             flash("All fields are required.", "error")
             return redirect("/contact") 
@@ -928,9 +1005,8 @@ def contact():
             flash("Message must be at least 10 characters.", "error")
             return redirect("/contact")
 
-        # --------------------
+        
         # DATABASE
-        # --------------------
         connection = connect_db()
         cursor = connection.cursor()
 
@@ -950,18 +1026,15 @@ def contact():
 
         connection.close()
 
-        # --------------------
-        # SUCCESS
-        # --------------------
         flash("Message sent successfully!", "success")
         return redirect("/contact")
 
-    # --------------------
     # GET
-    # --------------------
     return render_template("contact.html.jinja")
 
-
+# --------------------
+ # RESTAURANTS CONNECT PAGE 
+# --------------------
 @app.route("/restaurants-connect", methods=["GET", "POST"])
 def restaurants_connect():
     if request.method == "POST":
@@ -990,95 +1063,170 @@ def restaurants_connect():
 
     return render_template("restaurant_connect.html.jinja")
 
+# ------------------------------
+# DASHBOARD
+# ------------------------------
 @app.route("/restaurant-dashboard")
 @login_required
 def restaurant_dashboard():
-    # Security Check: Only restaurants allowed
-    if current_user.role != "restaurant":
-        return redirect(url_for("index"))
-
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
     try:
-        # 1. TOTAL MEALS DONATED (impact metric)
+        # 1. IMPACT METRICS (Food and Money)
         cursor.execute("""
-            SELECT COALESCE(SUM(Quantity), 0) AS total_meals 
+            SELECT 
+                SUM(CASE WHEN Type = 'food' THEN Quantity ELSE 0 END) AS total_meals,
+                SUM(CASE WHEN Type = 'money' THEN Quantity ELSE 0 END) AS total_money
             FROM Donations
-            WHERE UserID = %s AND Type = 'food'
+            WHERE UserID = %s
         """, (current_user.id,))
-        total_meals = cursor.fetchone()["total_meals"]
+        stats = cursor.fetchone()
+        total_meals = stats["total_meals"] or 0
+        total_money = stats["total_money"] or 0
 
-        # 2. MONEY DONATIONS
-        cursor.execute("""
-            SELECT COALESCE(SUM(Quantity), 0) AS total_money
-            FROM Donations
-            WHERE UserID = %s AND Type = 'money'
-        """, (current_user.id,))
-        total_money = cursor.fetchone()["total_money"]
-
-        # 3. SCHEDULED PICKUPS (Fetch future donations)
-        # Note: We fetch Quantity and Dropoff to display in the list
+        # 2. UPCOMING PICKUPS (Future or Today)
         cursor.execute("""
             SELECT ID, Quantity, Dropoff
             FROM Donations
             WHERE UserID = %s 
             AND Type = 'food'
-            AND Dropoff >= CURDATE()
+            AND Dropoff >= NOW()
             ORDER BY Dropoff ASC
         """, (current_user.id,))
         scheduled_list = cursor.fetchall()
+        scheduled_count = len(scheduled_list)
 
-        # 4. UPCOMING COUNT (The number for the stat card)
+        # 3. PREVIOUS DROPOFFS (Past)
         cursor.execute("""
-            SELECT COUNT(*) AS scheduled_count
+            SELECT ID, Quantity, Dropoff
             FROM Donations
             WHERE UserID = %s 
             AND Type = 'food'
-            AND Dropoff >= CURDATE()
+            AND Dropoff < NOW()
+            ORDER BY Dropoff DESC
+            LIMIT 10
         """, (current_user.id,))
-        scheduled_data = cursor.fetchone()
-        scheduled = scheduled_data["scheduled_count"]
+        previous_list = cursor.fetchall()
 
     finally:
         connection.close()
 
-    # Render the dashboard with all collected stats
     return render_template(
         "restaurant_dashboard.html.jinja",
         total_meals=total_meals,
         total_money=total_money,
-        scheduled=scheduled,
-        scheduled_list=scheduled_list
+        scheduled=scheduled_count,
+        scheduled_list=scheduled_list,
+        previous_list=previous_list
     )
 
+# ------------------------------
+# DONATIONS DETAILS (DASHBOARD)
+# ------------------------------
 @app.route("/api/donation-details/<int:donation_id>")
 @login_required
 def donation_details(donation_id):
+        connection = connect_db()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get donation details + Fridge Name + Item Name/Image
+        query = """
+            SELECT d.*, f.Name as FridgeName, i.Name as ItemName, i.Image as ItemImage
+            FROM Donations d
+            JOIN Fridge f ON d.FridgeID = f.ID
+            LEFT JOIN Items i ON d.FoodCategory = i.ID
+            WHERE d.ID = %s AND d.UserID = %s
+        """
+        cursor.execute(query, (donation_id, current_user.id))
+        donation = cursor.fetchone()
+        connection.close()
+        
+        if not donation:
+            return jsonify({"error": "Donation not found"}), 404
+            
+        # Format the date for the JavaScript display
+        if donation ['Dropoff']:
+            donation['FormattedDate'] = donation['Dropoff'].strftime('%B %d, %Y')
+            donation['FormattedTime'] = donation['Dropoff'].strftime('%I:%M %p')
+        
+        return jsonify({
+        "ItemName": donation['ItemName'],
+        "Quantity": donation['Quantity'],
+        "FridgeName": donation['FridgeName'],
+        "Notes": donation['Notes'],
+        "ItemImage": donation['ItemImage'],
+        # Formatting the time accurately for the frontend
+        "FormattedDate": donation['Dropoff'].strftime('%B %d, %Y'),
+        "FormattedTime": donation['Dropoff'].strftime('%I:%M %p'),
+        "Dropoff": donation['Dropoff'].isoformat() # Fallback for JS Date()
+    })
+    
+
+# --------------------
+# EDIT REVIEW 
+# --------------------
+@app.route('/edit-review/<int:review_id>', methods=['POST'])
+@login_required
+def edit_review(review_id):
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    new_comment = request.form.get('Comment')
+    
+    # 1. Fetch the review to verify ownership (using 'ID' from your DB screenshot)
+    cursor.execute("SELECT * FROM Reviews WHERE ID = %s", (review_id,))
+    review = cursor.fetchone()
+    
+    # 2. Safety Check: Does it exist and belong to the user?
+    if not review or review['UserID'] != int(current_user.id):
+        connection.close()
+        flash("You don't have permission to edit this review.", "error")
+        return redirect(request.referrer or url_for('index'))
+
+    # 3. Perform the update (using 'ID' as the column name)
+    try:
+        cursor.execute("UPDATE Reviews SET Comment = %s WHERE ID = %s", (new_comment, review_id))
+        connection.commit()
+        flash("Review updated!")
+    except Exception as e:
+        print(f"Update Error: {e}")
+        flash("An error occurred while saving.")
+    finally:
+        connection.close()
+    
+    # 4. REDIRECT FIX: Your function on line 228 is named 'personal_fridges'
+    return redirect(url_for('personal_fridges', fridge_id=review['FridgeID']))
+
+# --------------------
+# VIEW ALL REVIEWS 
+# --------------------
+@app.route("/fridge/<int:fridge_id>/reviews")
+def all_reviews(fridge_id):
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     
-    # Get donation details + Fridge Name + Item Name/Image
-    query = """
-        SELECT d.*, f.Name as FridgeName, i.Name as ItemName, i.Image as ItemImage
-        FROM Donations d
-        JOIN Fridge f ON d.FridgeID = f.ID
-        LEFT JOIN Items i ON d.FoodCategory = i.ID
-        WHERE d.ID = %s AND d.UserID = %s
-    """
-    cursor.execute(query, (donation_id, current_user.id))
-    details = cursor.fetchone()
-    connection.close()
+    # Get Fridge Name for the heading
+    cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
+    fridge = cursor.fetchone()
     
-    if not details:
-        return jsonify({"error": "Donation not found"}), 404
-        
-    # Format the date for the JavaScript display
-    if details['Dropoff']:
-        details['FormattedDate'] = details['Dropoff'].strftime('%B %d, %Y')
-        details['FormattedTime'] = details['Dropoff'].strftime('%I:%M %p')
-    
-    return jsonify(details)
+    if not fridge:
+        abort(404)
 
+    # Get All Reviews
+    cursor.execute("""
+        SELECT r.rating AS Rating, r.comment AS Comment, r.Timestamp, u.Name AS user_name 
+        FROM Reviews r 
+        JOIN User u ON r.UserID = u.ID 
+        WHERE r.FridgeID = %s 
+        ORDER BY r.Timestamp DESC
+    """, (fridge_id,))
+    all_reviews = cursor.fetchall()
+    
+    connection.close()
+    return render_template("all_reviews.html.jinja", reviews=all_reviews, fridge=fridge)
+
+# --------------------
+# NAME IF STATEMENT 
+# --------------------
 if __name__ == "__main__":
     app.run(debug=True)

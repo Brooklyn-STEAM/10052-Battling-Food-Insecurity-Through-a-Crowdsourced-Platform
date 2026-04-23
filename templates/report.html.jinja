@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/static/images/logo.png">
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
       tailwind.config = { darkMode: 'class' }
     </script>
 
-    <!-- Load saved theme -->
     <script>
       (function () {
         const saved = localStorage.getItem("theme");
@@ -24,102 +22,121 @@
       })();
     </script>
 
-    <!-- Smooth transition -->
     <style>
-      html {
-        transition: background-color 0.3s ease, color 0.3s ease;
+      html { scroll-behavior: smooth; }
+      body, div, p, h1, h2, span, input, select, textarea {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
       }
-      body, div {
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
+      .flash-message {
+    animation: fadeOut 0.5s ease-in-out 3s forwards;
+}
     </style>
 
     <title>Report a Problem | FridgeNet</title>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans antialiased">
+<body class="bg-slate-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen font-sans antialiased">
     {% include "components/navbar.html.jinja" %}
 
-    <main class="max-w-7xl mx-auto px-4 py-12">
-        <div class="flex flex-col lg:flex-row items-center lg:items-start gap-12">
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="flex flex-col lg:flex-row items-start gap-12">
 
-            <!-- Left Side: Form -->
-            <div class="w-full lg:w-1/2">
+            <div class="w-full lg:w-3/5">
                 <div class="mb-8">
-                    <h1 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">REPORT A PROBLEM</h1>
-                    <p class="text-gray-600 dark:text-gray-400 mt-2">Our team will investigate the issue immediately.</p>
+                    <h1 class="text-4xl font-black text-slate-800 dark:text-white tracking-tight uppercase italic">
+                        REPORT A PROBLEM
+                    </h1>
+                    <p class="text-slate-500 dark:text-gray-400 mt-2 font-medium">
+                        Help us keep <span class="text-emerald-600 font-bold">{{ fridge['Name'] }}</span> running smoothly for the community.
+                    </p>
                 </div>
 
-<form action="/report/{{ fridge['ID'] }}" method="POST"
-      class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 space-y-5">
-    <div class="grid grid-cols-2 gap-4">
-        <div>
-            <label for="priority" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Priority</label>
-            <select name="priority" id="priority" required
-                class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
-                <option value="">Select...</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-            </select>
-        </div>
+                <form action="/report/{{ fridge['ID'] }}" method="POST" 
+                      class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-gray-800 space-y-6">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="priority" class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Priority Level</label>
+                            <select name="priority" id="priority" required
+                                class="w-full border-2 border-slate-100 dark:border-gray-800 bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-gray-100 rounded-2xl p-3 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none">
+                                <option value="" disabled selected>How urgent is this?</option>
+                                <option value="low">Low (Cosmetic/Minor)</option>
+                                <option value="medium">Medium (Low Stock/Messy)</option>
+                                <option value="high">High (Broken/Offline)</option>
+                            </select>
+                        </div>
 
-        <div>
-            <label for="reproducibility" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Reproducibility</label>
-            <select name="reproducibility" id="reproducibility" required
-                class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
-                <option value="">Select...</option>
-                <option value="always">Always</option>
-                <option value="sometimes">Sometimes</option>
-                <option value="rarely">Rarely</option>
-            </select>
-        </div>
-    </div>
+                        <div>
+                            <label for="reproducibility" class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Frequency</label>
+                            <select name="reproducibility" id="reproducibility" required
+                                class="w-full border-2 border-slate-100 dark:border-gray-800 bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-gray-100 rounded-2xl p-3 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none">
+                                <option value="" disabled selected>Does this happen often?</option>
+                                <option value="always">Always</option>
+                                <option value="sometimes">Sometimes</option>
+                                <option value="rarely">Rarely</option>
+                            </select>
+                        </div>
+                    </div>
 
-    <div>
-        <label for="issue_description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Issue Description</label>
-        <textarea name="issue_description" id="issue_description" rows="4" required
-            placeholder="What happened?"
-            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500/20 focus:border-green-600"></textarea>
-    </div>
+                    <div>
+                        <label for="issue_description" class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Detailed Description</label>
+                        <textarea 
+                            name="issue_description" 
+                            id="issue_description"
+                            placeholder="Please describe exactly what needs fixing (e.g., 'The door handle is loose' or 'The temperature feels warm')." 
+                            required 
+                            class="w-full p-4 h-40 rounded-3xl border-2 border-slate-100 dark:border-gray-800 bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-gray-100 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none"
+                        ></textarea>  
+                    </div>
 
-    <div>
-        <label for="contact_info" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            Contact Info <span class="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span>
-        </label>
-        <input type="text" name="contact_info" id="contact_info" placeholder="Email or Phone"
-            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-3 focus:ring-2 focus:ring-green-500/20 focus:border-green-600">
-    </div>
+                    <div>
+                        <label for="contact_info" class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                            Your Contact Info <span class="text-slate-300 dark:text-gray-600 font-normal normal-case italic">(Optional)</span>
+                        </label>
+                        <input type="text" name="contact_info" id="contact_info" placeholder="Email or Phone"
+                            class="w-full border-2 border-slate-100 dark:border-gray-800 bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-gray-100 rounded-2xl p-4 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none">
+                    </div>
 
-    <button type="submit"
-        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-green-200 dark:shadow-green-900/40 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-green-500/50">
-        Submit Report
-    </button>
-</form>
-
-
+                    <button type="submit" class="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-200 dark:shadow-none transition-all active:scale-[0.98]">
+                        SUBMIT REPAIR REPORT
+                    </button>
                 </form>
             </div>
 
-        <!-- Right Side: Info & Image -->
-          <div class="w-full lg:w-1/2 space-y-8">
-            <div class="relative group">
-              <div class="absolute -inset-3 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000">
+            <div class="w-full lg:w-2/5 space-y-6">
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-[2.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+                    <div class="relative bg-white dark:bg-gray-900 rounded-[2.5rem] overflow-hidden p-3 shadow-2xl">
+                        <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}" class="w-full aspect-square object-cover rounded-[2rem]">
+                    </div>
                 </div>
-                  <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }} Image">
+
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 p-8 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800">
+                    <div class="mb-4">
+                        <span class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-black rounded-full uppercase tracking-tighter">Reporting For:</span>
+                        <h2 class="text-2xl font-black text-emerald-900 dark:text-emerald-400 mt-2 leading-none">
+                            {{fridge['Name']}}
+                        </h2>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <h3 class="text-emerald-800 dark:text-emerald-500 font-black uppercase tracking-widest text-[10px]">Location</h3>
+                        <p class="text-emerald-700 dark:text-emerald-300 font-bold text-md leading-snug italic">
+                            📍 {{fridge['Address']}}
+                        </p>
+                    </div>
                 </div>
-                <div class="bg-green-50 dark:bg-green-900/20 p-6 rounded-xl border border-green-100 dark:border-green-800 text-center">
-                <p class="text-green-900 dark:text-green-300 font-medium text-lg">{{fridge['Name']}}</p>
-                <br>
-                  <h3 class="text-green-800 dark:text-green-400 font-bold uppercase tracking-widest text-xs mb-2">Location</h3>
-                  <p class="text-green-900 dark:text-green-300 font-medium text-lg">{{fridge['Address']}}</p>
+
+                <div class="p-6 bg-slate-100 dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-gray-700">
+                    <p class="text-xs text-slate-500 dark:text-gray-400 leading-relaxed italic">
+                        <strong>Note:</strong> Report issues such as leaks, broken shelves, power failure, or cleanliness. For supply updates, please use the <a href="/update_fridge/{{ fridge['ID'] }}" class="text-emerald-600 font-bold underline">Update Inventory</a> page instead.
+                    </p>
                 </div>
             </div>
 
         </div>
     </main>
-
-<script>
+    <script>
 const radios = document.querySelectorAll('input[name="fridgeStatus"]');
 const statusText = document.getElementById("statusText");
 
@@ -138,5 +155,5 @@ radios.forEach(radio => {
 });
 </script>
 </body>
-
 </html>
+

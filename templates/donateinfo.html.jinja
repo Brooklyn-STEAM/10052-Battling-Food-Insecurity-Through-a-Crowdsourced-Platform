@@ -176,6 +176,9 @@
                         {% endfor %}
                     </div>
                 </div>
+            </label>
+            {% endfor %}
+        </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ml-1">Notes</label>
@@ -274,6 +277,54 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.disabled = true;
         });
     });
+});
+// Inside your DOMContentLoaded listener:
+
+const moneyForm = document.getElementById("moneyForm");
+const customInput = document.getElementById("customAmount");
+const presetRadios = document.querySelectorAll('.preset-radio');
+const finalAmountInput = document.getElementById("finalAmountValue");
+
+// If typing custom, uncheck presets
+customInput.addEventListener("input", () => {
+    if (customInput.value !== "") {
+        presetRadios.forEach(r => r.checked = false);
+    }
+});
+
+// If clicking preset, clear custom
+presetRadios.forEach(radio => {
+    radio.addEventListener("change", () => {
+        if(radio.checked) customInput.value = "";
+    });
+});
+
+// Intercept submit to set the final value
+moneyForm.addEventListener("submit", function(e) {
+    const selectedRadio = document.querySelector('.preset-radio:checked');
+    const fridgeSelected = document.getElementById("moneyFridgeValue").value;
+
+    let total = 0;
+    if (selectedRadio) {
+        total = selectedRadio.value;
+    } else if (customInput.value) {
+        total = customInput.value;
+    }
+
+    if (total <= 0) {
+        e.preventDefault();
+        alert("Please select or enter a donation amount.");
+        return;
+    }
+
+    if (!fridgeSelected) {
+        e.preventDefault();
+        alert("Please select a target fridge.");
+        return;
+    }
+
+    // Set the hidden field that the Python backend actually reads
+    finalAmountInput.value = total;
 });
 </script>
 </body>

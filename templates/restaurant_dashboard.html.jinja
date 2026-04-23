@@ -4,120 +4,175 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Dashboard</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Smooth transition for the sidebar */
-        #sidebar { transition: transform 0.3s ease-in-out; }
-    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    
+    <script>
+        (function () {
+            const saved = localStorage.getItem("theme");
+            if (saved === "dark") {
+                document.documentElement.classList.add("dark");
+            } else if (saved === "light") {
+                document.documentElement.classList.remove("dark");
+            } else {
+                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                document.documentElement.classList.toggle("dark", prefersDark);
+            }
+        })();
+    </script>
 </head>
 
-<body class="bg-gray-100 overflow-x-hidden">
-    {% include "components/navbar.html.jinja" %}
+<body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 transition-colors duration-300">
+{% include "components/navbar.html.jinja" %}
 
-    <div class="lg:hidden bg-white border-b p-4 flex justify-between items-center sticky top-0 z-30">
-        <h2 class="font-bold text-gray-900">Dashboard</h2>
-        <button onclick="toggleSidebar()" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </button>
-    </div>
+<div class="flex min-h-screen">
 
-    <div class="flex min-h-screen relative">
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-gray-50 text-gray-800 p-6 border-r border-gray-200 shadow-sm transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0">
-            <div class="mb-10 px-4 flex justify-between items-center">
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-orange-500">Welcome back</span>
-                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        {{ current_user.name }} <span class="text-lg">🍽️</span>
-                    </h2>
-                </div>
-                <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
+    <aside class="w-64 min-h-screen bg-gray-50 dark:bg-[#1b1730] text-gray-800 dark:text-gray-100 p-6 border-r border-gray-200 dark:border-[#40376E] shadow-sm">
+        <div class="mb-10 px-4">
+            <span class="text-xs font-semibold uppercase tracking-wider text-orange-500">Welcome back</span>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                {{ current_user.name }} <span class="text-lg">🍽️</span>
+            </h2>
+        </div>
 
-            <nav class="space-y-2">
-                <a href="/restaurant-dashboard" class="flex items-center px-4 py-3 rounded-xl bg-green-600 text-white font-medium transition-all shadow-md shadow-green-200">
+        <nav class="space-y-2">
+            <a href="/restaurant-dashboard" class="flex items-center px-4 py-3 rounded-xl bg-green-600 dark:bg-[#7b2cbf] text-white font-medium transition-all shadow-md shadow-green-200 dark:shadow-none">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+                Dashboard
+            </a>
+
+            <div class="pt-8 mt-8 border-t border-gray-200 dark:border-[#40376E]">
+                <a href="/logout" class="flex items-center px-4 py-3 rounded-xl text-gray-500 dark:text-purple-300 hover:bg-orange-50 dark:hover:bg-[#2a2545] hover:text-orange-600 transition-colors">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                     </svg>
-                    Dashboard
+                    Logout
                 </a>
+            </div>
+        </nav>
+    </aside>
 
-                <div class="pt-8 mt-8 border-t border-gray-200">
-                    <a href="/logout" class="flex items-center px-4 py-3 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                        </svg>
-                        Logout
-                    </a>
-                </div>
-            </nav>
-        </aside>
+    <main class="flex-1 p-8">
 
-        <main class="flex-1 p-4 md:p-8 w-full">
-            <div class="mb-8">
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
-                    Welcome back, {{ current_user.name }} 👋
-                </h1>
-                <p class="text-gray-500">Here's your impact today</p>
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+                Welcome back, {{ current_user.name }} 👋
+            </h1>
+            <p class="text-gray-500 dark:text-purple-300/70">
+                Here's your impact today
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-[#2a2545] p-6 rounded-xl shadow border dark:border-[#40376E]">
+                <h3 class="text-gray-500 dark:text-purple-300/70 text-sm">Meals Donated</h3>
+                <p class="text-3xl font-bold text-blue-600 dark:text-purple-400 mt-2">{{ total_meals }}</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <div class="bg-white p-6 rounded-xl shadow border border-gray-50">
-                    <h3 class="text-gray-500 text-sm">Meals Donated</h3>
-                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ total_meals }}</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow border border-gray-50">
-                    <h3 class="text-gray-500 text-sm">Money Donated</h3>
-                    <p class="text-3xl font-bold text-green-600 mt-2">$ {{ total_money }}</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow border border-gray-50 sm:col-span-2 lg:col-span-1">
-                    <h3 class="text-gray-500 text-sm">Scheduled Pickups</h3>
-                    <p class="text-3xl font-bold text-orange-500 mt-2">{{ scheduled }}</p>
-                </div>
+            <div class="bg-white dark:bg-[#2a2545] p-6 rounded-xl shadow border dark:border-[#40376E]">
+                <h3 class="text-gray-500 dark:text-purple-300/70 text-sm">Money Donated</h3>
+                <p class="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">$ {{ total_money }}</p>
             </div>
 
-            <div class="mt-8 bg-white text-orange-500 p-6 rounded-xl shadow border border-orange-50">
-                <h2 class="text-xl font-semibold">🎉 Amazing Work!</h2>
-                <p class="mt-2 text-gray-700">
-                    You've helped save <strong class="text-orange-600">{{ total_meals }}</strong> meals from going to waste.
-                </p>
+            <div class="bg-white dark:bg-[#2a2545] p-6 rounded-xl shadow border dark:border-[#40376E]">
+                <h3 class="text-gray-500 dark:text-purple-300/70 text-sm">Scheduled Pickups</h3>
+                <p class="text-3xl font-bold text-orange-500 mt-2">{{ scheduled }}</p>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white dark:bg-[#2a2545] text-orange-500 dark:text-orange-400 p-6 rounded-xl shadow border dark:border-[#40376E]">
+            <h2 class="text-xl font-semibold">🎉 Amazing Work!</h2>
+            <p class="mt-2 text-gray-700 dark:text-purple-100">
+                You've helped save <strong>{{ total_meals }}</strong> meals from going to waste.
+            </p>
+        </div>
+
+        <div class="mt-8 bg-white dark:bg-[#1b1730] p-6 rounded-xl shadow-sm border border-gray-100 dark:border-[#40376E]">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                    <span class="text-orange-500">📅</span> Upcoming Pickups
+                </h2>
+                <a href="/donate" class="inline-flex items-center px-4 py-2 bg-green-600 dark:bg-[#7b2cbf] hover:bg-green-700 dark:hover:bg-[#5a189a] text-white text-sm font-semibold rounded-lg transition-transform active:scale-95 shadow-md">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Schedule Pickup
+                </a>
             </div>
 
-            <div class="mt-8 bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                        <span class="text-orange-500">📅</span> Upcoming Pickups
-                    </h2>
-                    <a href="/donate" class="inline-flex justify-center items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-transform active:scale-95 shadow-md">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Schedule Pickup
-                    </a>
-                </div>
-
-                <ul class="space-y-3">
-                    {% for donation in scheduled_list %}
-                    <li onclick="showDonationDetails({{ donation.ID }})"
-                        class="cursor-pointer p-4 border border-gray-100 rounded-xl flex flex-wrap justify-between items-center bg-gray-50/50 hover:bg-white hover:border-green-400 transition-all group">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-orange-400"></div>
-                            <div>
-                                <span class="block font-medium text-gray-700 text-sm md:text-base">
-                                    {{ donation.Dropoff.strftime('%B %d, %Y') }}
-                                </span>
-                                <span class="text-xs text-gray-400">
-                                    {{ donation.Quantity }} meals scheduled
-                                </span>
-                            </div>
+            <ul class="space-y-3">
+                {% for donation in scheduled_list %}
+                <li onclick="showDonationDetails({{ donation.ID }})" 
+                    class="cursor-pointer p-4 border border-gray-100 dark:border-[#40376E] rounded-xl flex justify-between items-center bg-gray-50/50 dark:bg-[#2a2545]/50 hover:bg-white dark:hover:bg-[#2a2545] hover:border-green-400 dark:hover:border-purple-400 hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-orange-400 group-hover:scale-125 transition-transform"></div>
+                        <div>
+                            <span class="block font-medium text-gray-700 dark:text-gray-200">
+                                {{ donation.Dropoff.strftime('%B %d, %Y') }}
+                            </span>
+                            <span class="text-xs text-gray-400 dark:text-purple-300/50">
+                                {{ donation.Quantity }} meals scheduled
+                            </span>
                         </div>
-                        <span class="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full mt-2 sm:mt-0">
-                            {{ donation.Dropoff.strftime('%I:%M %p') }}
-                        </span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                    </div>
+                    <span class="text-sm font-semibold text-green-600 dark:text-purple-300 bg-green-50 dark:bg-[#1b1730] px-3 py-1 rounded-full">
+                        {{ donation.Dropoff.strftime('%I:%M %p') }}
+                    </span>
+                </li>
+                {% else %}
+                <p class="text-gray-400 text-sm italic py-4 text-center">No upcoming pickups.</p>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="mt-12 bg-gray-50/50 dark:bg-transparent p-6 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
+            <h2 class="text-lg font-bold text-gray-500 dark:text-purple-300/60 mb-6 flex items-center gap-2">
+                <span class="grayscale text-xl">✅</span> Previous Dropoffs
+            </h2>
+            <ul class="space-y-3">
+                {% for donation in previous_list %}
+                <li onclick="showDonationDetails({{ donation.ID }})" 
+                    class="p-4 rounded-xl flex justify-between items-center opacity-70 hover:opacity-100 grayscale hover:grayscale-0 transition-all cursor-pointer bg-white dark:bg-[#1b1730] border border-transparent hover:border-gray-200 dark:hover:border-[#40376E]">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <div>
+                            <span class="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                                {{ donation.Dropoff.strftime('%b %d, %Y') }}
+                            </span>
+                            <span class="text-xs text-gray-400">
+                                {{ donation.Quantity }} meals delivered
+                            </span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-100 dark:bg-[#2a2545] px-3 py-1 rounded">Done</span>
+                </li>
+                {% else %}
+                <p class="text-gray-400 text-sm italic py-4 text-center">Your donation history will appear here.</p>
+                {% endfor %}
+            </ul>
+        </div>
+    </main>
+</div>
+
+<div id="donationModal" class="hidden fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#1b1730] rounded-2xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all border dark:border-[#40376E]">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Donation Summary</h3>
+                <button onclick="closeDonationModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <div id="modalLoading" class="py-10 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-green-500 dark:border-purple-500 border-t-transparent"></div>
             </div>
         </main>
     </div>
@@ -154,80 +209,73 @@
                         </div>
                     </div>
 
-                    <div id="detNotesContainer" class="hidden border-t pt-4">
-                        <p class="text-gray-400 font-medium uppercase text-[10px] mb-1">Notes</p>
-                        <p id="detNotes" class="text-sm italic text-gray-600 bg-gray-50 p-3 rounded-lg"></p>
-                    </div>
+                <div id="detNotesContainer" class="hidden border-t dark:border-[#40376E] pt-4">
+                    <p class="text-gray-400 dark:text-purple-300/50 font-medium uppercase text-[10px] mb-1">Notes</p>
+                    <p id="detNotes" class="text-sm italic text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-[#2a2545] p-3 rounded-lg"></p>
                 </div>
             </div>
-            <div class="bg-gray-50 px-6 py-4 flex justify-end">
-                <button onclick="closeDonationModal()" class="w-full sm:w-auto px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg transition-colors">Close</button>
-            </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-[#2a2545]/50 px-6 py-4 flex justify-end">
+            <button onclick="closeDonationModal()" class="px-6 py-2 bg-gray-200 dark:bg-[#40376E] hover:bg-gray-300 dark:hover:bg-[#5a4fd6] text-gray-700 dark:text-white font-bold rounded-lg transition-colors">Close</button>
         </div>
     </div>
+</div>
 
-    {% include "components/footer.html.jinja" %}
+{% include "components/footer.html.jinja" %}
 
-    <script>
-        // Sidebar Toggle for Mobile
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('-translate-x-full');
-        }
+<script>
+function showDonationDetails(id) {
+    const modal = document.getElementById('donationModal');
+    const body = document.getElementById('modalBody');
+    const loader = document.getElementById('modalLoading');
+    
+    modal.classList.remove('hidden');
+    body.classList.add('hidden');
+    loader.classList.remove('hidden');
 
-        // Modal Functionality
-        function showDonationDetails(id) {
-            const modal = document.getElementById('donationModal');
-            const body = document.getElementById('modalBody');
-            const loader = document.getElementById('modalLoading');
+    fetch(`/api/donation-details/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('detItemImg').src = data.ItemImage || '/static/default-food.png';
+            document.getElementById('detItemName').innerText = data.ItemName;
+            document.getElementById('detQty').innerText = data.Quantity;
+            document.getElementById('detFridge').innerText = data.FridgeName;
+
+            // IMPROVED TIME HANDLING
+            // If your API returns 'FormattedDate', use it. 
+            // Otherwise, we parse the raw Dropoff string.
+            if (data.FormattedDate && data.FormattedTime) {
+                document.getElementById('detTime').innerText = `${data.FormattedDate} at ${data.FormattedTime}`;
+            } else if (data.Dropoff) {
+                const dateObj = new Date(data.Dropoff);
+                const dateString = dateObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+                const timeString = dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('detTime').innerText = `${dateString} at ${timeString}`;
+            }
             
-            // Show modal and loader immediately
-            modal.classList.remove('hidden');
-            body.classList.add('hidden');
-            loader.classList.remove('hidden');
+            const notesContainer = document.getElementById('detNotesContainer');
+            if (data.Notes && data.Notes.trim() !== "") {
+                document.getElementById('detNotes').innerText = data.Notes;
+                notesContainer.classList.remove('hidden');
+            } else {
+                notesContainer.classList.add('hidden');
+            }
 
-            fetch(`/api/donation-details/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    // Fill Data
-                    document.getElementById('detItemImg').src = data.ItemImage || '/static/default-food.png';
-                    document.getElementById('detItemName').innerText = data.ItemName;
-                    document.getElementById('detQty').innerText = data.Quantity;
-                    document.getElementById('detFridge').innerText = data.FridgeName;
-                    document.getElementById('detTime').innerText = `${data.FormattedDate} at ${data.FormattedTime}`;
-                    
-                    const notesContainer = document.getElementById('detNotesContainer');
-                    if (data.Notes && data.Notes.trim() !== "") {
-                        document.getElementById('detNotes').innerText = data.Notes;
-                        notesContainer.classList.remove('hidden');
-                    } else {
-                        notesContainer.classList.add('hidden');
-                    }
-
-                    // Toggle visibility
-                    loader.classList.add('hidden');
-                    body.classList.remove('hidden');
-                })
-                .catch(err => {
-                    console.error("Error loading donation details:", err);
-                    alert("Could not load donation details.");
-                    closeDonationModal();
-                });
-        }
-
-        function closeDonationModal() {
-            document.getElementById('donationModal').classList.add('hidden');
-        }
-
-        // Close on escape key
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeDonationModal();
+            loader.classList.add('hidden');
+            body.classList.remove('hidden');
+        })
+        .catch(err => {
+            console.error("Error fetching details:", err);
+            alert("Could not load donation details.");
+            closeDonationModal();
         });
+function closeDonationModal() {
+    document.getElementById('donationModal').classList.add('hidden');
+}
 
-        // Close modal if user clicks the dark backdrop
-        document.getElementById('donationModal').addEventListener('click', function(e) {
-            if (e.target === this) closeDonationModal();
-        });
-    </script>
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDonationModal();
+});
+</script>
 </body>
 </html>
