@@ -44,6 +44,19 @@
 
 {% include "components/navbar.html.jinja" %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% if category == "donate_money" %}
+        <div class="flash-message mb-4 px-4 py-3 rounded-xl 
+                    bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md fixed top-24 md:top-20 right-5 z-50 space-y-2 ">
+          {{ message }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 lg:py-12">
 
     <div class="mb-8 lg:mb-12 text-center lg:text-left">
@@ -237,6 +250,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const today = new Date().toISOString().split("T")[0];
         dateInput.min = today;
     }
+    
+    const flashes = document.querySelectorAll(".flash-message");
+
+    flashes.forEach(flash => {
+        setTimeout(() => {
+            flash.style.opacity = "0";
+            flash.style.transition = "opacity 0.5s ease";
+
+            setTimeout(() => {
+                flash.remove();
+            }, 300);
+        }, 3000); // 3 seconds
+    });
 
     document.querySelectorAll("form").forEach(form => {
         form.addEventListener("submit", (e) => {
