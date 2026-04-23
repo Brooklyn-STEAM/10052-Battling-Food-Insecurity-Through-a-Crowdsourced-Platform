@@ -295,9 +295,8 @@ def donate_money():
     if request.method == "POST":
         amount = request.form.get("amount")
         custom_amount = request.form.get("custom_amount")
-        fridge_id = request.form.get("FridgeID")
+        fridge_id = request.form.get("money_fridge_id")  # ✅ FIXED
 
-        # Validation
         if not fridge_id:
             flash("Please select a fridge.")
             return redirect(url_for("donations"))
@@ -308,8 +307,11 @@ def donate_money():
             flash("Invalid fridge selection.")
             return redirect(url_for("donations"))
 
-        final_amount = custom_amount if custom_amount else amount
-        if not final_amount:
+        if custom_amount:
+            final_amount = custom_amount
+        elif amount:
+            final_amount = amount
+        else:
             flash("Enter an amount.")
             return redirect(url_for("donations"))
 
@@ -319,26 +321,23 @@ def donate_money():
             flash("Invalid amount.")
             return redirect(url_for("donations"))
 
-        # Get fridge name
         cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
         fridge = cursor.fetchone()
         fridge_name = fridge["Name"] if fridge else None
 
-        # Insert donation
         cursor.execute("""
-            INSERT INTO Donations
-            (UserID, Quantity, FridgeID, Email, Dropoff, Type, Description, Name)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
+             INSERT INTO Donations
+            (UserID, FridgeID, Email, Dropoff, Type, Quantity, Notes)
+             VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
             current_user.id,
-            final_amount,
             fridge_id,
             current_user.email,
-            datetime.now(),
-            "Money",                 # ✅ SAFE ENUM VALUE
-            "Money Donation",
-            fridge_name
-        ))
+            datetime.now().date(),
+            "money",
+            int(float(final_amount)),
+            "Money Donation"
+            ))
 
         connection.commit()
         connection.close()
@@ -346,35 +345,15 @@ def donate_money():
         flash("Donation successful!")
         return redirect(url_for("thank"))
 
-    # GET
     cursor.execute("SELECT ID, Name, Image FROM Fridge")
     fridges = cursor.fetchall()
 
-    # ALSO LOAD ITEMS (needed for page!)
     cursor.execute("SELECT ID, Name, Image FROM Items")
     food_types = cursor.fetchall()
 
-    # Connect and insert into DB
-    connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("""
-        INSERT INTO Donations (UserID, Quantity, FridgeID, Email, Dropoff, Type, )
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """, (
-        current_user.id,
-        final_amount,
-        fridge_id,
-        current_user.email,
-        datetime.now(),
-        "Money",
-        "Monetary donation"
-    ))
-    connection.commit()
     connection.close()
 
-    flash("Thank you for your monetary donation!")
-    return redirect(url_for("thank"))
-
+    return render_template("donateinfo.html.jinja", fridges=fridges, food_types=food_types)
 
 # -----------------------------
 # 🍱 DONATE FOOD
