@@ -298,7 +298,7 @@ def donate_money():
         fridge_id = request.form.get("money_fridge_id")  # ✅ FIXED
 
         if not fridge_id:
-            flash("Please select a fridge.")
+            flash("Please select a fridge.", "donate_money")
             return redirect(url_for("donations"))
 
         try:
@@ -707,14 +707,14 @@ def account():
 def update_username():
     username = request.form.get("username", "").strip()
     if not username:
-        flash("Username cannot be empty")
+        flash("Username cannot be empty", "profile_error")
         return redirect("/profile")
     connection = connect_db()
     cursor = connection.cursor()
     cursor.execute("UPDATE User SET Name = %s WHERE ID = %s", (username, current_user.id))
     connection.close()
     current_user.name = username
-    flash("Username updated!")
+    flash("Username updated!", "profile_success")
     return redirect("/profile_page")
 
 @app.route("/profile/update-password", methods=["POST"])
@@ -722,13 +722,13 @@ def update_username():
 def update_password():
     password = request.form.get("password", "")
     if len(password) < 8:
-        flash("Password must be at least 8 characters")
+        flash("Password must be at least 8 characters", "profile_error")
         return redirect("/profile")
     connection = connect_db()
     cursor = connection.cursor()
     cursor.execute("UPDATE User SET Password = %s WHERE ID = %s", (password, current_user.id))
     connection.close()
-    flash("Password updated!")
+    flash("Password updated!", "profile_success")
     return redirect("/profile_page")
 
 @app.route("/profile/update-picture", methods=["POST"])
@@ -737,8 +737,8 @@ def update_picture():
     picture_url = request.form.get("picture_url", "").strip()
 
     if picture_url and not picture_url.startswith(("https://", "/static/")):
-        flash("Invalid image URL")
-        flash("Please provide a valid URL starting with https:// or a path to a static image.")
+        flash("profile","Invalid image URL", "profile_error")
+        flash("profile","Please provide a valid URL starting with https:// or a path to a static image.", "profile_error")
         return redirect("/profile_page")
     connection = connect_db()
     cursor = connection.cursor()
@@ -753,7 +753,7 @@ def update_picture():
 
     current_user.profile_picture = picture_url or None
 
-    flash("Profile picture updated!")
+    flash("Profile picture updated!", "profile_success")
     return redirect("/profile_page")
 
 # -----------------------
