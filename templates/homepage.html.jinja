@@ -4,8 +4,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="icon" type="image/png" href="/static/images/logo.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/static/images/logo.png">
 
   <title>FridgeNet</title>
 
@@ -17,7 +17,6 @@
     }
   </script>
 
-  <!-- SAME THEME SYSTEM AS DONATION PAGE -->
   <script>
     (function () {
       const saved = localStorage.getItem("theme");
@@ -31,21 +30,19 @@
         document.documentElement.classList.toggle("dark", prefersDark);
       }
     })();
-    
- 
-  document.addEventListener("DOMContentLoaded", function() {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active');
-        }
-      });
-    }, { threshold: 0.1 });
 
-    // This now waits until the HTML is loaded to find the elements
-    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
-  });
 
+    document.addEventListener("DOMContentLoaded", function () {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    });
   </script>
 
   <style>
@@ -59,17 +56,18 @@
     }
 
     .reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s ease-out;
-}
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease-out;
+    }
 
-.reveal.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-.reveal-delay-200 { transition-delay: 0.2s; }
-.reveal-delay-400 { transition-delay: 0.4s; }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-200 { transition-delay: 0.2s; }
+    .reveal-delay-400 { transition-delay: 0.4s; }
   </style>
 
 </head>
@@ -82,16 +80,15 @@
 
   <main>
 
-    <!-- HERO -->
     <section class="text-center py-24 px-6 
                     bg-gradient-to-r from-green-100 to-emerald-50
-                    dark:from-[#1e1b2e] dark:to-[#1b1730]">
+                    dark:from-[#2a2545] dark:to-[#1b1730]">
 
       <h1 class="text-5xl md:text-6xl font-extrabold text-green-800 dark:text-white mb-6">
         Share Food. Support Community. Reduce Waste.
       </h1>
 
-      <p class="max-w-2xl mx-auto text-lg text-gray-700 dark:text-gray-300 mb-8">
+      <p class="max-w-2xl mx-auto text-lg text-gray-700 dark:text-purple-100/80 mb-8">
         FridgeNet connects neighbors, restaurants, and community fridges
         to make free food easy to find and share.
       </p>
@@ -99,112 +96,99 @@
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
 
         <a href="/map"
-           class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md dark:bg-[#7209b7] dark:hover:bg-[#2a2545] transition">
+           class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
           Find a Fridge
         </a>
 
         <a href="/donations"
-           class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow-md font-semibold dark:bg-[#7b2cbf] dark:hover:bg-[#2a2545] transition">
+           class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow-md font-semibold dark:bg-[#6f52c9] dark:hover:bg-[#40376E] transition">
           Donate Food
         </a>
 
       </div>
     </section>
 
-    <!-- ABOUT -->
     <section class="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-10 items-center">
 
       <div>
-        <h2 class="text-4xl font-bold text-green-800 dark:text-white mb-4">
+        <h2 class="text-4xl font-bold text-green-800 dark:text-purple-300 mb-4">
           Building Stronger Communities
         </h2>
 
-        <p class="text-gray-700 dark:text-gray-300 mb-3">
+        <p class="text-gray-700 dark:text-purple-100/90 mb-3">
           Reduce food waste and help neighbors access fresh meals.
         </p>
 
-        <p class="text-gray-700 dark:text-gray-300">
+        <p class="text-gray-700 dark:text-purple-100/90">
           Donate, share, and find community fridges near you.
         </p>
       </div>
 
-      <div class="rounded-2xl overflow-hidden bg-gray-100 dark:bg-[#1f1b35] h-72">
+      <div class="rounded-2xl overflow-hidden bg-gray-100 dark:bg-[#2a2545] border dark:border-[#40376E] h-72 shadow-xl">
         <img src="/static/images/cimage.jpg" class="w-full h-full object-cover">
       </div>
 
     </section>
 
-    <!-- FEATURES -->
-    <section class="py-20 px-6 bg-green-50 dark:bg-[#1f1b35] overflow-hidden">
-  <div class="max-w-6xl mx-auto text-center">
-    
-    <h2 class="reveal text-4xl font-bold text-green-800 dark:text-white mb-12">
-      How FridgeNet Helps
-    </h2>
+    <section class="py-20 px-6 bg-green-50 dark:bg-[#231d3d] overflow-hidden">
+      <div class="max-w-6xl mx-auto text-center">
 
-    <div class="grid md:grid-cols-3 gap-8">
-      <div class="reveal bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow transition-all duration-300 hover:-translate-y-2">
-        <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">Find Fridges</h3>
-        <p class="text-gray-600 dark:text-gray-300">Locate nearby community fridges instantly.</p>
+        <h2 class="reveal text-4xl font-bold text-green-800 dark:text-white mb-12">
+          How FridgeNet Helps
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="reveal bg-white dark:bg-[#2a2545] p-6 rounded-2xl shadow-md border dark:border-[#40376E] transition-all duration-300 hover:-translate-y-2">
+            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-purple-300">Find Fridges</h3>
+            <p class="text-gray-600 dark:text-purple-100/70">Locate nearby community fridges instantly.</p>
+          </div>
+
+          <div class="reveal reveal-delay-200 bg-white dark:bg-[#2a2545] p-6 rounded-2xl shadow-md border dark:border-[#40376E] transition-all duration-300 hover:-translate-y-2">
+            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-purple-300">Donate Food</h3>
+            <p class="text-gray-600 dark:text-purple-100/70">Share extra food easily with your community.</p>
+          </div>
+
+          <div class="reveal reveal-delay-400 bg-white dark:bg-[#2a2545] p-6 rounded-2xl shadow-md border dark:border-[#40376E] transition-all duration-300 hover:-translate-y-2">
+            <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-purple-300">Support Network</h3>
+            <p class="text-gray-600 dark:text-purple-100/70">Keep fridges stocked and maintained.</p>
+          </div>
+
+        </div>
       </div>
+    </section>
 
-      <div class="reveal reveal-delay-200 bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow transition-all duration-300 hover:-translate-y-2">
-        <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">Donate Food</h3>
-        <p class="text-gray-600 dark:text-gray-300">Share extra food easily with your community.</p>
-      </div>
-
-      <div class="reveal reveal-delay-400 bg-white dark:bg-[#5a189a] p-6 rounded-2xl shadow transition-all duration-300 hover:-translate-y-2">
-        <h3 class="text-xl font-semibold mb-2 text-green-700 dark:text-white">Support Network</h3>
-        <p class="text-gray-600 dark:text-gray-300">Keep fridges stocked and maintained.</p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-    <!-- CTA / SIGNUP -->
-<div class="text-center py-24 px-6
+    <div class="relative text-center py-24 px-6
                 bg-gradient-to-r from-green-300 via-green-200 to-emerald-200
-                dark:from-[#1e1b2e] dark:via-[#2a2545] dark:to-[#1b1730]
-                transition-colors">
+                dark:from-[#1b1730] dark:via-[#2a2545] dark:to-[#1b1730]
+                transition-colors overflow-hidden">
 
-  <!-- subtle glow -->
-  <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/20 blur-3xl rounded-full"></div>
-  <div class="absolute -bottom-20 -right-20 w-72 h-72 bg-black/20 blur-3xl rounded-full"></div>
+      <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/20 dark:bg-purple-500/10 blur-3xl rounded-full"></div>
+      <div class="absolute -bottom-20 -right-20 w-72 h-72 bg-black/10 dark:bg-black/40 blur-3xl rounded-full"></div>
 
-  <h2 class="text-4xl font-bold mb-4">
-    Join the Movement to End Food Waste
-  </h2>
+      <h2 class="text-4xl font-bold mb-4 dark:text-white">
+        Join the Movement to End Food Waste
+      </h2>
 
-  <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
 
-    <a href="/signup?role=restaurant"
-       class="bg-white text-green-700
-              dark:text-purple-700
-              font-semibold px-8 py-3 rounded-xl
-              shadow-lg hover:scale-105 transition">
-      Partner as a Restaurant
-    </a>
+        <a href="/signup?role=restaurant"
+           class="bg-white text-green-700 dark:bg-white dark:text-[#7b2cbf] font-semibold px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition">
+          Partner as a Restaurant
+        </a>
 
-    <a href="/signup"
-       class="bg-white text-green-700
-              dark:text-purple-700
-              font-semibold px-8 py-3 rounded-xl
-              shadow-lg hover:scale-105 transition">
-      Create Your Free Account
-    </a>
+        <a href="/signup"
+           class="bg-white text-green-700 dark:bg-white dark:text-[#7b2cbf] font-semibold px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition">
+          Create Your Free Account
+        </a>
 
-    <a href="/map"
-       class="bg-white text-green-700
-              dark:text-purple-700
-              font-semibold px-8 py-3 rounded-xl
-              shadow-lg hover:scale-105 transition">
-      Explore the Map
-    </a>
+        <a href="/map"
+           class="bg-white text-green-700 dark:bg-white dark:text-[#7b2cbf] font-semibold px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition">
+          Explore the Map
+        </a>
 
-  </div>
-</div>
-    
+      </div>
+    </div>
+
   </main>
 
   {% include "components/footer.html.jinja" %}

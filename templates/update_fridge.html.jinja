@@ -143,71 +143,88 @@
 {% include "components/footer.html.jinja" %}
 
 <script>
-const originalQuantities = {{ items_json | safe }};
+// 1. Correctly parse the initial quantities from Jinja
+// We create a simple object: { "itemID": quantity }
+const originalQuantities = {
+    {% for item in items %}
+    "{{ item['ItemsID'] }}": {{ item['Quantity'] or 0 }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
 
-const originalQuantities = JSON.parse(`{
-{% for item in items %}
-  "{{ item['ItemsID'] }}": {{ item['Quantity'] or 0 }}{% if not loop.last %},{% endif %}
-{% endfor %}
-}`);
-
-/* 2. Logic */
+// 2. Logic for increment/decrement buttons
 function changeQty(id, amount) {
     const display = document.getElementById("qty_display_" + id);
     const hiddenInput = document.getElementById("qty_input_" + id);
     
-    let currentVal = parseInt(hiddenInput.value);
+    if (!display || !hiddenInput) return;
+
+    let currentVal = parseInt(hiddenInput.value) || 0;
     let newVal = Math.max(0, currentVal + amount);
     
     display.value = newVal;
     hiddenInput.value = newVal;
 }
 
+// 3. Update the text label for the range slider
 function updateLabel(val) {
     const labels = ["Completely Empty", "A Few Items", "Half Full", "Mostly Full", "Completely Full"];
-    document.getElementById("fullnessLabel").innerText = labels[val];
-}
-
-function undoChanges() {
-    for (const id in originalQuantities) {
-        document.getElementById("qty_display_" + id).value = originalQuantities[id];
-        document.getElementById("qty_input_" + id).value = originalQuantities[id];
+    const labelEl = document.getElementById("fullnessLabel");
+    if (labelEl) {
+        labelEl.innerText = labels[val];
     }
 }
 
+// 4. Undo function
+function undoChanges() {
+    for (const id in originalQuantities) {
+        const display = document.getElementById("qty_display_" + id);
+        const hiddenInput = document.getElementById("qty_input_" + id);
+        if (display && hiddenInput) {
+            display.value = originalQuantities[id];
+            hiddenInput.value = originalQuantities[id];
+        }
+    }
+    // Optionally reset slider to a default or original value if you track it
+}
+
+// 5. Reset Popup Logic
 function showResetPopup() {
-    document.getElementById("reset-popup").classList.remove("opacity-0", "pointer-events-none");
+    const popup = document.getElementById("reset-popup");
+    popup.classList.remove("opacity-0", "pointer-events-none");
 }
 
 function closeResetPopup() {
-    document.getElementById("reset-popup").classList.add("opacity-0", "pointer-events-none");
+    const popup = document.getElementById("reset-popup");
+    popup.classList.add("opacity-0", "pointer-events-none");
 }
 
 function confirmReset() {
+    // Set all visible and hidden quantity inputs to 0
     document.querySelectorAll("input[id^='qty_display_']").forEach(el => el.value = 0);
     document.querySelectorAll("input[id^='qty_input_']").forEach(el => el.value = 0);
+    
+    // Reset slider
     const slider = document.getElementById("fullnessSlider");
-    slider.value = 0;
-    updateLabel(0);
+    if (slider) {
+        slider.value = 0;
+        updateLabel(0);
+    }
     closeResetPopup();
 }
 
-// Init Label
-updateLabel(document.getElementById("fullnessSlider").value);
-
+// 6. Form Validation
 function validateForm() {
-    const slider = document.getElementById("fullnessSlider");
     const label = document.getElementById("fullnessLabel");
-
-    // If you want to ensure they didn't just leave it at the default
-    // You could check if a "hasInteracted" variable is true.
-    
-    // Simple visual feedback before submitting
-    if (confirm("Are you sure the fridge is " + label.innerText + "?")) {
-        return true;
-    }
-    return false;
+    return confirm("Are you sure the fridge is " + label.innerText + "?");
 }
+
+// 7. Initialize the label on page load
+document.addEventListener("DOMContentLoaded", () => {
+    const slider = document.getElementById("fullnessSlider");
+    if (slider) {
+        updateLabel(slider.value);
+    }
+});
 </script>
 
 </body>
