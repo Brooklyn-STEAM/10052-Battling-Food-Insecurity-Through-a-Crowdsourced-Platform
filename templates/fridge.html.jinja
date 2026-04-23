@@ -81,12 +81,17 @@
             <a href="/report/{{ fridge['ID'] }}" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">Report Issue</a>
             
             {% if current_user.is_authenticated %}
-            <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}" class="bg-white dark:bg-[#2a2545] p-3 rounded-xl shadow-md border border-gray-200 dark:border-[#40376E] transition transform active:scale-95">
-              <svg id="heart-icon" class="h-6 w-6 transition-all duration-200 fill-none stroke-gray-400 stroke-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </button>
-            {% endif %}
+              <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}"
+                class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
+
+                <svg id="star-icon" class="h-6 w-6 p-transition-all duration-200 fill-none stroke-gray-400 stroke-1.5"
+                  xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
+                  <path stroke-linecap="round" stroke-linejoin="round" 
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
+                </svg>
+
+              </button>
+              {% endif %}
           </div>
         </div>
       </div>
@@ -223,6 +228,15 @@
         popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); });
       }
     });
-  </script>
+
+    if (res.ok) {
+      // 🔥 Don’t rely on class state — track logically
+      const isActive = starIcon.classList.contains('fill-yellow-400');
+      updateStarUI(!isActive);
+    }
+  });
+
+});
+</script>
 </body>
 </html>

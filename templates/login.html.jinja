@@ -37,6 +37,39 @@
       border-color 0.3s ease,
       box-shadow 0.3s ease;
   }
+.flash-message {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.flash-hide {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+@keyframes toastIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(5px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+@keyframes toastOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+}
+
 </style>
 </head>
 
@@ -70,7 +103,16 @@
       <p class="text-center text-gray-600 dark:text-gray-300 mt-3">
         Sign in to find nearby community fridges and support your community.
       </p>
-
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash-message mb-4 px-4 py-3 rounded-xl 
+                  bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
       <form method="post" class="mt-8 space-y-5">
 
         <!-- Email -->
@@ -122,7 +164,23 @@
       </form>
     </div>
   </section>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const messages = document.querySelectorAll(".flash-message");
 
+  messages.forEach((msg) => {
+    setTimeout(() => {
+      msg.classList.add("flash-hide");
+
+      // remove AFTER fade completes
+      setTimeout(() => {
+        msg.remove();
+      }, 600);
+
+    }, 3000);
+  });
+});
+</script>
   {% include "components/footer.html.jinja" %}
 
 </body>

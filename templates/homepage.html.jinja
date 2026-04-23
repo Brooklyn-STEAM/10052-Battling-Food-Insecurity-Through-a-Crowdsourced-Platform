@@ -192,6 +192,22 @@
   </main>
 
   {% include "components/footer.html.jinja" %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const messages = document.querySelectorAll(".flash-message");
 
+  messages.forEach((msg) => {
+    // wait before fading out
+    setTimeout(() => {
+      msg.classList.add("flash-hide");
+
+      // remove from DOM after animation
+      setTimeout(() => {
+        msg.remove();
+      }, 600);
+    }, 3000); // visible for 3 seconds
+  });
+});
+</script>
 </body>
 </html>

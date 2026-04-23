@@ -171,24 +171,39 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
+
         connection = connect_db()
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM `User` WHERE `Email`=%s", (email,))
         result = cursor.fetchone()
-        connection.close()
-        
+
         if not result or result["Password"] != password:
-                flash("Invalid email or password")
-                return redirect(url_for("login"))
+            connection.close()
+            flash("Invalid email or password", "error")
+            return redirect(url_for("login"))
 
         user = User(result)
+
+        # ✅ LOGIN COUNT / FIRST LOGIN LOGIC GOES HERE
+        if result["LoginCount"] == 0:
+            flash(f"Welcome to FridgeNet, {user.name}! 🎉", "success")
+        else:
+            flash(f"Welcome back, {user.name}! 👋", "success")
+
+        cursor.execute(
+            "UPDATE User SET LoginCount = LoginCount + 1 WHERE Email=%s",
+            (email,)
+        )
+        connection.commit()
+        connection.close()
+
         login_user(user)
 
         if user.role == "restaurant":
             return redirect(url_for("restaurant_dashboard"))
         else:
             return redirect(url_for("index"))
-    
+
     return render_template("login.html.jinja")
 
 # --------------------
@@ -230,14 +245,16 @@ def signup():
             flash("Email already registered")
             return redirect("/signup")
 
+        default_pic = "/static/images/default-profile.png"
+
         cursor.execute("""
-            INSERT INTO User (Name, Email, Password, Address, Role)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (name, email, password, address, role))
+            INSERT INTO User (Name, Email, Password, Address, Role, ProfilePicture)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (name, email, password, address, role, default_pic))
 
         connection.commit()
         connection.close()
-
+        flash("Account created successfully! Please log in.", "success")
         return redirect("/login")
 
     return render_template("signup.html.jinja")
@@ -283,30 +300,66 @@ def donations():
 @login_required
 def donate_money():
     if request.method == "POST":
-        # ... validation logic ...
-        connection = connect_db()
-        cursor = connection.cursor(pymysql.cursors.DictCursor)
-        
+        amount = request.form.get("amount")
+        custom_amount = request.form.get("custom_amount")
+        fridge_id = request.form.get("money_fridge_id")  # ✅ FIXED
+
+        if not fridge_id:
+            flash("Please select a fridge.")
+            return redirect(url_for("donations"))
+
+        try:
+            fridge_id = int(fridge_id)
+        except:
+            flash("Invalid fridge selection.")
+            return redirect(url_for("donations"))
+
+        if custom_amount:
+            final_amount = custom_amount
+        elif amount:
+            final_amount = amount
+        else:
+            flash("Enter an amount.")
+            return redirect(url_for("donations"))
+
+        try:
+            final_amount = float(final_amount)
+        except:
+            flash("Invalid amount.")
+            return redirect(url_for("donations"))
+
+        cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
+        fridge_name = fridge["Name"] if fridge else None
+
         cursor.execute("""
-            INSERT INTO Donations (UserID, Quantity, FridgeID, Email, Dropoff, Type, Description)
-            VALUES (%s, %s, %s, %s, NOW(), 'Money', 'Monetary donation')
-        """, (current_user.id, final_amount, fridge_id, current_user.email))
-        # Change this in your Python route:
-        final_amount = request.form.get("final_amount")
-        fridge_id = request.form.get("FridgeID")
+             INSERT INTO Donations
+            (UserID, FridgeID, Email, Dropoff, Type, Quantity, Notes)
+             VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
+            current_user.id,
+            fridge_id,
+            current_user.email,
+            datetime.now().date(),
+            "money",
+            int(float(final_amount)),
+            "Money Donation"
+            ))
+
         connection.commit()
         connection.close()
         flash("Thank you for your donation!")
         return redirect(url_for("thank"))
 
-    # GET logic: Just fetch data for the form
-    connection = connect_db()
-    cursor = connection.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT ID, Name FROM Fridge")
+    cursor.execute("SELECT ID, Name, Image FROM Fridge")
     fridges = cursor.fetchall()
-    connection.close()
-    return render_template("donateinfo.html.jinja", fridges=fridges)
 
+    cursor.execute("SELECT ID, Name, Image FROM Items")
+    food_types = cursor.fetchall()
+
+    connection.close()
+
+    return render_template("donateinfo.html.jinja", fridges=fridges, food_types=food_types)
 
 # -----------------------------
 # 🍱 DONATE FOOD
