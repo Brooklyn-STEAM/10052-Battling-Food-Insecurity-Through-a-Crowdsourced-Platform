@@ -175,24 +175,32 @@
 }
 html, body {
     height: 100%;
-    overflow: hidden; /* locks page scroll entirely */
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
 }
 
 #map {
     touch-action: pan-x pan-y;
     height: 100%;
 }
-body > div {
-    height: 100vh;
-    overflow: hidden;
-}
+
     </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 font-sans">
 
 {% include "components/navbar.html.jinja" %}
-
+<button id="menu-btn"
+    class="md:hidden fixed top-4 left-4 z-[3000]
+    bg-green-600 text-white p-3 rounded-full shadow-lg
+    dark:bg-purple-600">
+    
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+</button>
 <div class="relative w-full h-screen overflow-hidden flex flex-col md:flex-row">
 
     <!-- MAP (UNCHANGED) -->
@@ -596,11 +604,17 @@ if (summary) {
                 itineraryContainer.innerHTML = stepsHtml;
             }
         })
-            if (isMobile && mobileItinerary) {
-                mobileItinerary.innerHTML = errorHtml;
-            } else {
-                itineraryContainer.innerHTML = errorHtml;
-            }
+.catch(err => {
+    const errorHtml = `<p class='text-red-500 text-sm'>Failed to load route</p>`;
+
+    if (window.innerWidth < 768 && mobileItinerary) {
+        mobileItinerary.innerHTML = errorHtml;
+    } else {
+        itineraryContainer.innerHTML = errorHtml;
+    }
+
+    console.error(err);
+});
 };
 
 // Add this helper function
@@ -1015,6 +1029,12 @@ sidebar.addEventListener("touchend", () => {
         openSidebar();
     }
 });
+const menuBtn = document.getElementById("menu-btn");
+const navbar = document.getElementById("navbar");
+
+menuBtn.onclick = () => {
+    navbar.classList.toggle("hidden");
+};
 </script>
 <!-- MOBILE DIRECTIONS MODAL -->
 <div id="directions-modal"
