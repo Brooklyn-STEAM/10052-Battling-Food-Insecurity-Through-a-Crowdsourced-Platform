@@ -149,7 +149,6 @@ def email():
    return render_template('donateinfo.html.jinja')
 
 
-    return render_template('donateinfo.html.jinja')
 
 # -----------------------
 # MAP PAGE (OPTIONAL TARGET FRIDGE)
@@ -307,15 +306,14 @@ def donations():
        food_types=food_types
    )
 
-
-
-
 # -----------------------------
 # 💰 DONATE MONEY
 # -----------------------------
 @app.route("/donate-money", methods=["GET", "POST"])
 @login_required
 def donate_money():
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
     if request.method == "POST":
         amount = request.form.get("amount")
         custom_amount = request.form.get("custom_amount")
@@ -383,7 +381,6 @@ def donate_money():
 # -----------------------------
 fridges = [{"ID": 1, "Name": "Central Park Fridge", "Image": "/static/img1.jpg"}]
 food_types = [{"ID": 1, "Name": "Canned Goods"}, {"ID": 2, "Name": "Fresh Produce"}]
-
 
 @app.route("/donate-food", methods=["GET", "POST"])
 @login_required
@@ -721,11 +718,11 @@ def report_fridge(fridge_id):
         connection.close()
 
 
-   if not fridge:
+    if not fridge:
        abort(404)
 
 
-   return render_template("report.html.jinja", fridge=fridge)
+    return render_template("report.html.jinja", fridge=fridge)
 
 
 # -----------------------
@@ -1295,6 +1292,7 @@ def edit_review(review_id):
   
    # 4. REDIRECT FIX: Your function on line 228 is named 'personal_fridges'
    return redirect(url_for('personal_fridges', fridge_id=review['FridgeID']))
+
 
 # --------------------
 # VIEW ALL REVIEWS 

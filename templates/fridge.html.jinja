@@ -13,7 +13,7 @@
   <script>
     tailwind.config = { darkMode: 'class' }
   </script>
-
+<script>
       (function () {
         const saved = localStorage.getItem("theme");
         if (saved === "dark") {
@@ -137,7 +137,7 @@
             </button>
           {% else %}
             <a href="/login" class="w-full sm:w-auto bg-gray-200 dark:bg-[#2a2545] text-gray-600 dark:text-purple-200 px-8 py-3 rounded-xl font-bold text-center">Login to Review</a>
-          {% endif %}
+          {% endif %}   
         </div>
 
         <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
@@ -153,18 +153,18 @@
                     <button onclick="toggleEdit('{{ review['ReviewID'] }}')" class="text-xs text-blue-500 dark:text-purple-400 hover:underline">Edit</button>
                   {% endif %}
                 </div>
-                
-                <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200 mb-2">{{ review["Comment"] }}</p>
-                
-                {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
-                  <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-3">
-                    <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
-                    <div class="flex gap-2">
-                      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Save</button>
+              
+               <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200 mb-2">{{ review["Comment"] }}</p>
+              
+               {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
+                 <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-3">
+                   <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
+                   <div class="flex gap-2">
+                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Save</button>
                       <button type="button" onclick="toggleEdit('{{ review['ReviewID'] }}')" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
-                    </div>
-                  </form>
-                {% endif %}
+                        </div>
+                 </form>
+               {% endif %}
 
                 <p class="text-xs text-gray-400 dark:text-purple-300/50 italic mt-2">Posted {{ review["Timestamp"].strftime('%b %d, %Y') }}</p>
               </div>
@@ -208,35 +208,69 @@
   {% include "components/footer.html.jinja" %}
 
   <script>
-    function toggleEdit(reviewId) {
-      const text = document.getElementById(`comment-text-${reviewId}`);
-      const form = document.getElementById(`edit-form-${reviewId}`);
-      if (form.classList.contains('hidden')) {
-          form.classList.remove('hidden');
-          text.classList.add('hidden');
-      } else {
-          form.classList.add('hidden');
-          text.classList.remove('hidden');
-      }
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
-      const openBtn = document.getElementById('open-review-btn');
-      const popup = document.getElementById('review-popup');
-      if (openBtn && popup) {
+    // Review Popup Logic
+    const openBtn = document.getElementById('open-review-btn');
+    const popup = document.getElementById('review-popup');
+    if (openBtn && popup) {
         openBtn.addEventListener('click', () => popup.classList.remove('opacity-0', 'pointer-events-none'));
-        popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); });
-      }
-    });
-
-    if (res.ok) {
-      // 🔥 Don’t rely on class state — track logically
-      const isActive = starIcon.classList.contains('fill-yellow-400');
-      updateStarUI(!isActive);
+        popup.addEventListener('click', (e) => { 
+            if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); 
+        });
     }
-  });
 
+    // Favorite Button Logic
+    const favBtn = document.getElementById('fav-btn');
+    const starIcon = document.getElementById('star-icon');
+
+    if (favBtn) {
+        const fridgeId = favBtn.getAttribute('data-fridge-id');
+
+        // 1. Initial check: Is it already favorited?
+        fetch('/get-favorites')
+            .then(res => res.json())
+            .then(favorites => {
+                const isFav = favorites.some(f => f.ID == fridgeId || f.id == fridgeId);
+                updateStarUI(isFav);
+            });
+
+        // 2. Toggle Favorite on Click
+        favBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/toggle-favorite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fridge_id: fridgeId })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    // If backend returns "added", fill the star. If "removed", empty it.
+                    const isNowFav = data.message.includes("added");
+                    updateStarUI(isNowFav);
+
+                    // Add a little celebration if added
+                    if (isNowFav && typeof confetti === 'function') {
+                        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+                    }
+                }
+            } catch (err) {
+                console.error("Error toggling favorite:", err);
+            }
+        });
+    }
+
+    function updateStarUI(isActive) {
+        if (isActive) {
+            starIcon.classList.add('fill-yellow-400', 'stroke-yellow-500');
+            starIcon.classList.remove('fill-none', 'stroke-gray-400');
+        } else {
+            starIcon.classList.remove('fill-yellow-400', 'stroke-yellow-500');
+            starIcon.classList.add('fill-none', 'stroke-gray-400');
+        }
+    }
 });
+  
 </script>
 </body>
 </html>

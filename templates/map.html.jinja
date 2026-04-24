@@ -415,11 +415,6 @@ let currentTranslate = 0;
 const MAX_TRANSLATE = window.innerHeight * 0.6;
 
 
-// Sidebar Toggle Logic
-
-
-
-
 // Map Initialization
 const map = L.map('map', {
     zoomAnimation: true,
@@ -437,8 +432,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 }).addTo(map);
 
 L.control.zoom({ position: 'topright' }).addTo(map);
-
-
 
 const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35, 35] });
 const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45, 45] });
