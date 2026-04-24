@@ -7,244 +7,236 @@
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
  <link rel="icon" type="image/png" href="/static/images/logo.png">
 
-
- <script src="https://cdn.tailwindcss.com"></script>
- <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
   <script>
-   tailwind.config = { darkMode: 'class' }
- </script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
 
+      (function () {
+        const saved = localStorage.getItem("theme");
+        if (saved === "dark") {
+          document.documentElement.classList.add("dark");
+        } else if(saved === "light") {
+          document.documentElement.classList.remove("dark");
+        } else {
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.classList.toggle("dark", prefersDark);
+        }
+      })();
+  </script>
 
- <script>
-     (function () {
-       const saved = localStorage.getItem("theme");
-       if (saved === "dark") {
-         document.documentElement.classList.add("dark");
-       } else if(saved === "light") {
-         document.documentElement.classList.remove("dark");
-       } else {
-         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-         document.documentElement.classList.toggle("dark", prefersDark);
-       }
-     })();
- </script>
+  <style>
+    html { scroll-behavior: smooth; transition: background-color 0.3s ease, color 0.3s ease; }
+    body, div, p, h1, h2, span { transition: background-color 0.3s ease, color 0.3s ease; }
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    .animate-pop { animation: pop 0.4s ease-out; }
 
+    .star-rating label {
+      color: #d1d5db;
+      transition: color 0.2s ease;
+    }
 
- <style>
-   html { scroll-behavior: smooth; transition: background-color 0.3s ease, color 0.3s ease; }
-   body, div, p, h1, h2, span { transition: background-color 0.3s ease, color 0.3s ease; }
-   @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-   .animate-pop { animation: pop 0.4s ease-out; }
+    .dark .star-rating label {
+      color: #40376E;
+    }
 
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+      color: #fbbf24 !important;
+      text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+    }
 
-   .star-rating label {
-     color: #d1d5db;
-     transition: color 0.2s ease;
-   }
-
-
-   .dark .star-rating label {
-     color: #40376E;
-   }
-
-
-   .star-rating label:hover,
-   .star-rating label:hover ~ label,
-   .star-rating input:checked ~ label {
-     color: #fbbf24 !important;
-     text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
-   }
-
-
-   #review-popup .star-rating label {
-     font-size: 2.5rem;
-   }
- </style>
+    #review-popup .star-rating label {
+      font-size: 2.5rem;
+    }
+  </style>
 </head>
 
-
 <body class="bg-yellow-50 dark:bg-[#1b1730] text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
- {% include "components/navbar.html.jinja" %}
+  {% include "components/navbar.html.jinja" %}
 
+  <div class="flex-grow">
+    <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-16 px-6">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 dark:text-purple-300 mb-3">{{ fridge["Name"] }}</h1>
+            <p class="text-gray-700 dark:text-purple-100/80 text-lg">📍 {{ fridge["Address"] }}</p>
+          </div>
 
- <div class="flex-grow">
-   <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-16 px-6">
-     <div class="max-w-6xl mx-auto">
-       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-         <div>
-           <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 dark:text-purple-300 mb-3">{{ fridge["Name"] }}</h1>
-           <p class="text-gray-700 dark:text-purple-100/80 text-lg">📍 {{ fridge["Address"] }}</p>
-         </div>
+          <div class="flex flex-col sm:flex-row gap-4">
+            {% set status = fridge_status['Status'] | lower | trim %}
+            {% if status in ["full", "many", "half"] %}
+              <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
+            {% elif status in ["low", "few"] %}
+              <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
+            {% else %}
+              <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
+            {% endif %}
 
+            <a href="/update_fridge/{{ fridge['ID'] }}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">Update Inventory</a>
+            <a href="/report/{{ fridge['ID'] }}" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">Report Issue</a>
+            
+            {% if current_user.is_authenticated %}
+              <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}"
+                class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
 
-         <div class="flex flex-col sm:flex-row gap-4">
-           {% set status = fridge_status['Status'] | lower | trim %}
-           {% if status in ["full", "many", "half"] %}
-             <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
-           {% elif status in ["low", "few"] %}
-             <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
-           {% else %}
-             <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
-           {% endif %}
+                <svg id="star-icon" class="h-6 w-6 p-transition-all duration-200 fill-none stroke-gray-400 stroke-1.5"
+                  xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
+                  <path stroke-linecap="round" stroke-linejoin="round" 
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
+                </svg>
 
+              </button>
+              {% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
 
-           <a href="/update_fridge/{{ fridge['ID'] }}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">Update Inventory</a>
-           <a href="/report/{{ fridge['ID'] }}" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">Report Issue</a>
-          
-           {% if current_user.is_authenticated %}
-           <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}" class="bg-white dark:bg-[#2a2545] p-3 rounded-xl shadow-md border border-gray-200 dark:border-[#40376E] transition transform active:scale-95">
-             <svg id="heart-icon" class="h-6 w-6 transition-all duration-200 fill-none stroke-gray-400 stroke-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-             </svg>
-           </button>
-           {% endif %}
-         </div>
-       </div>
-     </div>
-   </section>
+    <section class="py-12 px-6 max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-8 items-start">
+        <div class="md:sticky md:top-6">
+          <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}" class="w-full aspect-square rounded-3xl shadow-lg object-cover max-h-[400px]">
+        </div>
+        <div class="space-y-3">
+          <h2 class="text-2xl font-bold text-green-800 dark:text-purple-300 mb-4">Available Items</h2>
+          <ul id="list" class="grid gap-2">
+            {% for item in items %}
+              {% if item['Quantity'] > 0 %}
+                <li class="flex items-center justify-between bg-white dark:bg-[#2a2545] p-2 pr-4 rounded-xl shadow-sm border border-gray-100 dark:border-[#40376E]">
+                  <div class="flex items-center space-x-3">
+                    <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
+                    <p class="font-medium text-gray-800 dark:text-gray-100">{{ item['Name'] }}</p>
+                  </div>
+                  <span class="text-xs font-bold px-2 py-1 bg-green-100 dark:bg-purple-900/40 text-green-700 dark:text-purple-200 rounded-md">{{ item['Quantity'] }} left</span>
+                </li>
+              {% endif %}
+            {% else %}
+              <li class="p-6 text-center bg-gray-50 dark:bg-[#2a2545]/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
+                <p class="text-gray-500 dark:text-purple-300/60 italic text-sm">No items currently listed.</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
 
+      <div class="mt-16 border-t border-gray-200 dark:border-[#40376E] pt-12">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+          <div>
+            <h2 id="reviews-section" class="text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
+            <p class="text-sm text-gray-500 dark:text-purple-300/60 mt-1">What others are saying about this fridge</p>
+          </div>
 
-   <section class="py-12 px-6 max-w-6xl mx-auto">
-     <div class="grid md:grid-cols-2 gap-8 items-start">
-       <div class="md:sticky md:top-6">
-         <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}" class="w-full aspect-square rounded-3xl shadow-lg object-cover max-h-[400px]">
-       </div>
-       <div class="space-y-3">
-         <h2 class="text-2xl font-bold text-green-800 dark:text-purple-300 mb-4">Available Items</h2>
-         <ul id="list" class="grid gap-2">
-           {% for item in items %}
-             {% if item['Quantity'] > 0 %}
-               <li class="flex items-center justify-between bg-white dark:bg-[#2a2545] p-2 pr-4 rounded-xl shadow-sm border border-gray-100 dark:border-[#40376E]">
-                 <div class="flex items-center space-x-3">
-                   <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
-                   <p class="font-medium text-gray-800 dark:text-gray-100">{{ item['Name'] }}</p>
-                 </div>
-                 <span class="text-xs font-bold px-2 py-1 bg-green-100 dark:bg-purple-900/40 text-green-700 dark:text-purple-200 rounded-md">{{ item['Quantity'] }} left</span>
-               </li>
-             {% endif %}
-           {% else %}
-             <li class="p-6 text-center bg-gray-50 dark:bg-[#2a2545]/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
-               <p class="text-gray-500 dark:text-purple-300/60 italic text-sm">No items currently listed.</p>
-             </li>
-           {% endfor %}
-         </ul>
-       </div>
-     </div>
+          {% if current_user.is_authenticated %}
+            <button id="open-review-btn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#9d4edd] text-white px-8 py-3 rounded-xl shadow-lg font-bold transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+              Add a Review
+            </button>
+          {% else %}
+            <a href="/login" class="w-full sm:w-auto bg-gray-200 dark:bg-[#2a2545] text-gray-600 dark:text-purple-200 px-8 py-3 rounded-xl font-bold text-center">Login to Review</a>
+          {% endif %}
+        </div>
 
+        <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+          {% if reviews %}
+            {% for review in reviews %}
+              <div id="review-card-{{ review['ReviewID'] }}" class="bg-white dark:bg-[#2a2545] rounded-2xl shadow-md p-6 border dark:border-[#40376E] {% if loop.first %}animate-pop{% endif %}">
+                <div class="flex justify-between items-center mb-2">
+                  <div>
+                    <p class="font-semibold text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
+                    <span class="text-sm text-gray-500 dark:text-purple-200/70">⭐ {{ review["Rating"] }}/5</span>
+                  </div>
+                  {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
+                    <button onclick="toggleEdit('{{ review['ReviewID'] }}')" class="text-xs text-blue-500 dark:text-purple-400 hover:underline">Edit</button>
+                  {% endif %}
+                </div>
+                
+                <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200 mb-2">{{ review["Comment"] }}</p>
+                
+                {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
+                  <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-3">
+                    <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
+                    <div class="flex gap-2">
+                      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Save</button>
+                      <button type="button" onclick="toggleEdit('{{ review['ReviewID'] }}')" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
+                    </div>
+                  </form>
+                {% endif %}
 
-     <div class="mt-16 border-t border-gray-200 dark:border-[#40376E] pt-12">
-       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-         <div>
-           <h2 id="reviews-section" class="text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
-           <p class="text-sm text-gray-500 dark:text-purple-300/60 mt-1">What others are saying about this fridge</p>
-         </div>
+                <p class="text-xs text-gray-400 dark:text-purple-300/50 italic mt-2">Posted {{ review["Timestamp"].strftime('%b %d, %Y') }}</p>
+              </div>
+            {% endfor %}
+          {% else %}
+            <li class="p-6 text-center bg-gray-50 dark:bg-[#2a2545]/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
+                <p class="text-gray-500 dark:text-purple-300/60 italic text-sm">No reviews yet.</p>
+              </li>
+          {% endif %}
+        </div>
+      </div>
+    </section>
 
+    <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+      <div class="bg-white dark:bg-[#1b1730] p-8 rounded-xl shadow-lg border dark:border-[#403760] w-[420px]">
+        <h2 class="text-2xl font-bold text-green-800 dark:text-purple-100 mb-6">Add Review</h2>
+        
+        <form method="POST" action="/individfridge/{{ fridge['ID'] }}">       
+          <label class="block text-sm font-bold text-green-800 dark:text-purple-300 mb-2">Rating</label>
+          <div class="star-rating flex flex-row-reverse justify-end gap-2 mb-6">
+            <input type="radio" id="star5" name="Rating" value="5" class="hidden peer" required />
+            <label for="star5" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+            <input type="radio" id="star4" name="Rating" value="4" class="hidden peer" />
+            <label for="star4" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+            <input type="radio" id="star3" name="Rating" value="3" class="hidden peer" />
+            <label for="star3" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+            <input type="radio" id="star2" name="Rating" value="2" class="hidden peer" />
+            <label for="star2" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+            <input type="radio" id="star1" name="Rating" value="1" class="hidden peer" />
+            <label for="star1" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+          </div>
 
-         {% if current_user.is_authenticated %}
-           <button id="open-review-btn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#9d4edd] text-white px-8 py-3 rounded-xl shadow-lg font-bold transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-             Add a Review
-           </button>
-         {% else %}
-           <a href="/login" class="w-full sm:w-auto bg-gray-200 dark:bg-[#2a2545] text-gray-600 dark:text-purple-200 px-8 py-3 rounded-xl font-bold text-center">Login to Review</a>
-         {% endif %}
-       </div>
+          <label class="block text-sm text-green-800 dark:text-purple-300 mb-1">Comment</label>
+          <textarea name="Comment" required class="w-full rounded-lg border border-green-400 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
+          <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold">Submit Review</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
+  {% include "components/footer.html.jinja" %}
 
-       <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-         {% if reviews %}
-           {% for review in reviews %}
-             <div id="review-card-{{ review['ReviewID'] }}" class="bg-white dark:bg-[#2a2545] rounded-2xl shadow-md p-6 border dark:border-[#40376E] {% if loop.first %}animate-pop{% endif %}">
-               <div class="flex justify-between items-center mb-2">
-                 <div>
-                   <p class="font-semibold text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
-                   <span class="text-sm text-gray-500 dark:text-purple-200/70">⭐ {{ review["Rating"] }}/5</span>
-                 </div>
-                 {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
-                   <button onclick="toggleEdit('{{ review['ReviewID'] }}')" class="text-xs text-blue-500 dark:text-purple-400 hover:underline">Edit</button>
-                 {% endif %}
-               </div>
-              
-               <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200 mb-2">{{ review["Comment"] }}</p>
-              
-               {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
-                 <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-3">
-                   <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
-                   <div class="flex gap-2">
-                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Save</button>
-                     <button type="button" onclick="toggleEdit('{{ review['ReviewID'] }}')" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
-                   </div>
-                 </form>
-               {% endif %}
+  <script>
+    function toggleEdit(reviewId) {
+      const text = document.getElementById(`comment-text-${reviewId}`);
+      const form = document.getElementById(`edit-form-${reviewId}`);
+      if (form.classList.contains('hidden')) {
+          form.classList.remove('hidden');
+          text.classList.add('hidden');
+      } else {
+          form.classList.add('hidden');
+          text.classList.remove('hidden');
+      }
+    }
 
+    document.addEventListener("DOMContentLoaded", () => {
+      const openBtn = document.getElementById('open-review-btn');
+      const popup = document.getElementById('review-popup');
+      if (openBtn && popup) {
+        openBtn.addEventListener('click', () => popup.classList.remove('opacity-0', 'pointer-events-none'));
+        popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); });
+      }
+    });
 
-               <p class="text-xs text-gray-400 dark:text-purple-300/50 italic mt-2">Posted {{ review["Timestamp"].strftime('%b %d, %Y') }}</p>
-             </div>
-           {% endfor %}
-         {% else %}
-           <li class="p-6 text-center bg-gray-50 dark:bg-[#2a2545]/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
-               <p class="text-gray-500 dark:text-purple-300/60 italic text-sm">No reviews yet.</p>
-             </li>
-         {% endif %}
-       </div>
-     </div>
-   </section>
+    if (res.ok) {
+      // 🔥 Don’t rely on class state — track logically
+      const isActive = starIcon.classList.contains('fill-yellow-400');
+      updateStarUI(!isActive);
+    }
+  });
 
-
-   <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
-     <div class="bg-white dark:bg-[#1b1730] p-8 rounded-xl shadow-lg border dark:border-[#403760] w-[420px]">
-       <h2 class="text-2xl font-bold text-green-800 dark:text-purple-100 mb-6">Add Review</h2>
-      
-       <form method="POST" action="/individfridge/{{ fridge['ID'] }}">      
-         <label class="block text-sm font-bold text-green-800 dark:text-purple-300 mb-2">Rating</label>
-         <div class="star-rating flex flex-row-reverse justify-end gap-2 mb-6">
-           <input type="radio" id="star5" name="Rating" value="5" class="hidden peer" required />
-           <label for="star5" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-           <input type="radio" id="star4" name="Rating" value="4" class="hidden peer" />
-           <label for="star4" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-           <input type="radio" id="star3" name="Rating" value="3" class="hidden peer" />
-           <label for="star3" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-           <input type="radio" id="star2" name="Rating" value="2" class="hidden peer" />
-           <label for="star2" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-           <input type="radio" id="star1" name="Rating" value="1" class="hidden peer" />
-           <label for="star1" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-         </div>
-
-
-         <label class="block text-sm text-green-800 dark:text-purple-300 mb-1">Comment</label>
-         <textarea name="Comment" required class="w-full rounded-lg border border-green-400 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
-         <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold">Submit Review</button>
-       </form>
-     </div>
-   </div>
- </div>
-
-
- {% include "components/footer.html.jinja" %}
-
-
- <script>
-   function toggleEdit(reviewId) {
-     const text = document.getElementById(`comment-text-${reviewId}`);
-     const form = document.getElementById(`edit-form-${reviewId}`);
-     if (form.classList.contains('hidden')) {
-         form.classList.remove('hidden');
-         text.classList.add('hidden');
-     } else {
-         form.classList.add('hidden');
-         text.classList.remove('hidden');
-     }
-   }
-
-
-   document.addEventListener("DOMContentLoaded", () => {
-     const openBtn = document.getElementById('open-review-btn');
-     const popup = document.getElementById('review-popup');
-     if (openBtn && popup) {
-       openBtn.addEventListener('click', () => popup.classList.remove('opacity-0', 'pointer-events-none'));
-       popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); });
-     }
-   });
- </script>
+});
+</script>
 </body>
 </html>
-

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="bg-yellow-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
+    {% include "components/navbar.html.jinja" %}
+
+    <main class="flex-grow py-12 px-6 max-w-4xl mx-auto w-full">
+        <a href="/individfridge/{{ fridge['ID'] }}" class="text-green-600 hover:underline mb-4 inline-block">← Back to {{ fridge['Name'] }}</a>
+        
+        <h1 class="text-4xl font-extrabold text-green-800 dark:text-green-400 mb-8">
+            All Reviews for {{ fridge["Name"] }}
+        </h1>
+
+        <div class="space-y-6">
+            {% for review in reviews %}
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 border border-gray-100 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-3">
+                        <p class="font-bold text-green-700 dark:text-green-400 text-lg">{{ review["user_name"] }}</p>
+                        <div class="flex text-yellow-500">
+                            {% for i in range(5) %}
+                                <span>{% if i < review["Rating"]|int %}★{% else %}<span class="text-gray-300">★</span>{% endif %}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ review["Comment"] }}</p>
+                    <p class="text-xs text-gray-400 mt-4 italic">Posted {{ review["Timestamp"].strftime('%b %d, %Y') }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    {% include "components/footer.html.jinja" %}
+</body>
+</html>
