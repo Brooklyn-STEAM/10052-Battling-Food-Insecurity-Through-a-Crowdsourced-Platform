@@ -13,6 +13,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <style>
+
         .leaflet-routing-container { display: none; }
         #itinerary-container .leaflet-routing-alt {
             max-height: 300px;
@@ -171,11 +172,11 @@
 
         nav {
     position: relative; /* or fixed/sticky depending on your navbar design */
-    z-index: 2000;      /* Higher than Leaflet's default z-index */
+    z-index: 9000;      /* Higher than Leaflet's default z-index */
 }
 html, body {
     height: 100%;
-    overflow: hidden; /* locks page scroll entirely */
+    margin: 0;
 }
 
 #map {
@@ -185,16 +186,20 @@ html, body {
 body > div {
     height: 100vh;
     overflow: hidden;
+}body {
+    overflow: hidden;
+}
+
+#map {
+    height: 100%;
 }
     </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 font-sans">
-
 {% include "components/navbar.html.jinja" %}
 
-<div class="relative w-full h-screen overflow-hidden flex flex-col md:flex-row">
-
+<div class="relative w-full flex flex-col md:flex-row h-[calc(100vh-5rem)]">
     <!-- MAP (UNCHANGED) -->
 <div id="map"
      class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2"
@@ -209,7 +214,17 @@ body > div {
                 d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
     </button>
-
+<!-- MAP RESTORE BUTTON -->
+<button id="restore-map"
+    class="hidden md:hidden fixed bottom-20 right-6 z-[1001]
+    bg-blue-600 text-white p-4 rounded-full shadow-2xl
+    hover:bg-blue-700 transition">
+    
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h11M9 21V3m11 11h-4m0 0l3-3m-3 3l3 3"/>
+    </svg>
+</button>
     <!-- SIDEBAR -->
 <aside id="sidebar"
 class="fixed inset-x-0 bottom-0 z-[1000] w-full h-[60vh] md:h-full
@@ -381,8 +396,9 @@ function openSidebar() {
     sidebar.classList.remove("hidden-state");
     toggleBtn.classList.add("hidden");
 
-    setTimeout(() => map.invalidateSize(), 300);
+    showRestoreButton(); // 👈 ADD THIS
 
+    setTimeout(() => map.invalidateSize(), 300);
 }
 
 function hideSidebar() {
@@ -392,8 +408,9 @@ function hideSidebar() {
     sidebar.classList.add("hidden-state");
     toggleBtn.classList.remove("hidden");
 
-    setTimeout(() => map.invalidateSize(), 300);
+    hideRestoreButton(); // 👈 ADD THIS
 
+    setTimeout(() => map.invalidateSize(), 300);
 }
 
 function toggleSidebar() {
@@ -1008,6 +1025,20 @@ sidebar.addEventListener("touchend", () => {
         openSidebar();
     }
 });
+const restoreBtn = document.getElementById("restore-map");
+
+function showRestoreButton() {
+    restoreBtn.classList.remove("hidden");
+}
+
+function hideRestoreButton() {
+    restoreBtn.classList.add("hidden");
+}
+restoreBtn.onclick = () => {
+    hideSidebar(); // closes sidebar
+    map.invalidateSize(); // fixes Leaflet rendering
+    map.setView([userLat || 40.7128, userLng || -74.0060], 13);
+};
 </script>
 <!-- MOBILE DIRECTIONS MODAL -->
 <div id="directions-modal"

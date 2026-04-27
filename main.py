@@ -100,20 +100,28 @@ def load_user(user_id):
 # -----------------------
 # EMAIL FUNCTION
 # -----------------------
-def send_email(subject, recipients, name, confirm_url):
-   msg = Message(
-       subject=subject,
-       recipients=recipients,
-       sender=app.config['MAIL_DEFAULT_SENDER']
-   )
-   # Render both text and HTML bodies
-   msg.body = render_template(f'email/welcome.txt', name=name, confirm_url=confirm_url)
-   msg.html = render_template('email/emaildropoff.html.jinja', **data_dict)
+def send_email(subject, recipients, name, confirm_url, extra_data=None):
+    """
+    Sends a multipart email (Text and HTML).
+    extra_data: a dictionary of any extra variables needed for the HTML template.
+    """
+    msg = Message(
+        subject=subject,
+        recipients=recipients,
+        sender=app.config.get('MAIL_DEFAULT_SENDER')
+    )
+    
+    # Prepare data for the template
+    data = extra_data if extra_data else {}
+    data.update({'name': name, 'confirm_url': confirm_url})
 
+    # Render bodies
+    msg.body = render_template('/templates/email/welcome.txt', name=name, confirm_url=confirm_url)
+    msg.html = render_template('/templates/email/emaildropoff.html.jinja', **data)
 
-   # Send the message within an app context if needed
-   with app.app_context():
-       mail.send(msg)
+    # Use app_context to ensure the mailer can access config
+    with app.app_context():
+        mail.send(msg)
 
 
 # -----------------------
@@ -128,26 +136,32 @@ def index():
 # EMAIL
 # -----------------------
 @app.route('/send', methods=['GET', 'POST'])
-def email():
-   if request.method == 'POST':
-       # Get data from the HTML form
-       user_email = request.form.get('email')
-       user_msg = request.form.get('message')
+def email_inquiry():
+    if request.method == 'POST':
+        # Get data from the HTML form
+        user_email = request.form.get('email')
+        user_msg = request.form.get('message')
 
+        if not user_email or not user_msg:
+            return "Missing email or message", 400
 
-       # Create the email message
-       msg = Message(subject="New Website Inquiry",
-                     sender='your-email@gmail.com',
-                     recipients=['your-personal-inbox@gmail.com']) # Where you want to receive it
+        # Create the email message
+        msg = Message(
+            subject="New Website Inquiry",
+            sender=app.config.get('MAIL_DEFAULT_SENDER'),
+            recipients=['your-personal-inbox@gmail.com'] 
+        )
       
-       msg.body = f"Message from {user_email}:\n\n{user_msg}"
+        msg.body = f"Message from {user_email}:\n\n{user_msg}"
       
-       mail.send(msg)
-       return "Email sent successfully!"
+        try:
+            mail.send(msg)
+            # It's better to redirect back to a page with a success message
+            return "Email sent successfully!"
+        except Exception as e:
+            return f"Failed to send email: {str(e)}", 500
 
-
-   return render_template('donateinfo.html.jinja')
-
+    return render_template('donateinfo.html.jinja')
 
 
 # -----------------------
@@ -385,115 +399,108 @@ food_types = [{"ID": 1, "Name": "Canned Goods"}, {"ID": 2, "Name": "Fresh Produc
 @app.route("/donate-food", methods=["GET", "POST"])
 @login_required
 def donate_food():
-   connection = connect_db()
-   cursor = connection.cursor(pymysql.cursors.DictCursor)
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
 
+    if request.method == "POST":
+        # 1. Retrieve and Clean Data
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("food_email", "").strip()
+        dropoff_date = request.form.get("dropoff_date")
+        fridge_id = request.form.get("FridgeID")  
+        quantity = request.form.get("quantity")
+        item_id = request.form.get("food_type")   
+        notes = request.form.get("notes", "").strip()
 
-   if request.method == "POST":
-       # 1. Retrieve data
-       full_name = request.form.get("full_name")
-       email = request.form.get("food_email")
-       dropoff_date = request.form.get("dropoff_date")
-       fridge_id = request.form.get("FridgeID")  # <--- This was coming in as None
-       quantity = request.form.get("quantity")
-       item_id = request.form.get("food_type")
-       notes = request.form.get("notes")
+        # ---------------------------------------------------------
+        # 2. VALIDATION
+        # ---------------------------------------------------------
+        if not all([fridge_id, item_id, quantity, email]):
+            flash("Missing required information. Please check all fields.", "donate_food")
+            return redirect(url_for("donations"))
 
+        try:
+            # 3. Lookup Names for the Email
+            cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
+            fridge_result = cursor.fetchone()
+            fridge_name = fridge_result['Name'] if fridge_result else "Community Fridge"
+         
+            cursor.execute("SELECT Name FROM Items WHERE ID=%s", (item_id,))
+            item_result = cursor.fetchone()
+            item_name = item_result['Name'] if item_result else "Food Item"
 
-       # ---------------------------------------------------------
-       # 2. VALIDATION BLOCK
-       # ---------------------------------------------------------
-       if not fridge_id or fridge_id == "":
-           connection.close()
-           flash("Error: Please select a target fridge location.")
-           return redirect(url_for("donations")) # Redirect back to selection
+            # 4. Database Insert
+            cursor.execute("""
+                INSERT INTO Donations 
+                (UserID, FridgeID, Email, Dropoff, Type, Quantity, FoodCategory, Notes)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                current_user.id,
+                int(fridge_id),
+                email,
+                dropoff_date,
+                'food',
+                int(quantity),
+                int(item_id),
+                notes if notes else None
+            ))
+           
+            connection.commit()
 
+            # 5. Protected Email Logic
+            # We put this in a nested try so the user still reaches the Thank You page
+            # even if the SMTP server is down.
+            try:
+                data_dict = {
+                    "full_name": full_name,
+                    "email": email,
+                    "dropoff_date": dropoff_date,
+                    "fridge_name": fridge_name,
+                    "quantity": quantity,
+                    "item_name": item_name,
+                    "notes": notes
+                }
+               
+                msg = Message(
+                    subject=f"Donation Confirmation: {item_name}",
+                    recipients=[email]
+                )
+                # Ensure these templates exist in your /templates/email/ folder
+                msg.body = render_template('email/emailtext.txt', **data_dict)
+                msg.html = render_template('email/emaildropoff.html.jinja', **data_dict)
+                
+                mail.send(msg)
+            except Exception as email_err:
+                # Log the error, but don't stop the redirect
+                print(f"Mail failed to send: {email_err}")
+                flash("Donation saved, but we couldn't send the confirmation email.", "warning")
 
-       if not item_id:
-           connection.close()
-           flash("Error: Please select a food category.")
-           return redirect(url_for("donations"))
+            # Final Success Redirect
+            flash("Success! Your food donation has been logged.", "success")
+            return redirect(url_for("thank"))
 
+        except Exception as e:
+            connection.rollback()
+            print(f"Critical Database Error: {e}")
+            flash("A technical error occurred saving your donation. Please try again.", "danger")
+            return redirect(url_for("donations"))
+        finally:
+            connection.close()
 
-       try:
-           # 3. Fetch names for the email
-           cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
-           fridge_result = cursor.fetchone()
-           fridge_name = fridge_result.get("Name", "Unknown Fridge") if fridge_result else "Unknown Fridge"
+    # --- GET SECTION (Same as your original) ---
+    try:
+        cursor.execute("SELECT ID, Name, Image FROM Fridge")
+        fridges_data = cursor.fetchall()
+        cursor.execute("SELECT ID, Name FROM Items")
+        food_types_data = cursor.fetchall()
         
-           cursor.execute("SELECT Name FROM Items WHERE ID=%s", (item_id,))
-           item_result = cursor.fetchone()
-           item_name = item_result.get("Name", "Unknown Item") if item_result else "Unknown Item"
-
-
-           # 4. Database Insert
-           cursor.execute("""
-               INSERT INTO Donations
-               (UserID, FridgeID, Email, Dropoff, Type, Quantity, FoodCategory, Notes)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-           """, (
-               current_user.id,
-               fridge_id,
-               email,
-               dropoff_date,
-               'food',
-               int(quantity) if quantity else 0,
-               item_id,
-               notes if notes and notes.strip() else None
-           ))
-          
-           connection.commit()
-
-
-           # 5. Email Logic
-           data_dict = {
-               "full_name": full_name,
-               "email": email,
-               "dropoff_date": dropoff_date,
-               "fridge_name": fridge_name,
-               "quantity": quantity,
-               "item_name": item_name,
-               "notes": notes
-           }
-          
-           with app.app_context():
-               msg = Message(
-                   subject=f"FridgeNet: Confirmation for your {item_name} donation",
-                   recipients=[email]
-               )
-               msg.body = render_template('email/emailtext.txt', **data_dict)
-               msg.html = render_template('email/emaildropoff.html.jinja', **data_dict)
-               mail.send(msg)
-
-
-       except Exception as e:
-           print(f"Error during donation process: {e}")
-           flash("An error occurred while processing your donation.")
-       finally:
-           connection.close()
-
-
-       flash("Food donation scheduled and confirmation sent!")
-       return redirect(url_for("thank"))
-
-
-   # --- GET SECTION ---
-   cursor.execute("SELECT ID, Name, Image FROM Fridge")
-   fridges_data = cursor.fetchall()
-
-
-   cursor.execute("SELECT ID, Name, Image FROM Items")
-   food_types_data = cursor.fetchall()
-
-
-   connection.close()
-
-
-   return render_template(
-       "donateinfo.html.jinja",
-       fridges=fridges_data,
-       food_types=food_types_data
-   )
+        return render_template(
+            "donateinfo.html.jinja",
+            fridges=fridges_data,
+            food_types=food_types_data
+        )
+    finally:
+        connection.close()
 
 
 # -----------------------------
@@ -973,29 +980,22 @@ def api_stats():
    connection = connect_db()
    cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-
    cursor.execute("SELECT COUNT(*) AS total_users FROM User")
    users = cursor.fetchone()["total_users"]
-
 
    cursor.execute("SELECT COUNT(*) AS total_fridges FROM Fridge")
    fridges = cursor.fetchone()["total_fridges"]
 
-
    cursor.execute("SELECT COUNT(*) AS total_donations FROM Donations")
    meals = cursor.fetchone()["total_donations"]
-
 
    cursor.execute("SELECT COALESCE(SUM(Quantity),0) AS total_food FROM Donations WHERE Type='food'")
    food_saved = cursor.fetchone()["total_food"]
 
-
    cursor.execute("SELECT COALESCE(SUM(Quantity),0) AS total_money FROM Donations WHERE Type='money'")
    money = cursor.fetchone()["total_money"]
 
-
    connection.close()
-
 
    return jsonify({
        "users": users,
@@ -1014,9 +1014,8 @@ def api_stats():
 def toggle_favorite():
    try:
        data = request.get_json()
-       fridge_id = data.get('fridge_id')
+       fridge_id = int(data.get('fridge_id'))
        user_id = current_user.id
-
 
        connection = connect_db()
        cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -1052,12 +1051,10 @@ def get_favorites():
    if not current_user.is_authenticated:
        return jsonify([])
 
-
    connection = connect_db()
    try:
        # Use the standard cursor for your PyMySQL setup
        cursor = connection.cursor(pymysql.cursors.DictCursor)
-
 
        # Matches Fridge (Singular), Favorites, ID, FridgeID, and UserID
        query = """
@@ -1086,41 +1083,29 @@ def contact():
         email = request.form.get("email")
         message = request.form.get("message")
 
-        # VALIDATION
+        # 1. Validation
         if not name or not email or not message:
-            flash("All fields are required.", "error")
-            return redirect("/contact") 
+            flash("Please fill out all fields.", "danger")
+            return redirect(url_for("contact"))
 
-        if len(message) < 10:
-            flash("Message must be at least 10 characters.", "error")
-            return redirect("/contact")
-
-        
-        # DATABASE
-        connection = connect_db()
-        cursor = connection.cursor()
-
+        # 2. Email Notification to Admin
         try:
-            cursor.execute("""
-                INSERT INTO Contacts (name, email, message)
-                VALUES (%s, %s, %s)
-            """, (name, email, message))
-
-            connection.commit()
-
+            msg = Message(
+                subject=f"New Contact Form Submission from {name}",
+                sender=app.config.get('MAIL_DEFAULT_SENDER'),
+                recipients=['fridge.net5@gmail.com'], # Your admin email
+                body=f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
+            )
+            mail.send(msg)
+            flash("Your message has been sent! We will get back to you soon.", "success")
         except Exception as e:
-            print("DB ERROR:", e)  # shows real issue in terminal
-            connection.close()
-            flash("Something went wrong. Please try again.", "error")
-            return redirect("/contact")
+            print(f"Mail error: {e}")
+            flash("There was an error sending your message. Please try again later.", "danger")
 
-        connection.close()
+        return redirect(url_for("contact"))
 
-        flash("Message sent successfully!", "success")
-        return redirect("/contact")
-
-    # GET
     return render_template("contact.html.jinja")
+
 
 # --------------------
  # RESTAURANTS CONNECT PAGE 
