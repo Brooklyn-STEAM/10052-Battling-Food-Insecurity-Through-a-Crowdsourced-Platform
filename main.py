@@ -242,6 +242,10 @@ def logout():
 # --------------------
 # SIGNUP PAGE 
 # --------------------
+from datetime import datetime, date
+
+from datetime import datetime
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -250,14 +254,26 @@ def signup():
         password = request.form["password"]
         password_repeat = request.form["repeat_password"]
         address = request.form["address"]
-        role = request.form.get("role")  # no default hiding bugs
+        birthdate = request.form.get("birthdate")  # ✅ get birthdate
 
-        if not role:
-            role = "user"
+        role = request.form.get("role") or "user"
 
+        # ✅ PASSWORD CHECK
         if password != password_repeat:
             flash("Passwords do not match")
             return redirect("/signup")
+
+        # ✅ AGE CHECK (THIS IS WHAT YOU WANT)
+        if birthdate:
+            birthdate_obj = datetime.strptime(birthdate, "%Y-%m-%d")
+            today = datetime.today()
+            age = today.year - birthdate_obj.year - (
+                (today.month, today.day) < (birthdate_obj.month, birthdate_obj.day)
+            )
+
+            if age < 18:
+                flash("You must be 18 years or older to create an account.", "error")
+                return redirect("/signup")  # ✅ IMPORTANT RETURN
 
         connection = connect_db()
         cursor = connection.cursor()
@@ -277,10 +293,13 @@ def signup():
 
         connection.commit()
         connection.close()
+
         flash("Account created successfully! Please log in.", "success")
         return redirect("/login")
 
-    return render_template("signup.html.jinja")
+    # ✅ THIS MUST ALWAYS EXIST
+    max_birthdate = f"{datetime.utcnow().year - 18}-12-31"
+    return render_template("signup.html.jinja", max_birthdate=max_birthdate)
 
 # -----------------------
 # DONATE PAGES
@@ -1010,41 +1029,60 @@ def api_stats():
 # FAVORITES
 # -----------------------
 @app.route('/toggle-favorite', methods=['POST'])
-@login_required
 def toggle_favorite():
-   try:
-       data = request.get_json()
-       fridge_id = int(data.get('fridge_id'))
-       user_id = current_user.id
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
+    connection = None
+    try:
+        data = request.get_json()
+        fridge_id = int(data.get('fridge_id'))
+        user_id = current_user.id
 
-       connection = connect_db()
-       cursor = connection.cursor(pymysql.cursors.DictCursor)
+        connection = connect_db()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
 
+        cursor.execute(
+            "SELECT * FROM Favorites WHERE UserID = %s AND FridgeID = %s",
+            (user_id, fridge_id)
+        )
+        existing = cursor.fetchone()
 
-       # 1. Match your DB: Favorites, UserID, FridgeID
-       check_query = "SELECT * FROM Favorites WHERE UserID = %s AND FridgeID = %s"
-       cursor.execute(check_query, (user_id, fridge_id))
-       existing = cursor.fetchone()
+        if existing:
+            cursor.execute(
+                "DELETE FROM Favorites WHERE UserID = %s AND FridgeID = %s",
+                (user_id, fridge_id)
+            )
+            message = "Removed from favorites"
+            action = "removed"
+        else:
+            cursor.execute(
+                "INSERT INTO Favorites (UserID, FridgeID) VALUES (%s, %s)",
+                (user_id, fridge_id)
+            )
+            message = "Added to favorites"
+            action = "added"
 
+        connection.commit()
 
-       if existing:
-           query = "DELETE FROM Favorites WHERE UserID = %s AND FridgeID = %s"
-           message = "Removed"
-       else:
-           query = "INSERT INTO Favorites (UserID, FridgeID) VALUES (%s, %s)"
-           message = "Added"
+        return jsonify({
+            "success": True,
+            "message": message,
+            "action": action
+        })
 
+    except Exception as e:
+        if connection:
+            connection.rollback()
+        print(f"ERROR IN TOGGLE: {e}")
 
-       cursor.execute(query, (user_id, fridge_id))
-       connection.commit()
-       connection.close()
-       return jsonify({"message": message})
+        return jsonify({
+            "success": False,
+            "message": "Something went wrong"
+        }), 500
 
-
-   except Exception as e:
-       print(f"ERROR IN TOGGLE: {e}") # Check your terminal for this!
-       return jsonify({"error": str(e)}), 500
-
+    finally:
+        if connection:
+            connection.close()
 
 @app.route('/get-favorites', methods=['GET'])
 def get_favorites():
