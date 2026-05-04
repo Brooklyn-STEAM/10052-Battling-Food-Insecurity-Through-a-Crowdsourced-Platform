@@ -248,6 +248,11 @@ from datetime import datetime
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+
+    if current_user.is_authenticated:
+      flash("You are already logged in.", "info")
+      return redirect("/")
+   
     if request.method == "POST":
         name = request.form["name"]
         email = request.form["email"]
