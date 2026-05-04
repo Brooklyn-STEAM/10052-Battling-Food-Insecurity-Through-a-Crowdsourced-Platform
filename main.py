@@ -671,7 +671,6 @@ def get_fridges():
 @app.route("/report/<int:fridge_id>", methods=["GET", "POST"])
 @login_required
 def report_fridge(fridge_id):
-    # --- 1. HANDLE POST (Form Submission) ---
     if request.method == "POST":
         priority = request.form.get("priority")
         reproducibility = request.form.get("reproducibility")
@@ -681,65 +680,67 @@ def report_fridge(fridge_id):
         try:
             cursor = connection.cursor(pymysql.cursors.DictCursor)
             
-            # 1. Fetch fridge info
+            # 1. Verify fridge exists and get details for the email
             cursor.execute("SELECT Name, Address FROM Fridge WHERE ID=%s", (fridge_id,))
             fridge = cursor.fetchone()
 
-            # 2. Database Insert
+            if not fridge:
+                flash("Fridge not found.", "error")
+                return redirect(url_for("index"))
+
+            # 2. Log the maintenance report
             cursor.execute("""
                 INSERT INTO maintenance_reports
                 (FridgeID, Reported_by, Description, Status, Timestamp, UserID, Priority, Reproducibility)
                 VALUES (%s, %s, %s, %s, NOW(), %s, %s, %s)
             """, (fridge_id, current_user.id, description, "Open", current_user.id, priority, reproducibility))
+
+            # 3. UPDATE FRIDGE STATUS
+            # Directly using your existing "Needs Attention" option
+            cursor.execute("UPDATE Fridge SET Status = %s WHERE ID = %s", ("Needs Attention", fridge_id))
+            
+            # Commit both changes as one transaction
             connection.commit()
 
+            # 4. Notify via Email
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
             email_body = f"""
             --------------------------------------------------
-            NEW MAINTENANCE TICKET: {fridge['Name'] if fridge else 'Unknown'}
+            MAINTENANCE ALERT: {fridge['Name']}
             --------------------------------------------------
-            DATE/TIME:   {timestamp}
-            PRIORITY:    {priority.upper()}
-            FREQUENCY:   {reproducibility}
+            STATUS CHANGE: Needs Attention
+            PRIORITY:      {priority.upper()}
+            TIMESTAMP:     {timestamp}
 
-            FRIDGE INFO:
-            - Name:      {fridge['Name'] if fridge else 'N/A'}
-            - Address:   {fridge['Address'] if fridge else 'N/A'}
-
-            REPORTED BY:
-            - User:      {current_user.name}
-            - Email:     {current_user.email}
-
-            ISSUE DESCRIPTION:
+            ISSUE DETAILS:
             {description}
-            --------------------------------------------------
-                        """
-            # -------------------------------------------------------
-            # Email Logic
-            sender_email = app.config['MAIL_USERNAME']
-            app_password = app.config['MAIL_PASSWORD']
 
-            msg = MIMEText(email_body) # Use the new email_body variable here
-            msg['Subject'] = f"🚨 [{priority}] Repair Request - {fridge['Name'] if fridge else 'Unknown'}"
-            msg['From'] = sender_email
+            REPORTED BY: {current_user.name} ({current_user.email})
+            --------------------------------------------------
+            """
+
+            msg = MIMEText(email_body)
+            msg['Subject'] = f"🚨 [{priority.upper()}] Maintenance Report - {fridge['Name']}"
+            msg['From'] = app.config['MAIL_USERNAME']
             msg['To'] = "fridge.net5@gmail.com"
 
             with smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT']) as server:
                 server.starttls()
-                server.login(sender_email, app_password)
+                server.login(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
                 server.send_message(msg)
 
-            flash("Report submitted successfully!", "success")
+            flash("Report submitted. This fridge has been marked as 'Needs Attention'.", "success")
             return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
         except Exception as e:
-            print(f"Database/Email Error: {e}")
-            flash("An error occurred. Please try again.")
+            if connection:
+                connection.rollback()
+            print(f"Error: {e}")
+            flash("Failed to submit report. Please try again.")
         finally:
             connection.close()
 
-    # --- 2. HANDLE GET (Displaying the Form) ---
+    # GET logic for displaying the form
     connection = connect_db()
     try:
         cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -748,13 +749,10 @@ def report_fridge(fridge_id):
     finally:
         connection.close()
 
-
     if not fridge:
-       abort(404)
-
+        abort(404)
 
     return render_template("report.html.jinja", fridge=fridge)
-
 
 # -----------------------
 # THANK YOU PAGE
