@@ -57,31 +57,57 @@
 {% include "components/navbar.html.jinja" %}
 
 <section class="relative overflow-hidden hero-gradient py-24 px-6 text-center border-b border-gray-100 dark:border-gray-800">
-    <div class="max-w-4xl mx-auto relative z-10">
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">
-            RESTAURANTS <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">CONNECT</span>
-        </h1>
-        <p class="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Bridge the gap between surplus food and community need. Join our network of responsible local eateries.
-        </p>
+<div class="max-w-4xl mx-auto relative z-10 text-center">
+    
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight
+               text-gray-900 dark:text-white">
+        RESTAURANTS 
+        <span class="text-transparent bg-clip-text bg-gradient-to-r 
+                     from-orange-500 to-amber-500
+                     dark:from-orange-400 dark:to-amber-300">
+            CONNECT
+        </span>
+    </h1>
+
+    <p class="text-xl mb-10 max-w-2xl mx-auto leading-relaxed
+              text-gray-600 dark:text-gray-400">
+        Bridge the gap between surplus food and community need. 
+        Join our network of responsible local eateries.
+    </p>
+    
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
         
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {% if current_user.is_authenticated %}
-            <a href="/restaurant-dashboard"
-               class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold px-10 py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-1">
-                Access Dashboard
-            </a>
-            {% else %}
-            <a href="/signup" 
-               class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold px-10 py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-1">
-              Join the Network
-            </a>
-            <a href="#how-it-works" class="text-gray-500 hover:text-orange-500 font-medium transition-colors">
-                Learn how it works &rarr;
-            </a>
-            {% endif %}
-        </div>
+        {% if current_user.is_authenticated %}
+        <a href="/restaurant-dashboard"
+           class="w-full sm:w-auto 
+                  bg-orange-500 hover:bg-orange-600 
+                  dark:bg-orange-600 dark:hover:bg-orange-500
+                  text-white font-bold px-10 py-4 rounded-xl 
+                  shadow-lg shadow-orange-500/20 dark:shadow-orange-900/40
+                  transition-all hover:-translate-y-1">
+            Access Dashboard
+        </a>
+        {% else %}
+        <a href="/signup" 
+           class="w-full sm:w-auto 
+                  bg-orange-500 hover:bg-orange-600 
+                  dark:bg-orange-600 dark:hover:bg-orange-500
+                  text-white font-bold px-10 py-4 rounded-xl 
+                  shadow-lg shadow-orange-500/20 dark:shadow-orange-900/40
+                  transition-all hover:-translate-y-1">
+            Join the Network
+        </a>
+
+        <a href="#how-it-works"
+           class="font-medium transition-colors
+                  text-gray-500 hover:text-orange-500
+                  dark:text-gray-400 dark:hover:text-orange-400">
+            Learn how it works &rarr;
+        </a>
+        {% endif %}
+
     </div>
+</div>
 </section>
 
 <section class="max-w-7xl mx-auto py-20 px-6">

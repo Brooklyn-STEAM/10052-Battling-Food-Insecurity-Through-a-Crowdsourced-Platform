@@ -13,6 +13,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <style>
+
         .leaflet-routing-container { display: none; }
         #itinerary-container .leaflet-routing-alt {
             max-height: 300px;
@@ -171,11 +172,11 @@
 
         nav {
     position: relative; /* or fixed/sticky depending on your navbar design */
-    z-index: 2000;      /* Higher than Leaflet's default z-index */
+    z-index: 9000;      /* Higher than Leaflet's default z-index */
 }
 html, body {
     height: 100%;
-    overflow: hidden; /* locks page scroll entirely */
+    margin: 0;
 }
 
 #map {
@@ -185,31 +186,79 @@ html, body {
 body > div {
     height: 100vh;
     overflow: hidden;
+}body {
+    overflow: hidden;
+}
+
+#map {
+    height: 100%;
+}
+    </style>
+    <style>
+.flash-message {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+
+    padding: 8px 12px;
+    border-radius: 0.6rem;
+
+    font-size: 13px;
+    height: auto;
+    max-width: 260px;
+
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+.flash-success {
+    background: #16a34a;
+    color: white;
+}
+
+.flash-error {
+    background: #dc2626;
+    color: white;
+}
+
+.dark .flash-success {
+    background: #6d28d9;
+}
+
+.dark .flash-error {
+    background: #ef4444;
 }
     </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 font-sans">
-
 {% include "components/navbar.html.jinja" %}
 
-<div class="relative w-full h-screen overflow-hidden flex flex-col md:flex-row">
-
+<div class="relative w-full flex flex-col md:flex-row h-[calc(100vh-5rem)]">
     <!-- MAP (UNCHANGED) -->
 <div id="map"
      class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2"
      style="height: var(--app-height);">
 </div>  <!-- FLOAT BUTTON -->
-    <button id="toggle-sidebar"
-        class="md:hidden fixed bottom-6 right-6 z-[1001]
-        bg-green-600 text-white p-4 rounded-full shadow-2xl
-        dark:bg-purple-600 dark:hover:bg-purple-700 transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-    </button>
 
+<!-- MAP RESTORE BUTTON -->
+<button id="restore-map"
+    class="hidden md:hidden fixed bottom-20 right-6 z-[1001]
+    bg-blue-600 text-white p-4 rounded-full shadow-2xl
+    hover:bg-blue-700 transition">
+    
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h11M9 21V3m11 11h-4m0 0l3-3m-3 3l3 3"/>
+    </svg>
+</button>
     <!-- SIDEBAR -->
 <aside id="sidebar"
 class="fixed inset-x-0 bottom-0 z-[1000] w-full h-[60vh] md:h-full
@@ -372,7 +421,6 @@ rounded-t-[2rem] md:rounded-none overflow-hidden flex flex-col">
 <script>
     
 const sidebar = document.getElementById('sidebar');
-const toggleBtn = document.getElementById('toggle-sidebar');
 const closeBtn = document.getElementById('close-sidebar');
 function openSidebar() {
     currentTranslate = 0;
@@ -381,8 +429,9 @@ function openSidebar() {
     sidebar.classList.remove("hidden-state");
     toggleBtn.classList.add("hidden");
 
-    setTimeout(() => map.invalidateSize(), 300);
+    showRestoreButton(); // 👈 ADD THIS
 
+    setTimeout(() => map.invalidateSize(), 300);
 }
 
 function hideSidebar() {
@@ -392,8 +441,9 @@ function hideSidebar() {
     sidebar.classList.add("hidden-state");
     toggleBtn.classList.remove("hidden");
 
-    setTimeout(() => map.invalidateSize(), 300);
+    hideRestoreButton(); // 👈 ADD THIS
 
+    setTimeout(() => map.invalidateSize(), 300);
 }
 
 function toggleSidebar() {
@@ -404,7 +454,6 @@ function toggleSidebar() {
     }
 }
 
-toggleBtn.onclick = openSidebar;
 closeBtn.onclick = hideSidebar;
 
 let isDragging = false;
@@ -438,6 +487,7 @@ const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45,
 
 let recentsBackup = null;
 let undoTimeout = null;
+let undoInterval = null; // ✅ ADD THIS
 let userLat, userLng, userMarker;
 let currentRouteLayer = null; // Stores the polyline
 let currentTargetFridge = null;
@@ -803,6 +853,9 @@ async function loadFavoritesFromServer() {
     }
 }
 
+function requireLogin() {
+    showFlashMessage("Please log in to favorite fridges", "error");
+}
 // 3. The Toggle Function (Connects to your Python route)
 // We use 'window' so it can be called from the marker popups
 window.toggleFavorite = async function(fridge) {
@@ -814,20 +867,17 @@ window.toggleFavorite = async function(fridge) {
         });
 
         if (res.status === 401) {
-            alert("Please log in to save favorites!");
+            requireLogin();
             return;
         }
 
         const data = await res.json();
-        console.log("Server response:", data.message);
-        
-        // Refresh the list from the database so the sidebar updates instantly
         loadFavoritesFromServer();
 
     } catch (err) {
         console.error("Error toggling favorite:", err);
     }
-};
+}; 
 
 // 4. Render the Sidebar Favorites List
 function renderFavoritesList(favorites) {
@@ -930,26 +980,42 @@ function renderRecent() {
         list.appendChild(li);
     });
 }
+
 document.getElementById("clear-recents").onclick = () => {
     const current = localStorage.getItem("recentFridges");
-
     if (!current) return;
 
     recentsBackup = current;
-
     localStorage.removeItem("recentFridges");
     renderRecent();
 
     const undoBtn = document.getElementById("undo-recents");
     undoBtn.classList.remove("hidden");
 
+    let timeLeft = 3;
+    undoBtn.textContent = `Undo (${timeLeft})`;
+
     clearTimeout(undoTimeout);
+    clearInterval(undoInterval);
+
+    undoInterval = setInterval(() => {
+        timeLeft--;
+
+        if (timeLeft > 0) {
+            undoBtn.textContent = `Undo (${timeLeft})`;
+        } else {
+            undoBtn.textContent = "Undo";
+            clearInterval(undoInterval);
+        }
+    }, 1000);
+
     undoTimeout = setTimeout(() => {
         recentsBackup = null;
         undoBtn.classList.add("hidden");
+        undoBtn.textContent = "Undo";
+        clearInterval(undoInterval);
     }, 3000);
 };
-
 
 document.getElementById("undo-recents").onclick = () => {
     if (!recentsBackup) return;
@@ -959,9 +1025,12 @@ document.getElementById("undo-recents").onclick = () => {
 
     recentsBackup = null;
 
-    document.getElementById("undo-recents").classList.add("hidden");
+    const undoBtn = document.getElementById("undo-recents");
+    undoBtn.classList.add("hidden");
+    undoBtn.textContent = "Undo";
 
     clearTimeout(undoTimeout);
+    clearInterval(undoInterval);
 };
 window.addEventListener("resize", () => {
 setTimeout(() => {
@@ -1008,6 +1077,49 @@ sidebar.addEventListener("touchend", () => {
         openSidebar();
     }
 });
+const restoreBtn = document.getElementById("restore-map");
+
+function showRestoreButton() {
+    restoreBtn.classList.remove("hidden");
+}
+
+function hideRestoreButton() {
+    restoreBtn.classList.add("hidden");
+}
+restoreBtn.onclick = () => {
+    hideSidebar(); // closes sidebar
+    map.invalidateSize(); // fixes Leaflet rendering
+    map.setView([userLat || 40.7128, userLng || -74.0060], 13);
+};
+function showFlashMessage(message, type = "error") {
+    const existing = document.getElementById("flash-message");
+    if (existing) existing.remove();
+
+    const flash = document.createElement("div");
+    flash.id = "flash-message";
+
+    flash.className = `flash-message ${
+        type === "error" ? "flash-error" : "flash-success"
+    }`;
+
+    flash.innerHTML = `<span>${message}</span>`;
+
+    document.body.appendChild(flash);
+
+    // allow DOM paint first → then animate in
+    requestAnimationFrame(() => {
+        flash.style.opacity = "1";
+        flash.style.transform = "translateX(-50%) translateY(0)";
+    });
+
+    // fade out
+    setTimeout(() => {
+        flash.style.opacity = "0";
+        flash.style.transform = "translateX(-50%) translateY(-6px)";
+
+        setTimeout(() => flash.remove(), 300);
+    }, 2000);
+}
 </script>
 <!-- MOBILE DIRECTIONS MODAL -->
 <div id="directions-modal"

@@ -60,29 +60,42 @@
 
 
    <!-- Profile Header -->
-   <div class="flex flex-col sm:flex-row items-center mb-10">
-     {% if current_user.profile_picture %}
-       <img src="{{ current_user.profile_picture }}" class="w-28 h-28 rounded-full object-cover shadow-lg mb-4 ring-4 ring-green-200 dark:ring-[#5a4fd6] "
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-       <div class="w-28 h-28 rounded-full bg-green-600 dark:bg-[#7b2cbf] flex items-center justify-center shadow-lg mb-4 ring-4 ring-green-200 dark:ring-[#5a4fd6]">
- <span class="text-white text-4xl font-bold">{{ current_user.name[0] | upper }}</span>
+<div class="flex flex-col sm:flex-row items-center gap-6 mb-10 text-center sm:text-left">
+
+  <!-- Avatar -->
+  <div class="relative w-28 h-28 flex-shrink-0">
+    {% if current_user.profile_picture %}
+      <img src="{{ current_user.profile_picture }}"
+           class="w-28 h-28 rounded-full object-cover shadow-lg ring-4 ring-green-200 dark:ring-[#5a4fd6]"
+           onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+
+      <!-- Fallback -->
+      <div class="w-28 h-28 rounded-full bg-green-600 dark:bg-[#7b2cbf] hidden items-center justify-center shadow-lg ring-4 ring-green-200 dark:ring-[#5a4fd6]">
+        <span class="text-white text-4xl font-bold">
+          {{ current_user.name[0] | upper }}
+        </span>
+      </div>
+    {% else %}
+      <div class="w-28 h-28 rounded-full bg-green-600 dark:bg-[#7b2cbf] flex items-center justify-center shadow-lg ring-4 ring-green-200 dark:ring-[#5a4fd6]">
+        <span class="text-white text-4xl font-bold">
+          {{ current_user.name[0] | upper }}
+        </span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Name + Email -->
+  <div class="flex flex-col">
+    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">
+      {{ current_user.name }}
+    </h2>
+
+    <p class="text-gray-600 dark:text-gray-400 text-md mt-1">
+      {{ current_user.email }}
+    </p>
+  </div>
+
 </div>
-     {% else %}
-       <div class="w-28 h-28 rounded-full bg-green-700 dark:bg-[#7b2cbf] hidden items-center justify-center shadow-lg mb-4">
- <span class="text-white text-4xl font-bold">{{ current_user.name[0] | upper }}</span>
-</div>
-     {% endif %}
-
-
-     <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">
-       {{ current_user.name }}
-     </h2>
-
-
-     <p class="text-gray-600 dark:text-gray-400 text-md mt-1">
-       {{ current_user.email }}
-     </p>
-   </div>
 
 
    <!-- Flash Messages -->

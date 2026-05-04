@@ -25,24 +25,46 @@
       50% { transform: translateY(-10px); }
     }
   </style>
+  <script>
+  (function () {
+    const saved = localStorage.getItem("theme");
+
+    if (saved === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (saved === "light") {
+      document.documentElement.classList.remove("dark");
+    } else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.classList.toggle("dark", prefersDark);
+    }
+  })();
+</script>
 </head>
 
 <body class="bg-gradient-to-br from-green-100 via-white to-yellow-100
              dark:from-[#0b0a18] dark:via-[#121028] dark:to-[#1a1635]
-             min-h-screen flex flex-col text-gray-900 dark:text-gray-100">
+             min-h-screen flex flex-col text-gray-900 dark:text-gray-100
+             transition-colors duration-500">
 
   {% include "components/navbar.html.jinja" %}
 
   <div class="relative overflow-x-hidden">
 
     <!-- BACKGROUND GLOW -->
-    <div class="absolute top-[-100px] left-[-100px] w-[300px] h-[300px]
-                bg-green-400/30 dark:bg-purple-600/20
-                blur-[120px] rounded-full pointer-events-none"></div>
+<!-- LIGHT GRADIENT -->
+<div class="fixed inset-0 -z-10
+            bg-gradient-to-br from-green-100 via-white to-yellow-100
+            transition-opacity duration-700 ease-in-out
+            opacity-100 dark:opacity-0">
+</div>
 
-    <div class="absolute bottom-[-100px] right-[-100px] w-[300px] h-[300px]
-                bg-yellow-300/30 dark:bg-indigo-600/20
-                blur-[120px] rounded-full pointer-events-none"></div>
+<!-- DARK GRADIENT -->
+<div class="fixed inset-0 -z-10
+            bg-gradient-to-br from-[#0b0a18] via-[#121028] to-[#1a1635]
+            transition-opacity duration-700 ease-in-out
+            opacity-0 dark:opacity-100">
+</div>
+
 
     <!-- HERO -->
     <section class="text-center px-6 pt-20 pb-16 relative z-10">
@@ -63,7 +85,11 @@
     <section class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-6 px-6 mb-16 text-center">
 
       <!-- Meals -->
-      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+       bg-white/70 dark:bg-white/5
+       border border-gray-200 dark:border-white/10
+       shadow-lg hover:shadow-2xl hover:-translate-y-1
+       transition-all duration-300">
         <p id="meals" class="text-2xl font-bold text-green-600 dark:text-purple-300">
           {{ "{:,}".format(stats.meals or 0) }}+
         </p>
@@ -71,7 +97,11 @@
       </div>
 
       <!-- Users -->
-      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+       bg-white/70 dark:bg-white/5
+       border border-gray-200 dark:border-white/10
+       shadow-lg hover:shadow-2xl hover:-translate-y-1
+       transition-all duration-300">
         <p id="users" class="text-2xl font-bold text-green-600 dark:text-purple-300">
           {{ "{:,}".format(stats.users or 0) }}+
         </p>
@@ -79,7 +109,11 @@
       </div>
 
       <!-- Fridges -->
-      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+       bg-white/70 dark:bg-white/5
+       border border-gray-200 dark:border-white/10
+       shadow-lg hover:shadow-2xl hover:-translate-y-1
+       transition-all duration-300">
         <p id="fridges" class="text-2xl font-bold text-green-600 dark:text-purple-300">
           {{ stats.fridges or 0 }}+
         </p>
@@ -87,7 +121,11 @@
       </div>
 
       <!-- Food Saved -->
-      <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+       bg-white/70 dark:bg-white/5
+       border border-gray-200 dark:border-white/10
+       shadow-lg hover:shadow-2xl hover:-translate-y-1
+       transition-all duration-300">
         <p id="food_saved" class="text-2xl font-bold text-green-600 dark:text-purple-300">
           {{ "{:,}".format((stats.food_saved or 0)|int) }}
         </p>
@@ -96,8 +134,10 @@
 
       <!-- OPTIONAL: Money (only if you pass it later) -->
       {% if stats.money is defined %}
-    <div class="p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border dark:border-white/10">
-      <p id="money"
+      <div class="float p-6 rounded-2xl backdrop-blur-md
+                  bg-white/70 dark:bg-white/5
+                  border border-gray-200 dark:border-white/10
+                  shadow-lg hover:shadow-2xl hover:-translate-y-1 transition">      <p id="money"
         data-raw="{{ stats.money or 0 }}" class="text-2xl font-bold text-green-600 dark:text-purple-300">
         ${{ "{:,}".format(stats.money|int) }}
       </p>

@@ -84,8 +84,10 @@
               <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}"
                 class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
 
-                <svg id="star-icon" class="h-6 w-6 p-transition-all duration-200 fill-none stroke-gray-400 stroke-1.5"
-                  xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
+                <svg id="star-icon" 
+     class="h-6 w-6 transition-all duration-200 
+     {{ 'fill-yellow-400 stroke-yellow-500' if is_favorited else 'fill-none stroke-gray-400' }}"
+     xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
                   <path stroke-linecap="round" stroke-linejoin="round" 
                     d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
                 </svg>
@@ -236,28 +238,27 @@
 
         // 2. Toggle Favorite on Click
         favBtn.addEventListener('click', async () => {
-            try {
-                const res = await fetch('/toggle-favorite', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fridge_id: fridgeId })
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    // If backend returns "added", fill the star. If "removed", empty it.
-                    const isNowFav = data.message.includes("added");
-                    updateStarUI(isNowFav);
-
-                    // Add a little celebration if added
-                    if (isNowFav && typeof confetti === 'function') {
-                        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-                    }
-                }
-            } catch (err) {
-                console.error("Error toggling favorite:", err);
-            }
+    try {
+        const res = await fetch('/toggle-favorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fridge_id: fridgeId })
         });
+
+        const data = await res.json();
+        if (res.ok) {
+            // Match "Added" or "added"
+            const isNowFav = data.message.toLowerCase() === "added";
+            updateStarUI(isNowFav);
+
+            if (isNowFav) {
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+            }
+        }
+    } catch (err) {
+        console.error("Error toggling favorite:", err);
+    }
+});
     }
 
     function updateStarUI(isActive) {
