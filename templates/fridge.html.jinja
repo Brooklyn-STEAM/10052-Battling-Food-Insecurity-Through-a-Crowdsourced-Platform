@@ -57,7 +57,12 @@
 
 <body class="bg-yellow-50 dark:bg-[#1b1730] text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
   {% include "components/navbar.html.jinja" %}
-
+<div id="fav-toast"
+     class="fixed top-24 left-1/2 -translate-x-1/2 z-[99999]
+     px-4 py-2 rounded-xl text-white font-bold text-sm
+     shadow-lg opacity-0 pointer-events-none
+     transition-all duration-300">
+</div>
   <div class="flex-grow">
     <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-16 px-6">
       <div class="max-w-6xl mx-auto">
@@ -81,18 +86,24 @@
             <a href="/report/{{ fridge['ID'] }}" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">Report Issue</a>
             
             {% if current_user.is_authenticated %}
-              <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}"
-                class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
+             <button id="fav-btn"
+  data-fridge-id="{{ fridge['ID'] }}"
+  class="group relative p-3 rounded-full 
+         bg-white dark:bg-gray-800 
+         shadow-md border border-gray-200 dark:border-gray-700 
+         hover:shadow-lg transition-all duration-200 
+         active:scale-90">
 
-                <svg id="star-icon" 
-     class="h-6 w-6 transition-all duration-200 
-     {{ 'fill-yellow-400 stroke-yellow-500' if is_favorited else 'fill-none stroke-gray-400' }}"
-     xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
-                  <path stroke-linecap="round" stroke-linejoin="round" 
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
-                </svg>
+  <svg id="star-icon"
+    class="h-7 w-7 transition-all duration-300 
+    {{ 'fill-yellow-400 stroke-yellow-500 scale-110' if is_favorited else 'fill-none stroke-gray-400 group-hover:stroke-yellow-400' }}"
+    xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
 
-              </button>
+    <path stroke-linecap="round" stroke-linejoin="round"
+      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
+  </svg>
+
+</button>
               {% endif %}
           </div>
         </div>
@@ -208,70 +219,183 @@
   </div>
 
   {% include "components/footer.html.jinja" %}
+<script>
+/* =========================
+   GLOBAL HELPERS
+========================= */
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-    // Review Popup Logic
-    const openBtn = document.getElementById('open-review-btn');
-    const popup = document.getElementById('review-popup');
-    if (openBtn && popup) {
-        openBtn.addEventListener('click', () => popup.classList.remove('opacity-0', 'pointer-events-none'));
-        popup.addEventListener('click', (e) => { 
-            if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); 
-        });
+function fireConfetti() {
+  const duration = 800;
+  const end = Date.now() + duration;
+
+  (function frame() {
+    confetti({
+      particleCount: 5,
+      angle: 60,
+      spread: 70,
+      origin: { x: 0 }
+    });
+
+    confetti({
+      particleCount: 5,
+      angle: 120,
+      spread: 70,
+      origin: { x: 1 }
+    });
+
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
+}
+
+/* =========================
+   TOAST + UNDO SYSTEM (SINGLE SOURCE OF TRUTH)
+========================= */
+
+const Toast = (() => {
+  const toast = document.getElementById("fav-toast");
+
+  let hideTimeout = null;
+  let interval = null;
+  let undoCallback = null;
+
+  function show({ message, type = "success", duration = 2000, undo = null }) {
+    clearTimeout(hideTimeout);
+    clearInterval(interval);
+
+    undoCallback = undo;
+
+    toast.textContent = message;
+
+    toast.className = `
+      fixed top-24 left-1/2 -translate-x-1/2 z-[99999]
+      px-4 py-2 rounded-xl text-white font-bold text-sm
+      shadow-lg transition-all duration-300
+      ${type === "success" ? "bg-green-600" : ""}
+      ${type === "error" ? "bg-red-600" : ""}
+      ${type === "undo" ? "bg-red-600 cursor-pointer" : ""}
+    `;
+
+    toast.style.opacity = "1";
+    toast.style.pointerEvents = undo ? "auto" : "none";
+
+    toast.onclick = async () => {
+      if (!undoCallback) return;
+      await undoCallback();
+      hide();
+      show({ message: "Restored ⭐", type: "success", duration: 1200 });
+    };
+
+    if (duration > 0) {
+      hideTimeout = setTimeout(hide, duration);
     }
+  }
 
-    // Favorite Button Logic
-    const favBtn = document.getElementById('fav-btn');
-    const starIcon = document.getElementById('star-icon');
+  function hide() {
+    toast.style.opacity = "0";
+    toast.style.pointerEvents = "none";
+    undoCallback = null;
+    clearTimeout(hideTimeout);
+    clearInterval(interval);
+  }
 
-    if (favBtn) {
-        const fridgeId = favBtn.getAttribute('data-fridge-id');
+  function undoCountdown(fridgeId, undoAction) {
+    let timeLeft = 3;
 
-        // 1. Initial check: Is it already favorited?
-        fetch('/get-favorites')
-            .then(res => res.json())
-            .then(favorites => {
-                const isFav = favorites.some(f => f.ID == fridgeId || f.id == fridgeId);
-                updateStarUI(isFav);
-            });
+    show({
+      message: `Removed. Undo (${timeLeft})`,
+      type: "undo",
+      duration: 3000,
+      undo: () => undoAction(fridgeId)
+    });
 
-        // 2. Toggle Favorite on Click
-        favBtn.addEventListener('click', async () => {
+    interval = setInterval(() => {
+      timeLeft--;
+
+      if (timeLeft > 0) {
+        toast.textContent = `Removed. Undo (${timeLeft})`;
+      } else {
+        toast.textContent = "Removed";
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    // HARD LOCK: always 3 seconds exactly
+    setTimeout(() => {
+      hide();
+    }, 3000);
+  }
+
+  return { show, hide, undoCountdown };
+})();
+
+/* =========================
+   FAVORITE STATE
+========================= */
+
+let lastRemovedId = null;
+
+/* =========================
+   BUTTON LOGIC (FIXED)
+========================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("fav-btn");
+  const icon = document.getElementById("star-icon");
+
+  if (!btn || !icon) return;
+
+  btn.addEventListener("click", async () => {
+    const fridgeId = btn.dataset.fridgeId;
+    btn.disabled = true;
+
     try {
-        const res = await fetch('/toggle-favorite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fridge_id: fridgeId })
+      const res = await fetch("/toggle-favorite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fridge_id: fridgeId })
+      });
+
+      const data = await res.json();
+      if (!data.success) return;
+
+      // ADDED
+      if (data.action === "added") {
+        icon.classList.add("fill-yellow-400", "stroke-yellow-500");
+        icon.classList.remove("fill-none", "stroke-gray-400");
+
+        fireConfetti();
+        Toast.show({
+          message: "Saved to favorites ⭐",
+          type: "success"
         });
+      }
 
-        const data = await res.json();
-        if (res.ok) {
-            // Match "Added" or "added"
-            const isNowFav = data.message.toLowerCase() === "added";
-            updateStarUI(isNowFav);
+      // REMOVED
+      else if (data.action === "removed") {
+        icon.classList.remove("fill-yellow-400", "stroke-yellow-500");
+        icon.classList.add("fill-none", "stroke-gray-400");
 
-            if (isNowFav) {
-                confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-            }
-        }
+        lastRemovedId = fridgeId;
+
+        Toast.undoCountdown(fridgeId, async (id) => {
+          await fetch("/toggle-favorite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fridge_id: id })
+          });
+
+          icon.classList.add("fill-yellow-400", "stroke-yellow-500");
+          icon.classList.remove("fill-none", "stroke-gray-400");
+        });
+      }
+
     } catch (err) {
-        console.error("Error toggling favorite:", err);
+      console.error(err);
+    } finally {
+      btn.disabled = false;
     }
+  });
 });
-    }
-
-    function updateStarUI(isActive) {
-        if (isActive) {
-            starIcon.classList.add('fill-yellow-400', 'stroke-yellow-500');
-            starIcon.classList.remove('fill-none', 'stroke-gray-400');
-        } else {
-            starIcon.classList.remove('fill-yellow-400', 'stroke-yellow-500');
-            starIcon.classList.add('fill-none', 'stroke-gray-400');
-        }
-    }
-});
-  
 </script>
 </body>
 </html>
