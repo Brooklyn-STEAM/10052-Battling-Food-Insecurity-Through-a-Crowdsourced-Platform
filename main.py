@@ -526,7 +526,22 @@ def donate_food():
     finally:
         connection.close()
 
+@app.route('/donation/<int:id>/delete', methods=["POST"])
+@login_required
+def delete_donation(id):
+    connection = connect_db()
+    cursor = connection.cursor()
 
+    cursor.execute("""
+        DELETE FROM Donations
+        WHERE ID = %s AND UserID = %s
+    """, (id, current_user.id))
+
+    connection.commit() 
+    connection.close()
+
+    flash("Donation deleted")
+    return redirect('/restaurant-dashboard')
 # -----------------------------
 # FRIDGE PAGE
 # -----------------------------
