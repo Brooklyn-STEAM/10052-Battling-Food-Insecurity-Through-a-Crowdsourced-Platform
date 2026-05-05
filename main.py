@@ -527,101 +527,100 @@ def donate_food():
 # -----------------------------
 @app.route("/individfridge/<int:fridge_id>", methods=["GET", "POST"])
 def personal_fridges(fridge_id):
-   connection = connect_db()
-   cursor = connection.cursor(pymysql.cursors.DictCursor)
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
 
+    try:
+        # --- 1. HANDLE POST (Review Submission) ---
+        if request.method == "POST":
+            if not current_user.is_authenticated:
+                flash("You must be logged in to leave a review.", "error")
+                return redirect(url_for("login"))
 
-   # --- 1. HANDLE POST (Review Submission) ---
-   if request.method == "POST":
-       # Ensure user is logged in before allowing a review
-       if not current_user.is_authenticated:
-           flash("You must be logged in to leave a review.", "error")
-           return redirect(url_for("login"))
+            rating = request.form.get("Rating")
+            comment = request.form.get("Comment")
+            
+            if rating and comment:
+                try:
+                    cursor.execute("""
+                        INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp)
+                        VALUES (%s, %s, %s, %s, NOW())
+                    """, (fridge_id, rating, comment, current_user.id))
 
+                    connection.commit()
+                    flash("Review submitted! Thank you for sharing.", "review-success")
 
-       rating = request.form.get("Rating")
-       comment = request.form.get("Comment")
-      
-       if rating and comment:
-           try:
-               cursor.execute("""
-                   INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp)
-                   VALUES (%s, %s, %s, %s, NOW())
-               """, (fridge_id, rating, comment, current_user.id))
-               connection.commit()
-               flash("Review submitted! Thank you for sharing.", "review-success")
-          
-           except IntegrityError as e:
-               # 1062 is the MySQL code for Duplicate Entry
-               if e.args[0] == 1062:
-                   flash("You have already reviewed this fridge! You can edit your existing review below.", "error")
-               else:
-                   flash("An error occurred. Please try again later.", "error")
-          
-           finally:
-               connection.close()
-               # Redirect immediately after POST to prevent "Form Resubmission" popups
-               return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+                except IntegrityError as e:
+                    if e.args[0] == 1062:
+                        flash("You have already reviewed this fridge!", "error")
+                    else:
+                        flash("An error occurred. Please try again later.", "error")
 
+            # ✅ IMPORTANT: return WITHOUT closing connection here
+            return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
-   # --- 2. HANDLE GET (Page Display) ---
-   try:
-       # Fridge Info
-       cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-       fridge = cursor.fetchone()
+        # --- 2. HANDLE GET (Page Display) ---
 
+        # Fridge Info
+        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
 
-       if not fridge:
-           abort(404)
+        if not fridge:
+            abort(404)
 
+        # Inventory Items
+        cursor.execute("""
+            SELECT i.Name, i.Image, fi.Quantity
+            FROM Fridge_items fi
+            JOIN Items i ON fi.ItemsID = i.ID
+            WHERE fi.FridgeID = %s AND fi.Quantity > 0
+        """, (fridge_id,))
+        items_list = cursor.fetchall()
 
-       # Inventory Items
-       cursor.execute("""
-           SELECT i.Name, i.Image, fi.Quantity
-           FROM Fridge_items fi
-           JOIN Items i ON fi.ItemsID = i.ID
-           WHERE fi.FridgeID = %s AND fi.Quantity > 0
-       """, (fridge_id,))
-       items_list = cursor.fetchall()
+        # Fridge Status
+        cursor.execute("""
+            SELECT Status, Last_updated
+            FROM Fridge_status
+            WHERE FridgeID=%s
+            ORDER BY Last_updated DESC, ID DESC LIMIT 1
+        """, (fridge_id,))
+        fridge_status = cursor.fetchone() or {
+            "Status": "Unknown",
+            "Last_updated": datetime.now()
+        }
 
+        # Reviews
+        cursor.execute("""
+            SELECT r.ID AS ReviewID, r.rating AS Rating, r.comment AS Comment,
+                   r.Timestamp, u.Name AS user_name, r.UserID
+            FROM Reviews r
+            JOIN User u ON r.UserID = u.ID
+            WHERE r.FridgeID = %s
+            ORDER BY r.Timestamp DESC
+        """, (fridge_id,))
+        reviews = cursor.fetchall()
 
-       # Fridge Status
-       cursor.execute("""
-           SELECT Status, Last_updated
-           FROM Fridge_status
-           WHERE FridgeID=%s
-           ORDER BY Last_updated DESC, ID DESC LIMIT 1
-       """, (fridge_id,))
-       fridge_status = cursor.fetchone() or {
-           "Status": "Unknown",
-           "Last_updated": datetime.now()
-       }
+        # ⭐ Favorite State (FIXED LOCATION)
+        is_favorited = False
+        if current_user.is_authenticated:
+            cursor.execute(
+                "SELECT 1 FROM Favorites WHERE UserID = %s AND FridgeID = %s",
+                (current_user.id, fridge_id)
+            )
+            is_favorited = cursor.fetchone() is not None
 
+        return render_template(
+            "fridge.html.jinja",
+            fridge=fridge,
+            items=items_list,
+            reviews=reviews,
+            fridge_status=fridge_status,
+            is_favorited=is_favorited
+        )
 
-       # Reviews
-       cursor.execute("""
-           SELECT r.ID AS ReviewID, r.rating AS Rating, r.comment AS Comment, r.Timestamp, u.Name AS user_name, r.UserID
-           FROM Reviews r
-           JOIN User u ON r.UserID = u.ID
-           WHERE r.FridgeID = %s
-           ORDER BY r.Timestamp DESC
-       """, (fridge_id,))
-       reviews = cursor.fetchall()
-
-
-   finally:
-       connection.close()
-
-
-   return render_template(
-       "fridge.html.jinja",
-       fridge=fridge,
-       items=items_list,
-       reviews=reviews,
-       fridge_status=fridge_status
-   )
-
-         
+    finally:
+        # ✅ ONLY CLOSE ONCE
+        connection.close()
  
 # -----------------------
 # API: GET FRIDGES
