@@ -47,12 +47,21 @@
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
-      {% if category == "donate_money" %}
-        <div class="flash-message mb-4 px-4 py-3 rounded-xl 
-                    bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md fixed top-24 md:top-20 right-5 z-50 space-y-2 ">
+
+      {% if category.startswith("donation_") %}
+
+        <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md
+          {% if category == 'donation_error' %}
+            bg-red-500 dark:bg-red-700
+          {% else %}
+            bg-green-600 dark:bg-[#6f52c9]
+          {% endif %}
+        ">
           {{ message }}
         </div>
+
       {% endif %}
+
     {% endfor %}
   {% endif %}
 {% endwith %}
@@ -137,7 +146,7 @@
                     </div>
                     <div class="space-y-1">
                         <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quantity</label>
-                        <input type="number" name="quantity" placeholder="No. of items" class="input" required>
+                        <input type="number" name="quantity" min = "1" placeholder="No. of items" class="input" required>
                     </div>
                 </div>
 

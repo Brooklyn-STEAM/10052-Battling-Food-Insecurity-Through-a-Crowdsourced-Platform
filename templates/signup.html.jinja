@@ -74,16 +74,23 @@
       <p class="text-center text-gray-600 dark:text-gray-300 mt-3">
         Join the community helping reduce food waste and support neighbors in need.
       </p>
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="flash-message mb-4 px-4 py-3 rounded-xl 
-                  bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+
+            <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md
+              {% if category == 'signup_error' %}
+                bg-red-500 dark:bg-red-700
+              {% else %}
+                bg-green-600 dark:bg-[#6f52c9]
+              {% endif %}
+            ">
+              {{ message }}
+            </div>
+
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       <form method="post" class="mt-8 space-y-5">
 
         <!-- Input Template -->

@@ -204,23 +204,27 @@ def route_to_fridge(fridge_id):
 # -----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
    if request.method == "POST":
        email = request.form.get("email")
        password = request.form.get("password")
+
        connection = connect_db()
        cursor = connection.cursor()
+
        cursor.execute("SELECT * FROM `User` WHERE `Email`=%s", (email,))
        result = cursor.fetchone()
+
        connection.close()
       
        if not result or result["Password"] != password:
-               flash("Invalid email or password")
+               flash("Invalid email or password", "login_error")
                return redirect(url_for("login"))
-
 
        user = User(result)
        login_user(user)
 
+       flash("Logged in successfully!", "login_success")
 
        if user.role == "restaurant":
            return redirect(url_for("restaurant_dashboard"))
@@ -228,7 +232,6 @@ def login():
            return redirect(url_for("index"))
   
    return render_template("login.html.jinja")
-
 # --------------------
 # LOGOUT FUNCTION 
 # --------------------
@@ -250,8 +253,8 @@ from datetime import datetime
 def signup():
 
     if current_user.is_authenticated:
-      flash("You are already logged in.", "info")
-      return redirect("/")
+        flash("You are already logged in.", "signup_info")
+        return redirect("/")
    
     if request.method == "POST":
         name = request.form["name"]
@@ -265,8 +268,9 @@ def signup():
 
         # ✅ PASSWORD CHECK
         if password != password_repeat:
-            flash("Passwords do not match")
+            flash("Passwords do not match.", "signup_error")
             return redirect("/signup")
+
 
         # ✅ AGE CHECK (THIS IS WHAT YOU WANT)
         if birthdate:
@@ -277,16 +281,15 @@ def signup():
             )
 
             if age < 18:
-                flash("You must be 18 years or older to create an account.", "error")
-                return redirect("/signup")  # ✅ IMPORTANT RETURN
-
+                flash("You must be 18 years or older to create an account.", "signup_error")
+                return redirect("/signup")
         connection = connect_db()
         cursor = connection.cursor()
 
         cursor.execute("SELECT * FROM User WHERE Email = %s", (email,))
         if cursor.fetchone():
             connection.close()
-            flash("Email already registered")
+            flash("Email already registered.", "signup_error")
             return redirect("/signup")
 
         default_pic = "/static/images/default-profile.png"
@@ -299,7 +302,8 @@ def signup():
         connection.commit()
         connection.close()
 
-        flash("Account created successfully! Please log in.", "success")
+        flash("Account created successfully! Please log in.", "signup_success")
+        
         return redirect("/login")
 
     # ✅ THIS MUST ALWAYS EXIST
@@ -358,13 +362,13 @@ def donate_money():
         fridge_id = request.form.get("money_fridge_id")  # ✅ FIXED
 
         if not fridge_id:
-            flash("Please select a fridge.", "donate_money")
+            flash("Please select a fridge.", "donation_error")
             return redirect(url_for("donations"))
 
         try:
             fridge_id = int(fridge_id)
         except:
-            flash("Invalid fridge selection.")
+            flash("Invalid fridge selection.", "donation_error")
             return redirect(url_for("donations"))
 
         if custom_amount:
@@ -372,13 +376,13 @@ def donate_money():
         elif amount:
             final_amount = amount
         else:
-            flash("Enter an amount.")
+            flash("Enter an amount.", "donation_error")
             return redirect(url_for("donations"))
 
         try:
             final_amount = float(final_amount)
         except:
-            flash("Invalid amount.")
+            flash("Invalid amount.", "donation_error")
             return redirect(url_for("donations"))
 
         cursor.execute("SELECT Name FROM Fridge WHERE ID=%s", (fridge_id,))
@@ -401,7 +405,7 @@ def donate_money():
 
         connection.commit()
         connection.close()
-        flash("Thank you for your donation!")
+        flash("Thank you for your donation!", "donation_success")
         return redirect(url_for("thank"))
 
     cursor.execute("SELECT ID, Name, Image FROM Fridge")
@@ -440,7 +444,7 @@ def donate_food():
         # 2. VALIDATION
         # ---------------------------------------------------------
         if not all([fridge_id, item_id, quantity, email]):
-            flash("Missing required information. Please check all fields.", "donate_food")
+            flash("Missing required information. Please check all fields.", "donation_error")
             return redirect(url_for("donations"))
 
         try:
@@ -497,16 +501,16 @@ def donate_food():
             except Exception as email_err:
                 # Log the error, but don't stop the redirect
                 print(f"Mail failed to send: {email_err}")
-                flash("Donation saved, but we couldn't send the confirmation email.", "warning")
+                flash("Donation saved, but we couldn't send the confirmation email.", "donation_error")
 
             # Final Success Redirect
-            flash("Success! Your food donation has been logged.", "success")
+            flash("Success! Your food donation has been logged.", "donation_success")
             return redirect(url_for("thank"))
 
         except Exception as e:
             connection.rollback()
             print(f"Critical Database Error: {e}")
-            flash("A technical error occurred saving your donation. Please try again.", "danger")
+            flash("A technical error occurred saving your donation. Please try again.", "donation_error")
             return redirect(url_for("donations"))
         finally:
             connection.close()
@@ -847,7 +851,8 @@ def update_fridge(fridge_id):
                item_id = int(key.split("_")[1])
                quantity = int(request.form[key])
 
-
+        
+               
                if quantity <= 0:
                    cursor.execute(
                        "DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s",
@@ -874,7 +879,7 @@ def update_fridge(fridge_id):
    connection.commit()
    connection.close()
 
-
+   flash("Fridge updated successfully!")
    return redirect(f"/individfridge/{fridge_id}")
 
 
@@ -892,14 +897,14 @@ def account():
 def update_username():
    username = request.form.get("username", "").strip()
    if not username:
-       flash("Username cannot be empty")
+       flash("Username cannot be empty", "profile_error")
        return redirect("/profile")
    connection = connect_db()
    cursor = connection.cursor()
    cursor.execute("UPDATE User SET Name = %s WHERE ID = %s", (username, current_user.id))
    connection.close()
    current_user.name = username
-   flash("Username updated!")
+   flash("Username updated!", "profile_success")
    return redirect("/profile_page")
 
 
@@ -910,13 +915,13 @@ def update_username():
 def update_password():
    password = request.form.get("password", "")
    if len(password) < 8:
-       flash("Password must be at least 8 characters")
-       return redirect("/profile")
+    flash("Password must be at least 8 characters", "profile_error")
+    return redirect("/profile")
    connection = connect_db()
    cursor = connection.cursor()
    cursor.execute("UPDATE User SET Password = %s WHERE ID = %s", (password, current_user.id))
    connection.close()
-   flash("Password updated!")
+   flash("Password updated!", "profile_success")
    return redirect("/profile_page")
 
 
@@ -931,9 +936,8 @@ def update_picture():
 
 
    if picture_url and not picture_url.startswith(("https://", "/static/")):
-       flash("Invalid image URL")
-       flash("Please provide a valid URL starting with https:// or a path to a static image.")
-       return redirect("/profile_page")
+    flash("Invalid image URL. Use https:// or /static/ path.", "profile_error")
+    return redirect("/profile_page")
    connection = connect_db()
    cursor = connection.cursor()
 
@@ -951,7 +955,7 @@ def update_picture():
    current_user.profile_picture = picture_url or None
 
 
-   flash("Profile picture updated!")
+   flash("Profile picture updated!", "profile_success")
    return redirect("/profile_page")
 
 
