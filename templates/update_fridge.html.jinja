@@ -22,120 +22,118 @@
 
 <div class="max-w-4xl mx-auto py-10 px-6">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-green-800 dark:text-green-400">
+        <h1 class="text-3xl font-black text-green-800 dark:text-green-400">
             Update - {{ fridge['Name'] }}
         </h1>
-        <a href="/individfridge/{{ fridge['ID'] }}" class="text-green-600 hover:underline font-medium">← Back</a>
+        <a href="/individfridge/{{ fridge['ID'] }}" class="text-green-600 hover:underline font-bold text-sm uppercase tracking-wider">← Back</a>
     </div>
 
-    <div class="w-full flex items-center justify-between bg-emerald-50 px-6 py-3 border-y border-emerald-200 shadow-sm rounded-full">
-    
-    <div class="flex items-center space-x-3">
-        <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest leading-none mb-1">
-                System Status
-            </span>
-            <div class="flex items-center space-x-2">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+    <div class="w-full flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/20 px-6 py-4 border border-emerald-200 dark:border-emerald-800 shadow-sm rounded-full mb-10">
+        <div class="flex items-center space-x-3">
+            <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest leading-none mb-1">
+                    System Status
                 </span>
-                <span class="text-sm font-black text-emerald-900 uppercase">
-                    {{ fridge_status['Status'] if fridge_status and fridge_status['Status'] else 'Unknown' }}
-                </span>
+                <div class="flex items-center space-x-2">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-sm font-black text-emerald-900 dark:text-emerald-100 uppercase">
+                        {{ fridge_status['Status'] if fridge_status and fridge_status['Status'] else 'Unknown' }}
+                    </span>
+                </div>
             </div>
+        </div>
+
+        <div class="text-right">
+            <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block leading-none mb-1">
+                Last Sync
+            </span>
+            <span class="text-xs font-medium text-emerald-800/80 dark:text-emerald-200/60 italic">
+                {% if fridge_status and fridge_status['Last_updated'] %}
+                    <span class="timestamp" data-utc="{{ fridge_status['Last_updated'].isoformat() }}">
+                        {{ fridge_status['Last_updated'].strftime("%Y-%m-%d %H:%M:%S") }}
+                    </span>
+                {% else %}
+                    Never
+                {% endif %}
+            </span>
         </div>
     </div>
 
-    <div class="text-right">
-        <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block leading-none mb-1">
-            Last Sync
-        </span>
-        <span class="text-xs font-medium text-emerald-800/80 italic">
-            {% if fridge_status and fridge_status['Last_updated'] %}
-                {{ fridge_status['Last_updated'].strftime('%b %d, %I:%M %p') }}
-            {% else %}
-                Never
-            {% endif %}
-        </span>
-    </div>
-</div>
-
-
     <form method="POST" onsubmit="return validateForm()">
-        <h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4 text-center md:text-left">Items in Fridge</h2>
-        
+        <h2 class="text-xl font-bold text-gray-400 uppercase tracking-widest mb-4">Items in Fridge</h2>
         <div class="grid gap-4 mb-10">
             {% for item in items %}
-            <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition hover:shadow-md">
                 <div class="flex items-center gap-4">
-                    <img src="{{ item['Image'] }}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                    <img src="{{ item['Image'] }}" class="w-14 h-14 rounded-2xl object-cover bg-gray-100 dark:bg-gray-700 ring-2 ring-gray-50 dark:ring-gray-900">
                     <div>
-                        <span class="block font-bold text-gray-800 dark:text-gray-200">{{ item['Name'] }}</span>
+                        <span class="block font-bold text-lg text-gray-800 dark:text-gray-100">{{ item['Name'] }}</span>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <button type="button" onclick="changeQty({{ item['ItemsID'] }}, -1)"
-                        class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 w-10 h-10 rounded-xl font-bold hover:bg-red-200 transition">-</button>
+                        class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 w-12 h-12 rounded-2xl font-black text-xl hover:bg-red-100 transition active:scale-90">-</button>
 
                     <input type="number" id="qty_display_{{ item['ItemsID'] }}" value="{{ item['Quantity'] }}" readonly
-                        class="w-12 text-center font-bold bg-transparent border-none focus:ring-0">
+                        class="w-10 text-center font-black text-xl bg-transparent border-none focus:ring-0">
 
                     <input type="hidden" name="quantity_{{ item['ItemsID'] }}" id="qty_input_{{ item['ItemsID'] }}" value="{{ item['Quantity'] }}">
 
                     <button type="button" onclick="changeQty({{ item['ItemsID'] }}, 1)"
-                        class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 w-10 h-10 rounded-xl font-bold hover:bg-green-200 transition">+</button>
+                        class="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 w-12 h-12 rounded-2xl font-black text-xl hover:bg-green-100 transition active:scale-90">+</button>
                 </div>
             </div>
             {% endfor %}
         </div>
 
-        <h2 class="text-2xl font-semibold text-green-700 dark:text-green-400 mb-4">Overall Fullness</h2>
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-10">
+        <h2 class="text-xl font-bold text-gray-400 uppercase tracking-widest mb-4">Overall Fullness</h2>
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-10">
             <input type="range" name="fullness" id="fullnessSlider" min="0" max="4" step="1" value="0"
-       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
-       oninput="updateLabel(this.value)" required>
-            <div class="flex justify-between text-xs font-bold text-gray-400 mt-4 px-1 uppercase tracking-wider">
+                class="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-600"
+                oninput="updateLabel(this.value)" required>
+            <div class="flex justify-between text-[10px] font-black text-gray-400 mt-4 px-1 uppercase tracking-widest">
                 <span>Empty</span>
                 <span>Few</span>
                 <span>Half</span>
                 <span>Many</span>
                 <span>Full</span>
             </div>
-
-            <p id="fullnessLabel" class="text-center text-xl font-black text-green-600 mt-6 italic">Half Full</p>
+            <p id="fullnessLabel" class="text-center text-2xl font-black text-green-600 dark:text-green-400 mt-6 italic tracking-tight">Calculating...</p>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-4">
             <button type="button" onclick="undoChanges()"
-                class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl transition">
+                class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold py-4 px-4 rounded-2xl transition uppercase text-sm tracking-widest">
                 Undo Changes
             </button>
             <button type="button" onclick="showResetPopup()"
-                class="bg-orange-100 dark:bg-orange-900/20 text-orange-600 font-bold py-3 px-4 rounded-xl hover:bg-orange-200 transition">
+                class="bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-400 font-bold py-4 px-4 rounded-2xl hover:bg-orange-100 transition uppercase text-sm tracking-widest">
                 Reset to Zero
             </button>
         </div>
 
-        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-black py-5 rounded-2xl shadow-lg transition transform active:scale-95 text-lg uppercase tracking-widest">
+        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-black py-6 rounded-3xl shadow-xl shadow-green-200 dark:shadow-none transition transform active:scale-95 text-xl uppercase tracking-[0.2em]">
             Submit Update
         </button>
     </form>
 </div>
 
-<div id="reset-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 z-[9999]">
-    <div class="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-2xl w-[90%] max-w-md text-center">
-        <div class="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
+<div id="reset-popup" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 z-[9999]">
+    <div class="bg-white dark:bg-gray-900 p-8 rounded-[2rem] shadow-2xl w-[90%] max-w-md text-center border border-gray-100 dark:border-gray-800">
+        <div class="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
         </div>
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Are you sure?</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-8">This will set <strong>all items</strong> in this fridge to zero. This action cannot be undone after submitting.</p>
+        <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2">Clear Inventory?</h2>
+        <p class="text-gray-500 dark:text-gray-400 mb-8 font-medium">This will set all items to zero. You will still need to click "Submit Update" to save this change.</p>
         <div class="flex gap-4">
-            <button onclick="closeResetPopup()" class="flex-1 px-6 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-500">Cancel</button>
-            <button onclick="confirmReset()" class="flex-1 px-6 py-3 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-700">Yes, Reset All</button>
+            <button onclick="closeResetPopup()" class="flex-1 px-6 py-4 rounded-2xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-500 dark:text-gray-400">Cancel</button>
+            <button onclick="confirmReset()" class="flex-1 px-6 py-4 rounded-2xl bg-orange-600 text-white font-bold hover:bg-orange-700 shadow-lg shadow-orange-200 dark:shadow-none">Reset All</button>
         </div>
     </div>
 </div>
@@ -143,38 +141,27 @@
 {% include "components/footer.html.jinja" %}
 
 <script>
-// 1. Correctly parse the initial quantities from Jinja
-// We create a simple object: { "itemID": quantity }
 const originalQuantities = {
     {% for item in items %}
     "{{ item['ItemsID'] }}": {{ item['Quantity'] or 0 }}{% if not loop.last %},{% endif %}
     {% endfor %}
 };
 
-// 2. Logic for increment/decrement buttons
 function changeQty(id, amount) {
     const display = document.getElementById("qty_display_" + id);
     const hiddenInput = document.getElementById("qty_input_" + id);
-    
     if (!display || !hiddenInput) return;
-
-    let currentVal = parseInt(hiddenInput.value) || 0;
-    let newVal = Math.max(0, currentVal + amount);
-    
+    let newVal = Math.max(0, (parseInt(hiddenInput.value) || 0) + amount);
     display.value = newVal;
     hiddenInput.value = newVal;
 }
 
-// 3. Update the text label for the range slider
 function updateLabel(val) {
     const labels = ["Completely Empty", "A Few Items", "Half Full", "Mostly Full", "Completely Full"];
     const labelEl = document.getElementById("fullnessLabel");
-    if (labelEl) {
-        labelEl.innerText = labels[val];
-    }
+    if (labelEl) labelEl.innerText = labels[val];
 }
 
-// 4. Undo function
 function undoChanges() {
     for (const id in originalQuantities) {
         const display = document.getElementById("qty_display_" + id);
@@ -184,48 +171,40 @@ function undoChanges() {
             hiddenInput.value = originalQuantities[id];
         }
     }
-    // Optionally reset slider to a default or original value if you track it
 }
 
-// 5. Reset Popup Logic
-function showResetPopup() {
-    const popup = document.getElementById("reset-popup");
-    popup.classList.remove("opacity-0", "pointer-events-none");
-}
-
-function closeResetPopup() {
-    const popup = document.getElementById("reset-popup");
-    popup.classList.add("opacity-0", "pointer-events-none");
-}
+function showResetPopup() { document.getElementById("reset-popup").classList.remove("opacity-0", "pointer-events-none"); }
+function closeResetPopup() { document.getElementById("reset-popup").classList.add("opacity-0", "pointer-events-none"); }
 
 function confirmReset() {
-    // Set all visible and hidden quantity inputs to 0
     document.querySelectorAll("input[id^='qty_display_']").forEach(el => el.value = 0);
     document.querySelectorAll("input[id^='qty_input_']").forEach(el => el.value = 0);
-    
-    // Reset slider
     const slider = document.getElementById("fullnessSlider");
-    if (slider) {
-        slider.value = 0;
-        updateLabel(0);
-    }
+    if (slider) { slider.value = 0; updateLabel(0); }
     closeResetPopup();
 }
 
-// 6. Form Validation
 function validateForm() {
-    const label = document.getElementById("fullnessLabel");
-    return confirm("Are you sure the fridge is " + label.innerText + "?");
+    return confirm("Save these updates to the database?");
 }
 
-// 7. Initialize the label on page load
 document.addEventListener("DOMContentLoaded", () => {
+    // Initialize slider
     const slider = document.getElementById("fullnessSlider");
-    if (slider) {
-        updateLabel(slider.value);
-    }
+    if (slider) updateLabel(slider.value);
+
+    // Convert timestamps
+    document.querySelectorAll('.timestamp').forEach(el => {
+        if (el.dataset.utc) {
+            let utcStr = el.dataset.utc;
+            if (!utcStr.endsWith('Z')) utcStr += 'Z';
+            const date = new Date(utcStr);
+            el.innerText = date.toLocaleString([], { 
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+            });
+        }
+    });
 });
 </script>
-
 </body>
 </html>
