@@ -1,277 +1,211 @@
 <!DOCTYPE html>
 <html>
-
-
 <head>
  <meta charset="UTF-8" />
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
  <link rel="icon" type="image/png" href="/static/images/logo.png">
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
-  <script>
-    tailwind.config = { darkMode: 'class' }
-  </script>
-<script>
-      (function () {
-        const saved = localStorage.getItem("theme");
-        if (saved === "dark") {
-          document.documentElement.classList.add("dark");
-        } else if(saved === "light") {
-          document.documentElement.classList.remove("dark");
-        } else {
-          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          document.documentElement.classList.toggle("dark", prefersDark);
-        }
-      })();
-  </script>
-
-  <style>
-    html { scroll-behavior: smooth; transition: background-color 0.3s ease, color 0.3s ease; }
-    body, div, p, h1, h2, span { transition: background-color 0.3s ease, color 0.3s ease; }
-    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-    .animate-pop { animation: pop 0.4s ease-out; }
-
-    .star-rating label {
-      color: #d1d5db;
-      transition: color 0.2s ease;
-    }
-
-    .dark .star-rating label {
-      color: #40376E;
-    }
-
-    .star-rating label:hover,
-    .star-rating label:hover ~ label,
-    .star-rating input:checked ~ label {
-      color: #fbbf24 !important;
-      text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
-    }
-
-    #review-popup .star-rating label {
-      font-size: 2.5rem;
-    }
-  </style>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+ <script>tailwind.config = { darkMode: 'class' }</script>
+ <style>
+    html { scroll-behavior: smooth; transition: background-color 0.3s ease; }
+    .star-rating label { color: #d1d5db; transition: color 0.2s ease; font-size: 2.5rem; }
+    /* Peer-checked logic for the stars */
+    .star-rating input:checked ~ label, 
+    .star-rating label:hover, 
+    .star-rating label:hover ~ label { color: #fbbf24 !important; }
+    .flash-msg { animation: slideIn 0.5s ease-out; pointer-events: auto; }
+    @keyframes slideIn { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+ </style>
 </head>
 
 <body class="bg-yellow-50 dark:bg-[#1b1730] text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
+  
+  <div id="flash-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-md px-4 pointer-events-none">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-msg {{ category }} {% if category == 'review-exists' %}bg-orange-500{% else %}bg-green-600{% endif %} text-white px-6 py-4 rounded-2xl shadow-xl mb-4 transition-all duration-500 flex items-center gap-3">
+            <span>{{ '⚠️' if category == 'review-exists' else '✅' }}</span>
+            <p class="font-bold">{{ message }}</p>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
   {% include "components/navbar.html.jinja" %}
 
   <div class="flex-grow">
     <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-16 px-6">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 dark:text-purple-300 mb-3">{{ fridge["Name"] }}</h1>
             <p class="text-gray-700 dark:text-purple-100/80 text-lg">📍 {{ fridge["Address"] }}</p>
           </div>
-
           <div class="flex flex-col sm:flex-row gap-4">
-            {% set status = fridge_status['Status'] | lower | trim %}
-            {% if status in ["full", "many", "half"] %}
-              <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
-            {% elif status in ["low", "few"] %}
-              <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
-            {% else %}
-              <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
-            {% endif %}
-
-            <a href="/update_fridge/{{ fridge['ID'] }}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center shadow-md font-semibold transition">Update Inventory</a>
-            <a href="/report/{{ fridge['ID'] }}" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-md transition text-center">Report Issue</a>
-            
-            {% if current_user.is_authenticated %}
-              <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}"
-                class="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition transform active:scale-95">
-
-                <svg id="star-icon" 
-     class="h-6 w-6 transition-all duration-200 
-     {{ 'fill-yellow-400 stroke-yellow-500' if is_favorited else 'fill-none stroke-gray-400' }}"
-     xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
-                  <path stroke-linecap="round" stroke-linejoin="round" 
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
-                </svg>
-
-              </button>
-              {% endif %}
+           {% set status = (fridge_status['Status'] or 'Unknown') | lower | trim %}
+           {% if status in ["full", "many", "half"] %}
+             <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
+           {% elif status in ["low", "few"] %}
+             <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
+           {% else %}
+             <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
+           {% endif %}
+            <a href="/update_fridge/{{ fridge['ID'] }}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center font-semibold transition">Update Inventory</a>
+            <a href="/report/{{ fridge['ID'] }}" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl transition text-center">Report Issue</a>
           </div>
-        </div>
       </div>
     </section>
 
     <section class="py-12 px-6 max-w-6xl mx-auto">
       <div class="grid md:grid-cols-2 gap-8 items-start">
-        <div class="md:sticky md:top-6">
-          <img src="{{ fridge['Image'] }}" alt="{{ fridge['Name'] }}" class="w-full aspect-square rounded-3xl shadow-lg object-cover max-h-[400px]">
-        </div>
+        <img src="{{ fridge['Image'] }}" class="w-full aspect-square rounded-3xl shadow-lg object-cover max-h-[400px]">
         <div class="space-y-3">
           <h2 class="text-2xl font-bold text-green-800 dark:text-purple-300 mb-4">Available Items</h2>
-          <ul id="list" class="grid gap-2">
+          <ul class="grid gap-2">
             {% for item in items %}
-              {% if item['Quantity'] > 0 %}
-                <li class="flex items-center justify-between bg-white dark:bg-[#2a2545] p-2 pr-4 rounded-xl shadow-sm border border-gray-100 dark:border-[#40376E]">
+                <li class="flex items-center justify-between bg-white dark:bg-[#2a2545] p-2 pr-4 rounded-xl shadow-sm border dark:border-[#40376E]">
                   <div class="flex items-center space-x-3">
-                    <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
-                    <p class="font-medium text-gray-800 dark:text-gray-100">{{ item['Name'] }}</p>
+                    <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover">
+                    <p class="font-medium">{{ item['Name'] }}</p>
                   </div>
-                  <span class="text-xs font-bold px-2 py-1 bg-green-100 dark:bg-purple-900/40 text-green-700 dark:text-purple-200 rounded-md">{{ item['Quantity'] }} left</span>
+                  <span class="text-xs font-bold px-2 py-1 bg-green-100 dark:bg-purple-900/40 rounded-md">{{ item['Quantity'] }} left</span>
                 </li>
-              {% endif %}
-            {% else %}
-              <li class="p-6 text-center bg-gray-50 dark:bg-[#2a2545]/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
-                <p class="text-gray-500 dark:text-purple-300/60 italic text-sm">No items currently listed.</p>
-              </li>
             {% endfor %}
           </ul>
         </div>
       </div>
 
       <div class="mt-16 border-t border-gray-200 dark:border-[#40376E] pt-12">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-          <div>
-            <h2 id="reviews-section" class="text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
-            <p class="text-sm text-gray-500 dark:text-purple-300/60 mt-1">What others are saying about this fridge</p>
-          </div>
-
+        <div class="flex justify-between items-center mb-10">
+          <h2 class="text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
           {% if current_user.is_authenticated %}
-            <button id="open-review-btn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#9d4edd] text-white px-8 py-3 rounded-xl shadow-lg font-bold transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-              Add a Review
-            </button>
-          {% else %}
-            <a href="/login" class="w-full sm:w-auto bg-gray-200 dark:bg-[#2a2545] text-gray-600 dark:text-purple-200 px-8 py-3 rounded-xl font-bold text-center">Login to Review</a>
-          {% endif %}   
+            <button id="open-review-btn" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold transition transform hover:scale-105">Add Review</button>
+          {% endif %}
         </div>
 
-        <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-          {% if reviews %}
-            {% for review in reviews %}
-              <div id="review-card-{{ review['ReviewID'] }}" class="bg-white dark:bg-[#2a2545] rounded-2xl shadow-md p-6 border dark:border-[#40376E] {% if loop.first %}animate-pop{% endif %}">
+        <div class="space-y-4">
+          {% for review in reviews %}
+            <div id="review-card-{{ review['ReviewID'] }}" data-user-id="{{ review['UserID'] }}" class="bg-white dark:bg-[#2a2545] rounded-2xl shadow-md p-6 border dark:border-[#40376E]">
                 <div class="flex justify-between items-center mb-2">
-                  <div>
-                    <p class="font-semibold text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
-                    <span class="text-sm text-gray-500 dark:text-purple-200/70">⭐ {{ review["Rating"] }}/5</span>
-                  </div>
-                  {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
-                    <button onclick="toggleEdit('{{ review['ReviewID'] }}')" class="text-xs text-blue-500 dark:text-purple-400 hover:underline">Edit</button>
-                  {% endif %}
+                    <div>
+                        <p class="font-semibold text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
+                        <span id="display-rating-{{ review['ReviewID'] }}" class="text-sm text-gray-500 dark:text-purple-200/70">⭐ {{ review["Rating"] }}/5</span>
+                    </div>
+                    {% if current_user.id == review['UserID'] %}
+                        <button onclick="toggleEdit('{{ review['ReviewID'] }}')" class="text-xs text-blue-500 hover:underline">Edit</button>
+                    {% endif %}
                 </div>
-              
-               <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200 mb-2">{{ review["Comment"] }}</p>
-              
-               {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
-                 <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-3">
-                   <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
-                   <div class="flex gap-2">
-                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Save</button>
-                      <button type="button" onclick="toggleEdit('{{ review['ReviewID'] }}')" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
-                        </div>
-                 </form>
-               {% endif %}
 
-                <p class="text-xs text-gray-400 dark:text-purple-300/50 italic mt-2">Posted {{ review["Timestamp"].strftime('%b %d, %Y') }}</p>
-              </div>
-            {% endfor %}
-          {% else %}
-            <li class="p-6 text-center bg-gray-50 dark:bg-[#2a2545]/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
-                <p class="text-gray-500 dark:text-purple-300/60 italic text-sm">No reviews yet.</p>
-              </li>
-          {% endif %}
+                <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200 mb-2">{{ review["Comment"] }}</p>
+
+                {% if current_user.id == review['UserID'] %}
+                    <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-4 mt-2">
+                        <div class="star-rating flex flex-row-reverse justify-end gap-1">
+                            {% for i in range(5, 0, -1) %}
+                            <input type="radio" id="edit-star{{i}}-{{ review['ReviewID'] }}" name="Rating" value="{{i}}" 
+                                   class="hidden peer" {% if review['Rating'] == i %}checked {% endif %} required />
+                            <label for="edit-star{{i}}-{{ review['ReviewID'] }}" class="cursor-pointer text-2xl hover:scale-110 transition-transform">★</label>
+                            {% endfor %}
+                        </div>
+                        <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
+                        <div class="flex gap-2">
+                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-green-700">Save Changes</button>
+                            <button type="button" onclick="toggleEdit('{{ review['ReviewID'] }}')" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+          {% endfor %}
         </div>
       </div>
     </section>
+  </div>
 
-    <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+  <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
       <div class="bg-white dark:bg-[#1b1730] p-8 rounded-xl shadow-lg border dark:border-[#403760] w-[420px]">
         <h2 class="text-2xl font-bold text-green-800 dark:text-purple-100 mb-6">Add Review</h2>
-        
         <form method="POST" action="/individfridge/{{ fridge['ID'] }}">       
           <label class="block text-sm font-bold text-green-800 dark:text-purple-300 mb-2">Rating</label>
           <div class="star-rating flex flex-row-reverse justify-end gap-2 mb-6">
-            <input type="radio" id="star5" name="Rating" value="5" class="hidden peer" required />
-            <label for="star5" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-            <input type="radio" id="star4" name="Rating" value="4" class="hidden peer" />
-            <label for="star4" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-            <input type="radio" id="star3" name="Rating" value="3" class="hidden peer" />
-            <label for="star3" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-            <input type="radio" id="star2" name="Rating" value="2" class="hidden peer" />
-            <label for="star2" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-            <input type="radio" id="star1" name="Rating" value="1" class="hidden peer" />
-            <label for="star1" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+            {% for i in range(5, 0, -1) %}
+            <input type="radio" id="star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
+            <label for="star{{i}}" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+            {% endfor %}
           </div>
-
           <label class="block text-sm text-green-800 dark:text-purple-300 mb-1">Comment</label>
           <textarea name="Comment" required class="w-full rounded-lg border border-green-400 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
           <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold">Submit Review</button>
         </form>
       </div>
-    </div>
   </div>
-
-  {% include "components/footer.html.jinja" %}
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-    // Review Popup Logic
-    const openBtn = document.getElementById('open-review-btn');
-    const popup = document.getElementById('review-popup');
-    if (openBtn && popup) {
-        openBtn.addEventListener('click', () => popup.classList.remove('opacity-0', 'pointer-events-none'));
-        popup.addEventListener('click', (e) => { 
-            if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); 
-        });
-    }
+        const openBtn = document.getElementById('open-review-btn');
+        const popup = document.getElementById('review-popup');
+        const currentUserId = "{{ current_user.id if current_user.is_authenticated else 'null' }}";
 
-    // Favorite Button Logic
-    const favBtn = document.getElementById('fav-btn');
-    const starIcon = document.getElementById('star-icon');
-
-    if (favBtn) {
-        const fridgeId = favBtn.getAttribute('data-fridge-id');
-
-        // 1. Initial check: Is it already favorited?
-        fetch('/get-favorites')
-            .then(res => res.json())
-            .then(favorites => {
-                const isFav = favorites.some(f => f.ID == fridgeId || f.id == fridgeId);
-                updateStarUI(isFav);
+        // Handle Add Review Click
+        if (openBtn && popup) {
+            openBtn.addEventListener('click', (e) => {
+                const existingReview = document.querySelector(`[data-user-id="${currentUserId}"]`);
+                if (existingReview) {
+                    showManualFlash("You've already reviewed this fridge! Please edit your existing message below.", "review-exists");
+                    existingReview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    existingReview.classList.add('ring-2', 'ring-orange-500', 'animate-pulse');
+                    setTimeout(() => existingReview.classList.remove('ring-2', 'ring-orange-500', 'animate-pulse'), 3000);
+                    return; 
+                }
+                popup.classList.remove('opacity-0', 'pointer-events-none');
             });
 
-        // 2. Toggle Favorite on Click
-        favBtn.addEventListener('click', async () => {
-    try {
-        const res = await fetch('/toggle-favorite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fridge_id: fridgeId })
+            popup.addEventListener('click', (e) => { 
+                if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); 
+            });
+        }
+
+        // Auto-hide existing flash messages
+        document.querySelectorAll('.flash-msg').forEach(msg => {
+            const delay = msg.classList.contains('review-exists') ? 4000 : 6000;
+            hideMessage(msg, delay);
         });
 
-        const data = await res.json();
-        if (res.ok) {
-            // Match "Added" or "added"
-            const isNowFav = data.message.toLowerCase() === "added";
-            updateStarUI(isNowFav);
-
-            if (isNowFav) {
-                confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-            }
+        // Confetti for success
+        if (document.querySelector('.review-success')) {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#16a34a', '#fbbf24', '#f97316'] });
         }
-    } catch (err) {
-        console.error("Error toggling favorite:", err);
-    }
-});
+    });
+
+    function showManualFlash(message, category) {
+        const container = document.getElementById('flash-container');
+        if (!container) return;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flash-msg ${category} bg-orange-500 text-white px-6 py-4 rounded-2xl shadow-xl mb-4 transition-all duration-500 flex items-center gap-3`;
+        msgDiv.innerHTML = `<span>⚠️</span><p class="font-bold">${message}</p>`;
+        container.appendChild(msgDiv);
+        hideMessage(msgDiv, 4000);
     }
 
-    function updateStarUI(isActive) {
-        if (isActive) {
-            starIcon.classList.add('fill-yellow-400', 'stroke-yellow-500');
-            starIcon.classList.remove('fill-none', 'stroke-gray-400');
-        } else {
-            starIcon.classList.remove('fill-yellow-400', 'stroke-yellow-500');
-            starIcon.classList.add('fill-none', 'stroke-gray-400');
+    function hideMessage(element, delay) {
+        setTimeout(() => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(-20px)';
+            setTimeout(() => element.remove(), 500);
+        }, delay);
+    }
+
+    function toggleEdit(reviewId) {
+        const text = document.getElementById(`comment-text-${reviewId}`);
+        const ratingDisplay = document.getElementById(`display-rating-${reviewId}`);
+        const form = document.getElementById(`edit-form-${reviewId}`);
+        if (text && form && ratingDisplay) {
+            text.classList.toggle('hidden');
+            ratingDisplay.classList.toggle('hidden');
+            form.classList.toggle('hidden');
         }
     }
-});
-  
-</script>
+  </script>
 </body>
 </html>

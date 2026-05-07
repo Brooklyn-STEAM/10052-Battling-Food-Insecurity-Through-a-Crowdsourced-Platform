@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, flash, abort, jsonify, redirect, url_for, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from datetime import datetime
+from datetime import datetime, timezone
 import pymysql
 import random
 from dynaconf import Dynaconf
@@ -45,16 +45,13 @@ class User:
    is_active = True
    is_anonymous = False
 
-
    def __init__(self, result):
-       self.name = result["Name"]
-       self.email = result["Email"]
+       self.id = result.get("ID")
+       self.name = result.get("Name")
+       self.email = result.get("Email")
+       self.address = result.get("Address")
        self.role = result.get("Role", "user")
-       self.address = result["Address"]
-       self.id = result["ID"]
-       self.profile_picture = result.get("ProfilePicture")
-       self.role = result.get("Role", "user")
-
+       self.profile_picture = result.get("ProfilePicture") or result.get("profile_picture")
 
    def get_id(self):
        return str(self.id)
@@ -532,99 +529,75 @@ def donate_food():
 # -----------------------------
 @app.route("/individfridge/<int:fridge_id>", methods=["GET", "POST"])
 def personal_fridges(fridge_id):
-   connection = connect_db()
-   cursor = connection.cursor(pymysql.cursors.DictCursor)
+    connection = connect_db()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
 
+    # --- 1. HANDLE POST (Review Submission) ---
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            flash("You must be logged in to leave a review.", "error")
+            return redirect(url_for("login"))
 
-   # --- 1. HANDLE POST (Review Submission) ---
-   if request.method == "POST":
-       # Ensure user is logged in before allowing a review
-       if not current_user.is_authenticated:
-           flash("You must be logged in to leave a review.", "error")
-           return redirect(url_for("login"))
+        rating = request.form.get("Rating")
+        comment = request.form.get("Comment")
+        
+        if rating and comment:
+            # CHECK FOR DUPLICATE: See if this user already reviewed THIS fridge
+            cursor.execute("SELECT ID FROM Reviews WHERE FridgeID = %s AND UserID = %s", (fridge_id, current_user.id))
+            existing_review = cursor.fetchone()
 
+            if existing_review:
+                # Flash with category 'review-exists' for the 3-second timer
+                flash("You've already reviewed this fridge! Please edit your existing message below.", "review-exists")
+            else:
+                try:
+                    cursor.execute("""
+                        INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp) 
+                        VALUES (%s, %s, %s, %s, NOW())
+                    """, (fridge_id, rating, comment, current_user.id))
+                    connection.commit()
+                    flash("Review submitted! Thank you for sharing.", "review-success")
+                except Exception as e:
+                    print(f"Database Error: {e}")
+                    flash("An error occurred. Please try again later.", "error")
+            
+            connection.close()
+            return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
-       rating = request.form.get("Rating")
-       comment = request.form.get("Comment")
-      
-       if rating and comment:
-           try:
-               cursor.execute("""
-                   INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp)
-                   VALUES (%s, %s, %s, %s, NOW())
-               """, (fridge_id, rating, comment, current_user.id))
-               connection.commit()
-               flash("Review submitted! Thank you for sharing.", "review-success")
-          
-           except IntegrityError as e:
-               # 1062 is the MySQL code for Duplicate Entry
-               if e.args[0] == 1062:
-                   flash("You have already reviewed this fridge! You can edit your existing review below.", "error")
-               else:
-                   flash("An error occurred. Please try again later.", "error")
-          
-           finally:
-               connection.close()
-               # Redirect immediately after POST to prevent "Form Resubmission" popups
-               return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+    # --- 2. HANDLE GET (Page Display) ---
+    # Fetch Fridge Info
+    cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+    fridge = cursor.fetchone()
 
+    if not fridge:
+        connection.close()
+        abort(404)
 
-   # --- 2. HANDLE GET (Page Display) ---
-   try:
-       # Fridge Info
-       cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-       fridge = cursor.fetchone()
+    # Fetch Inventory
+    cursor.execute("""
+        SELECT i.Name, i.Image, fi.Quantity 
+        FROM Fridge_items fi
+        JOIN Items i ON fi.ItemsID = i.ID 
+        WHERE fi.FridgeID = %s AND fi.Quantity > 0
+    """, (fridge_id,))
+    items_list = cursor.fetchall()
 
+    # Fetch Status
+    cursor.execute("SELECT Status, Last_updated FROM Fridge_status WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1", (fridge_id,))
+    fridge_status = cursor.fetchone() or {"Status": "Unknown", "Last_updated": None}
 
-       if not fridge:
-           abort(404)
+    # Fetch Reviews
+    cursor.execute("""
+        SELECT r.ID AS ReviewID, r.rating AS Rating, r.comment AS Comment, r.Timestamp, u.Name AS user_name, r.UserID 
+        FROM Reviews r 
+        JOIN User u ON r.UserID = u.ID 
+        WHERE r.FridgeID = %s 
+        ORDER BY r.Timestamp DESC
+    """, (fridge_id,))
+    reviews = cursor.fetchall()
 
-
-       # Inventory Items
-       cursor.execute("""
-           SELECT i.Name, i.Image, fi.Quantity
-           FROM Fridge_items fi
-           JOIN Items i ON fi.ItemsID = i.ID
-           WHERE fi.FridgeID = %s AND fi.Quantity > 0
-       """, (fridge_id,))
-       items_list = cursor.fetchall()
-
-
-       # Fridge Status
-       cursor.execute("""
-           SELECT Status, Last_updated
-           FROM Fridge_status
-           WHERE FridgeID=%s
-           ORDER BY Last_updated DESC, ID DESC LIMIT 1
-       """, (fridge_id,))
-       fridge_status = cursor.fetchone() or {
-           "Status": "Unknown",
-           "Last_updated": datetime.now()
-       }
-
-
-       # Reviews
-       cursor.execute("""
-           SELECT r.ID AS ReviewID, r.rating AS Rating, r.comment AS Comment, r.Timestamp, u.Name AS user_name, r.UserID
-           FROM Reviews r
-           JOIN User u ON r.UserID = u.ID
-           WHERE r.FridgeID = %s
-           ORDER BY r.Timestamp DESC
-       """, (fridge_id,))
-       reviews = cursor.fetchall()
-
-
-   finally:
-       connection.close()
-
-
-   return render_template(
-       "fridge.html.jinja",
-       fridge=fridge,
-       items=items_list,
-       reviews=reviews,
-       fridge_status=fridge_status
-   )
+    connection.close()
+    return render_template("fridge.html.jinja", fridge=fridge, items=items_list, reviews=reviews, fridge_status=fridge_status)
 
          
  
@@ -689,6 +662,7 @@ def report_fridge(fridge_id):
                 return redirect(url_for("index"))
 
             # 2. Log the maintenance report
+            # Note: Ensure these columns match your 'maintenance_reports' table exactly
             cursor.execute("""
                 INSERT INTO maintenance_reports
                 (FridgeID, Reported_by, Description, Status, Timestamp, UserID, Priority, Reproducibility)
@@ -696,13 +670,20 @@ def report_fridge(fridge_id):
             """, (fridge_id, current_user.id, description, "Open", current_user.id, priority, reproducibility))
 
             # 3. UPDATE FRIDGE STATUS
-            # Directly using your existing "Needs Attention" option
+            # Update the main Fridge table so it shows up as Needs Attention globally
             cursor.execute("UPDATE Fridge SET Status = %s WHERE ID = %s", ("Needs Attention", fridge_id))
             
-            # Commit both changes as one transaction
+            # 4. INSERT INTO STATUS HISTORY
+            # This ensures the 'Last Sync' info on the fridge page shows the update
+            cursor.execute("""
+                INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
+                VALUES (%s, %s, NOW())
+            """, (fridge_id, "Needs Attention"))
+            
+            # Commit all database changes
             connection.commit()
 
-            # 4. Notify via Email
+            # 5. Notify via Email
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             email_body = f"""
             --------------------------------------------------
@@ -730,6 +711,8 @@ def report_fridge(fridge_id):
                 server.send_message(msg)
 
             flash("Report submitted. This fridge has been marked as 'Needs Attention'.", "success")
+            
+            # REDIRECT: Returns user to the individual fridge page
             return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
         except Exception as e:
@@ -740,7 +723,7 @@ def report_fridge(fridge_id):
         finally:
             connection.close()
 
-    # GET logic for displaying the form
+    # --- GET logic for displaying the form ---
     connection = connect_db()
     try:
         cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -751,7 +734,7 @@ def report_fridge(fridge_id):
 
     if not fridge:
         abort(404)
-
+    
     return render_template("report.html.jinja", fridge=fridge)
 
 # -----------------------
@@ -769,99 +752,64 @@ def thank():
 @app.route("/update_fridge/<int:fridge_id>", methods=["GET", "POST"])
 @login_required
 def update_fridge(fridge_id):
+    connection = connect_db()
+    cursor = connection.cursor()
 
+    if request.method == "GET":
+        cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
+        fridge = cursor.fetchone()
 
-   connection = connect_db()
-   cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("""
+            SELECT Items.ID AS ItemsID, Items.Name, Items.Image, IFNULL(Fridge_items.Quantity, 0) AS Quantity
+            FROM Items
+            LEFT JOIN Fridge_items ON Items.ID = Fridge_items.ItemsID AND Fridge_items.FridgeID = %s
+        """, (fridge_id,))
+        items = cursor.fetchall()
 
+        cursor.execute("""
+            SELECT status, Last_updated FROM Fridge_status
+            WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1
+        """, (fridge_id,))
+        status = cursor.fetchone()
+        
+        connection.close()
+        return render_template("update_fridge.html.jinja", fridge=fridge, items=items, fridge_status=status)
 
-   # -------- GET --------
-   if request.method == "GET":
+    # POST Logic
+    cursor.execute("SELECT status FROM Fridge WHERE ID=%s", (fridge_id,))
+    current_fridge = cursor.fetchone()
+    is_broken = current_fridge and current_fridge.get('status') == "Needs Attention"
 
+    value = int(request.form.get("fullness", 2))
+    mapping = ["empty", "few", "half", "many", "full"]
+    status_value = mapping[value]
 
-       cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
-       fridge = cursor.fetchone()
+    for key in request.form:
+        if key.startswith("quantity_"):
+            try:
+                item_id = int(key.split("_")[1])
+                qty = int(request.form[key])
+                if qty <= 0:
+                    cursor.execute("DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s", (fridge_id, item_id))
+                else:
+                    cursor.execute("""
+                        INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
+                        VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
+                    """, (fridge_id, item_id, qty))
+            except: continue
 
+    current_time = datetime.now(timezone.utc)
+    
+    if not is_broken:
+        cursor.execute("UPDATE Fridge SET status = %s WHERE ID = %s", (status_value, fridge_id))
+        cursor.execute("INSERT INTO Fridge_status (FridgeID, status, Last_updated) VALUES (%s, %s, %s)", (fridge_id, status_value, current_time))
+    else:
+        cursor.execute("INSERT INTO Fridge_status (FridgeID, status, Last_updated) VALUES (%s, %s, %s)", (fridge_id, "Needs Attention", current_time))
+        flash("Quantities updated, but status remains 'Needs Attention'.", "info")
 
-       cursor.execute("""
-       SELECT
-           Items.ID AS ItemsID,
-           Items.Name,
-           Items.Image,
-           IFNULL(Fridge_items.Quantity, 0) AS Quantity
-       FROM Items
-       LEFT JOIN Fridge_items
-       ON Items.ID = Fridge_items.ItemsID
-       AND Fridge_items.FridgeID = %s
-       """, (fridge_id,))
-       items = cursor.fetchall()
-
-
-       cursor.execute("""
-       SELECT Status, Last_updated
-       FROM Fridge_status
-       WHERE FridgeID=%s
-       ORDER BY Last_updated DESC
-       LIMIT 1
-       """, (fridge_id,))
-       status = cursor.fetchone()
-
-
-       connection.close()
-
-
-       return render_template(
-           "update_fridge.html.jinja",
-           fridge=fridge,
-           items=items,
-           fridge_status=status
-
-
-       )
-
-
-   # -------- POST --------
-   value = int(request.form.get("fullness", 2))
-   mapping = ["empty", "few", "half", "many", "full"]
-   status_value = mapping[value]
-
-
-   for key in request.form:
-       if key.startswith("quantity_"):
-           try:
-               item_id = int(key.split("_")[1])
-               quantity = int(request.form[key])
-
-
-               if quantity <= 0:
-                   cursor.execute(
-                       "DELETE FROM Fridge_items WHERE FridgeID=%s AND ItemsID=%s",
-                       (fridge_id, item_id)
-                   )
-               else:
-                   cursor.execute("""
-                       INSERT INTO Fridge_items (FridgeID, ItemsID, Quantity)
-                       VALUES (%s, %s, %s)
-                       ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
-                   """, (fridge_id, item_id, quantity))
-
-
-           except (ValueError, IndexError):
-               continue
-
-
-   cursor.execute("""
-       INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
-       VALUES (%s, %s, NOW())
-   """, (fridge_id, status_value))
-
-
-   connection.commit()
-   connection.close()
-
-
-   return redirect(f"/individfridge/{fridge_id}")
-
+    connection.commit()
+    connection.close()
+    return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
 # -----------------------
 # PROFILE PAGE
@@ -878,15 +826,19 @@ def update_username():
    username = request.form.get("username", "").strip()
    if not username:
        flash("Username cannot be empty")
-       return redirect("/profile")
+       return redirect(url_for("account")) 
+   
    connection = connect_db()
-   cursor = connection.cursor()
-   cursor.execute("UPDATE User SET Name = %s WHERE ID = %s", (username, current_user.id))
-   connection.close()
-   current_user.name = username
-   flash("Username updated!")
-   return redirect("/profile_page")
-
+   try:
+       cursor = connection.cursor()
+       cursor.execute("UPDATE User SET Name = %s WHERE ID = %s", (username, current_user.id))
+       connection.commit()
+       current_user.name = username
+       flash("Username updated!")
+   finally:
+       connection.close()
+       
+   return redirect(url_for("account")) 
 
 
 # PROFILE PASSWORD 
@@ -896,49 +848,54 @@ def update_password():
    password = request.form.get("password", "")
    if len(password) < 8:
        flash("Password must be at least 8 characters")
-       return redirect("/profile")
+       return redirect(url_for("account"))
+       
    connection = connect_db()
-   cursor = connection.cursor()
-   cursor.execute("UPDATE User SET Password = %s WHERE ID = %s", (password, current_user.id))
-   connection.close()
-   flash("Password updated!")
-   return redirect("/profile_page")
+   try:
+       cursor = connection.cursor()
+       cursor.execute("UPDATE User SET Password = %s WHERE ID = %s", (password, current_user.id))
+       connection.commit() 
+       flash("Password updated!")
+   finally:
+       connection.close()
+       
+   return redirect(url_for("account"))
 
 
-
-
-
-# PROFILE PICTURE 
 @app.route("/profile/update-picture", methods=["POST"])
 @login_required
 def update_picture():
-   picture_url = request.form.get("picture_url", "").strip()
+    picture_url = request.form.get("picture_url", "").strip()
 
+    # 1. Validation
+    if picture_url and not picture_url.startswith(("https://", "/static/")):
+        flash("Invalid image URL. Use https:// or /static/ paths.", "error")
+        return redirect(url_for("account"))
 
-   if picture_url and not picture_url.startswith(("https://", "/static/")):
-       flash("Invalid image URL")
-       flash("Please provide a valid URL starting with https:// or a path to a static image.")
-       return redirect("/profile_page")
-   connection = connect_db()
-   cursor = connection.cursor()
+    connection = connect_db()
+    try:
+        cursor = connection.cursor()
+        
+        # 2. Update Database (Matches your screenshot casing)
+        cursor.execute(
+            "UPDATE User SET ProfilePicture = %s WHERE ID = %s",
+            (picture_url if picture_url else None, current_user.id)
+        )
+        
+        # 3. Save changes
+        connection.commit() 
+        
+        # 4. Update the current object so it shows up IMMEDIATELY
+        current_user.profile_picture = picture_url if picture_url else None
+        
+        flash("Profile picture updated!", "success")
+    except Exception as e:
+        print(f"Error: {e}")
+        flash("Database error. Please try again.", "error")
+    finally:
+        connection.close()
 
-
-   cursor.execute(
-       "UPDATE User SET ProfilePicture = %s WHERE ID = %s",
-       (picture_url or None, current_user.id)
-   )
-
-
-   connection.commit()  # ✅ THIS LINE FIXES IT
-   connection.close()
-
-
-   current_user.profile_picture = picture_url or None
-
-
-   flash("Profile picture updated!")
-   return redirect("/profile_page")
-
+    return redirect(url_for("account"))
 
 # -----------------------
 # ABOUT PAGE
@@ -1287,38 +1244,28 @@ def donation_details(donation_id):
 # --------------------
 # EDIT REVIEW 
 # --------------------
-@app.route('/edit-review/<int:review_id>', methods=['POST'])
+@app.route("/edit-review/<int:review_id>", methods=["POST"])
 @login_required
 def edit_review(review_id):
-   connection = connect_db()
-   cursor = connection.cursor(pymysql.cursors.DictCursor)
-   new_comment = request.form.get('Comment')
-  
-   # 1. Fetch the review to verify ownership (using 'ID' from your DB screenshot)
-   cursor.execute("SELECT * FROM Reviews WHERE ID = %s", (review_id,))
-   review = cursor.fetchone()
-  
-   # 2. Safety Check: Does it exist and belong to the user?
-   if not review or review['UserID'] != int(current_user.id):
-       connection.close()
-       flash("You don't have permission to edit this review.", "error")
-       return redirect(request.referrer or url_for('index'))
+    new_comment = request.form.get("Comment")
+    new_rating = request.form.get("Rating") # Pull the rating from the radio buttons
 
+    connection = connect_db()
+    cursor = connection.cursor()
 
-   # 3. Perform the update (using 'ID' as the column name)
-   try:
-       cursor.execute("UPDATE Reviews SET Comment = %s WHERE ID = %s", (new_comment, review_id))
-       connection.commit()
-       flash("Review updated!")
-   except Exception as e:
-       print(f"Update Error: {e}")
-       flash("An error occurred while saving.")
-   finally:
-       connection.close()
-  
-   # 4. REDIRECT FIX: Your function on line 228 is named 'personal_fridges'
-   return redirect(url_for('personal_fridges', fridge_id=review['FridgeID']))
+    # Ensure the user actually owns the review they are trying to edit
+    cursor.execute("""
+        UPDATE Reviews 
+        SET comment = %s, rating = %s, Timestamp = NOW() 
+        WHERE ID = %s AND UserID = %s
+    """, (new_comment, new_rating, review_id, current_user.id))
+    
+    connection.commit()
+    connection.close()
 
+    flash("Review updated successfully!", "success")
+    # Redirect back to the previous page
+    return redirect(request.referrer)
 
 # --------------------
 # VIEW ALL REVIEWS 
