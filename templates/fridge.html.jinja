@@ -35,7 +35,12 @@
   </div>
 
   {% include "components/navbar.html.jinja" %}
-
+<div id="fav-toast"
+     class="fixed top-24 left-1/2 -translate-x-1/2 z-[99999]
+     px-4 py-2 rounded-xl text-white font-bold text-sm
+     shadow-lg opacity-0 pointer-events-none
+     transition-all duration-300">
+</div>
   <div class="flex-grow">
     <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-16 px-6">
       <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -171,6 +176,7 @@
             const delay = msg.classList.contains('review-exists') ? 4000 : 6000;
             hideMessage(msg, delay);
         });
+      }
 
         // Confetti for success
         if (document.querySelector('.review-success')) {

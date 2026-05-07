@@ -523,7 +523,22 @@ def donate_food():
     finally:
         connection.close()
 
+@app.route('/donation/<int:id>/delete', methods=["POST"])
+@login_required
+def delete_donation(id):
+    connection = connect_db()
+    cursor = connection.cursor()
 
+    cursor.execute("""
+        DELETE FROM Donations
+        WHERE ID = %s AND UserID = %s
+    """, (id, current_user.id))
+
+    connection.commit() 
+    connection.close()
+
+    flash("Donation deleted")
+    return redirect('/restaurant-dashboard')
 # -----------------------------
 # FRIDGE PAGE
 # -----------------------------
@@ -599,7 +614,9 @@ def personal_fridges(fridge_id):
     connection.close()
     return render_template("fridge.html.jinja", fridge=fridge, items=items_list, reviews=reviews, fridge_status=fridge_status)
 
-         
+    finally:
+        # ✅ ONLY CLOSE ONCE
+        connection.close()
  
 # -----------------------
 # API: GET FRIDGES

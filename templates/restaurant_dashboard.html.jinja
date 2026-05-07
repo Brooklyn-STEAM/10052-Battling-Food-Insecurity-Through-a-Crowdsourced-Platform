@@ -125,26 +125,38 @@
 
            <ul class="space-y-3">
                {% for donation in scheduled_list %}
-               <li onclick="showDonationDetails({{ donation.ID }})"
-                   class="cursor-pointer p-4 border border-gray-100 dark:border-[#40376E] rounded-xl flex justify-between items-center bg-gray-50/50 dark:bg-[#2a2545]/50 hover:bg-white dark:hover:bg-[#2a2545] hover:border-green-400 dark:hover:border-purple-400 hover:shadow-md transition-all group">
-                   <div class="flex items-center gap-3">
-                       <div class="w-2 h-2 rounded-full bg-orange-400 group-hover:scale-125 transition-transform"></div>
-                       <div>
-                           <span class="block font-medium text-gray-700 dark:text-gray-200">
-                               {{ donation.Dropoff.strftime('%B %d, %Y') }}
-                           </span>
-                           <span class="text-xs text-gray-400 dark:text-purple-300/50">
-                               {{ donation.Quantity }} meals scheduled
-                           </span>
-                       </div>
-                   </div>
-                   <span class="text-sm font-semibold text-green-600 dark:text-purple-300 bg-green-50 dark:bg-[#1b1730] px-3 py-1 rounded-full">
-                       {{ donation.Dropoff.strftime('%I:%M %p') }}
-                   </span>
-               </li>
-               {% else %}
-               <p class="text-gray-400 text-sm italic py-4 text-center">No upcoming pickups.</p>
-               {% endfor %}
+            <li onclick="showDonationDetails({{ donation.ID }})"
+                class="cursor-pointer p-4 border border-gray-100 dark:border-[#40376E] rounded-xl flex justify-between items-center bg-gray-50/50 dark:bg-[#2a2545]/50 hover:bg-white dark:hover:bg-[#2a2545] hover:border-green-400 dark:hover:border-purple-400 hover:shadow-md transition-all group">
+
+                <!-- LEFT SIDE -->
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-orange-400 group-hover:scale-125 transition-transform"></div>
+                    <div>
+                        <span class="block font-medium text-gray-700 dark:text-gray-200">
+                            {{ donation.Dropoff.strftime('%B %d, %Y') }}
+                        </span>
+                        <span class="text-xs text-gray-400 dark:text-purple-300/50">
+                            {{ donation.Quantity }} meals scheduled
+                        </span>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE -->
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold text-green-600 dark:text-purple-300 bg-green-50 dark:bg-[#1b1730] px-3 py-1 rounded-full">
+                        {{ donation.Dropoff.strftime('%I:%M %p') }}
+                    </span>
+
+                    <!-- DELETE BUTTON -->
+                    <form method="POST" action="/donation/{{ donation.ID }}/delete" onclick="event.stopPropagation();">
+                        <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-bold">
+                            Cancel
+                        </button>
+                    </form>
+                </div>
+
+            </li>
+            {% endfor %}
            </ul>
        </div>
 
