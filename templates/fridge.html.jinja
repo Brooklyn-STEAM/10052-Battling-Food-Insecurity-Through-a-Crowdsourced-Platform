@@ -79,16 +79,12 @@
 
   <svg id="star-icon"
     class="h-7 w-7 transition-all duration-300 
-  {% if is_favorited %}
-    fill-yellow-300 stroke-yellow-300 scale-110
-  {% else %}
-    fill-none stroke-gray-400 group-hover:stroke-yellow-400
-  {% endif %}"
-  xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
+    {{ 'fill-yellow-400 stroke-yellow-500 scale-110' if is_favorited else 'fill-none stroke-gray-400 group-hover:stroke-yellow-400' }}"
+    xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
 
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
-</svg>
+    <path stroke-linecap="round" stroke-linejoin="round"
+      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
+  </svg>
 
 </button>
               {% endif %}
@@ -193,16 +189,118 @@
       </div>
   </div>
 <script>
-/* =========================
-   GLOBAL UTILITIES
-========================= */
-function fireConfetti() {
-    confetti({ 
-        particleCount: 150, 
-        spread: 70, 
-        origin: { y: 0.6 }, 
-        colors: ['#16a34a', '#fbbf24', '#f97316'] 
+  document.addEventListener("DOMContentLoaded", () => {
+    const openBtn = document.getElementById('open-review-btn');
+    const popup = document.getElementById('review-popup');
+    const currentUserId = "{{ current_user.id if current_user.is_authenticated else 'null' }}";
+
+    // --- CREATE REVIEW (The Popup) ---
+    if (openBtn && popup) {
+        openBtn.addEventListener('click', (e) => {
+            const existingReview = document.querySelector(`[data-user-id="${currentUserId}"]`);
+            
+            if (existingReview && currentUserId !== 'null') {
+                showManualFlash("You've already reviewed this fridge! Edit your post below.", "review-exists");
+                existingReview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Shake animation for the existing card
+                existingReview.classList.add('ring-2', 'ring-orange-500', 'animate-bounce');
+                setTimeout(() => existingReview.classList.remove('ring-2', 'ring-orange-500', 'animate-bounce'), 1000);
+                return; 
+            }
+            popup.classList.remove('opacity-0', 'pointer-events-none');
+        });
+
+        popup.addEventListener('click', (e) => { 
+            if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); 
+        });
+    }
+
+    // --- FLASH MESSAGE LOGIC ---
+    document.querySelectorAll('.flash-msg').forEach(msg => {
+        const delay = msg.classList.contains('review-exists') ? 4000 : 6000;
+        hideMessage(msg, delay);
     });
+
+    // Confetti only for NEW reviews
+    if (document.querySelector('.bg-green-600.flash-msg')) {
+        confetti({ 
+            particleCount: 150, 
+            spread: 70, 
+            origin: { y: 0.6 }, 
+            colors: ['#16a34a', '#fbbf24', '#f97316'] 
+        });
+    }
+});
+const seeMoreBtn = document.getElementById('see-more-btn');
+const allReviewCards = document.querySelectorAll('.review-card');
+
+if (seeMoreBtn) {
+    seeMoreBtn.addEventListener('click', () => {
+        const isShowingAll = seeMoreBtn.getAttribute('data-state') === 'open';
+
+        allReviewCards.forEach((card, index) => {
+            // We always keep the first 3 (index 0, 1, 2) visible
+            if (index >= 3) {
+                if (isShowingAll) {
+                    card.classList.add('hidden');
+                } else {
+                    card.classList.remove('hidden');
+                    // Add a nice fade-in effect
+                    card.animate([
+                        { opacity: 0, transform: 'translateY(10px)' },
+                        { opacity: 1, transform: 'translateY(0)' }
+                    ], { duration: 300, easing: 'ease-out' });
+                }
+            }
+        });
+
+        // Update Button State
+        if (isShowingAll) {
+            seeMoreBtn.innerText = `See All (${allReviewCards.length})`;
+            seeMoreBtn.setAttribute('data-state', 'closed');
+            // Scroll back to top of reviews section
+            document.querySelector('h2.text-3xl').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            seeMoreBtn.innerText = 'Show Less';
+            seeMoreBtn.setAttribute('data-state', 'open');
+        }
+    });
+}
+// (Inline Animation) 
+function toggleEdit(reviewId) {
+    const text = document.getElementById(`comment-text-${reviewId}`);
+    const ratingDisplay = document.getElementById(`display-rating-${reviewId}`);
+    const form = document.getElementById(`edit-form-${reviewId}`);
+    const card = document.getElementById(`review-card-${reviewId}`);
+
+    if (text && form && ratingDisplay) {
+        const isOpening = form.classList.contains('hidden');
+        
+        // Toggle visibility
+        text.classList.toggle('hidden');
+        ratingDisplay.classList.toggle('hidden');
+        form.classList.toggle('hidden');
+
+        if (isOpening) {
+            // Apply the unique "Update" animation
+            form.classList.add('edit-mode-active');
+            card.classList.add('shadow-2xl', 'scale-[1.02]', 'transition-transform');
+        } else {
+            form.classList.remove('edit-mode-active');
+            card.classList.remove('shadow-2xl', 'scale-[1.02]');
+        }
+    }
+}
+
+// Global Helpers
+function showManualFlash(message, category) {
+    const container = document.getElementById('flash-container');
+    if (!container) return;
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `flash-msg ${category} bg-orange-500 text-white px-6 py-4 rounded-2xl shadow-xl mb-4 flex items-center gap-3`;
+    msgDiv.innerHTML = `<span>⚠️</span><p class="font-bold">${message}</p>`;
+    container.appendChild(msgDiv);
+    hideMessage(msgDiv, 4000);
 }
 
 function hideMessage(element, delay) {
@@ -212,155 +310,6 @@ function hideMessage(element, delay) {
         setTimeout(() => element.remove(), 500);
     }, delay);
 }
-
-function showManualFlash(message, category) {
-    const container = document.getElementById('flash-container');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `flash-msg ${category} bg-orange-500 text-white px-6 py-4 rounded-2xl shadow-xl mb-4 flex items-center gap-3`;
-    msgDiv.innerHTML = `<span>⚠️</span><p class="font-bold">${message}</p>`;
-    container.appendChild(msgDiv);
-    hideMessage(msgDiv, 4000);
-}
-
-function toggleEdit(reviewId) {
-    const text = document.getElementById(`comment-text-${reviewId}`);
-    const form = document.getElementById(`edit-form-${reviewId}`);
-    const card = document.getElementById(`review-card-${reviewId}`);
-    if (!text || !form) return;
-    
-    const isOpening = form.classList.contains('hidden');
-    text.classList.toggle('hidden');
-    form.classList.toggle('hidden');
-    
-    if (isOpening) {
-        form.classList.add('edit-mode-active');
-        card.classList.add('shadow-2xl', 'scale-[1.02]');
-    } else {
-        form.classList.remove('edit-mode-active');
-        card.classList.remove('shadow-2xl', 'scale-[1.02]');
-    }
-}
-
-const Toast = (() => {
-    const toast = document.getElementById("fav-toast");
-    let hideTimeout = null;
-
-    return {
-        show({ message, type = "success", duration = 2000 }) {
-            clearTimeout(hideTimeout);
-            toast.textContent = message;
-            toast.className = `fixed top-24 left-1/2 -translate-x-1/2 z-[99999] px-4 py-2 rounded-xl text-white font-bold text-sm shadow-lg transition-all duration-300 ${type === "success" ? "bg-green-600" : "bg-red-600"}`;
-            toast.style.opacity = "1";
-            hideTimeout = setTimeout(() => toast.style.opacity = "0", duration);
-        }
-    };
-})();
-
-/* =========================
-   DOM CONTENT LOADED
-========================= */
-document.addEventListener("DOMContentLoaded", () => {
-    const openBtn = document.getElementById('open-review-btn');
-    const popup = document.getElementById('review-popup');
-    const seeMoreBtn = document.getElementById('see-more-btn');
-    const allReviewCards = document.querySelectorAll('.review-card');
-    const favBtn = document.getElementById("fav-btn");
-    const favIcon = document.getElementById("star-icon");
-    const currentUserId = "{{ current_user.id if current_user.is_authenticated else 'null' }}";
-
-    /* --- REVIEW POPUP --- */
-    if (openBtn && popup) {
-        openBtn.addEventListener('click', () => {
-            const existingReview = document.querySelector(`[data-user-id="${currentUserId}"]`);
-            if (existingReview && currentUserId !== 'null') {
-                showManualFlash("You've already reviewed this fridge!", "review-exists");
-                existingReview.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                existingReview.classList.add('ring-4', 'ring-orange-500');
-                setTimeout(() => existingReview.classList.remove('ring-4', 'ring-orange-500'), 2000);
-                return; 
-            }
-            popup.classList.remove('opacity-0', 'pointer-events-none');
-        });
-        
-        popup.addEventListener('click', (e) => { 
-            if (e.target === popup) popup.classList.add('opacity-0', 'pointer-events-none'); 
-        });
-    }
-
-    /* --- SEE MORE LOGIC --- */
-    if (seeMoreBtn) {
-        seeMoreBtn.addEventListener('click', () => {
-            const isShowingAll = seeMoreBtn.getAttribute('data-state') === 'open';
-            
-            allReviewCards.forEach((card, index) => {
-                if (index >= 3) {
-                    if (isShowingAll) {
-                        card.classList.add('hidden');
-                    } else {
-                        card.classList.remove('hidden');
-                        card.animate([
-                            { opacity: 0, transform: 'translateY(10px)' }, 
-                            { opacity: 1, transform: 'translateY(0)' }
-                        ], { duration: 300 });
-                    }
-                }
-            });
-
-            if (isShowingAll) {
-                seeMoreBtn.innerText = `See All (${allReviewCards.length})`;
-                seeMoreBtn.setAttribute('data-state', 'closed');
-                document.querySelector('h2.text-3xl').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                seeMoreBtn.innerText = 'Show Less';
-                seeMoreBtn.setAttribute('data-state', 'open');
-            }
-        });
-    }
-
-    /* --- FAVORITES SYNC --- */
-    /* --- FAVORITES SYNC --- */
-if (favBtn && favIcon) {
-    favBtn.addEventListener("click", async () => {
-        favBtn.disabled = true;
-        try {
-            const res = await fetch("/toggle-favorite", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fridge_id: favBtn.dataset.fridgeId })
-            });
-            const data = await res.json();
-            
-            if (data.action === "added") {
-                // 1. FILL THE STAR
-                favIcon.classList.add("fill-yellow-400", "stroke-yellow-500", "scale-110");
-                favIcon.classList.remove("fill-none", "stroke-gray-400");
-                
-                fireConfetti();
-                Toast.show({ message: "Saved to favorites ⭐" });
-            } else {
-                // 2. EMPTY THE STAR
-                favIcon.classList.remove("fill-yellow-400", "stroke-yellow-500", "scale-110");
-                favIcon.classList.add("fill-none", "stroke-gray-400");
-                
-                Toast.show({ message: "Removed from favorites", type: "error" });
-            }
-        } catch (err) { 
-            console.error(err); 
-        } finally { 
-            favBtn.disabled = false; 
-        }
-    });
-}
-
-    /* --- INITIAL FLASH MESSAGES --- */
-    document.querySelectorAll('.flash-msg').forEach(msg => {
-        const delay = msg.classList.contains('review-exists') ? 4000 : 6000;
-        hideMessage(msg, delay);
-        if (msg.textContent.includes('successfully') || msg.classList.contains('success')) {
-            fireConfetti();
-        }
-    });
-});
 </script>
 </body>
 </html>
