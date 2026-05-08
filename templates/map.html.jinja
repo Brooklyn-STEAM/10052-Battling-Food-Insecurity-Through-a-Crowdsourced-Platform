@@ -12,65 +12,260 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-    <style>
-
-        .leaflet-routing-container { display: none; }
-        #itinerary-container .leaflet-routing-alt {
-            max-height: 300px;
-            overflow-y: auto;
-            background: transparent !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            font-size: 13px;
-            color: #166534;
-        }
-        #itinerary-container tr {
-            display: flex;
-            padding: 8px 0;
-            border-bottom: 1px solid #e2e8f0;
-            align-items: center;
-        }
-        .leaflet-popup-content button {
-    pointer-events: auto;
-        }
-
-        .leaflet-container {
-            touch-action: pan-x pan-y;
-        }
-@media (max-width: 768px) {
-    #map {
-        height: 55vh;
-    }
-
-    #sidebar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60vh;
-
-        transform: translateY(40vh); /* 👈 default collapsed */
-        transition: transform 0.3s ease;
-    }
-
-    /* fully open */
-    #sidebar.open {
-        transform: translateY(0);
-    }
-
-    /* fully hidden */
-    #sidebar.hidden-state {
-        transform: translateY(50vh); /* 👈 leaves a visible handle */
-    }
-
-/* Visible modern scrollbar */
-.scrollbar-hide {
-    scrollbar-width: thin;
-    scrollbar-color: #22c55e transparent; /* green thumb */
+<style>
+/* =========================================================
+   LEAFLET + MAP
+========================================================= */
+.leaflet-routing-container {
+    display: none;
 }
 
-/* Chrome / Safari */
+.leaflet-container {
+    touch-action: pan-x pan-y;
+}
+
+.leaflet-tile {
+    transition: filter 0.3s ease;
+}
+
+.leaflet-marker-icon {
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
+    transition: transform 0.2s ease;
+}
+
+.leaflet-marker-icon:hover {
+    transform: scale(1.05);
+}
+
+.dark .leaflet-marker-icon {
+    filter:
+        drop-shadow(0 0 10px rgba(168,85,247,0.35))
+        drop-shadow(0 6px 14px rgba(0,0,0,0.5));
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+    background: #0b0b10;
+}
+
+
+/* =========================================================
+   ROUTING / DIRECTIONS
+========================================================= */
+#itinerary-container .leaflet-routing-alt {
+    max-height: 300px;
+    overflow-y: auto;
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 13px;
+    color: #166534;
+}
+
+#itinerary-container tr {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Animated route line */
+/* =========================================================
+   ROUTE ANIMATION
+========================================================= */
+
+/* Main animated route */
+.animated-route {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    animation:
+        routeFlow 1.2s linear infinite,
+        routePulse 2s ease-in-out infinite;
+}
+
+/* Moving dashed effect */
+@keyframes routeFlow {
+    from {
+        stroke-dashoffset: 24;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Gentle breathing glow */
+@keyframes routePulse {
+    0%, 100% {
+        opacity: 0.85;
+        filter: drop-shadow(0 0 2px rgba(34,197,94,0.4));
+    }
+
+    50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(34,197,94,0.9));
+    }
+}
+
+/* Dark mode glow */
+.dark .animated-route {
+    filter: drop-shadow(0 0 10px rgba(168,85,247,0.8));
+}
+
+.route-draw {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: drawRoute 1.4s ease forwards;
+}
+
+@keyframes drawRoute {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+/* =========================================================
+   POPUPS
+========================================================= */
+.leaflet-popup-content button {
+    pointer-events: auto;
+}
+
+
+/* =========================================================
+   INPUTS + FORMS
+========================================================= */
+.input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid #d1d5db;
+    background: #f8fafc;
+    transition: 0.25s;
+}
+
+.input:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+}
+
+.dark .input {
+    background: #2a2545;
+    border-color: #40376E;
+    color: #fff;
+}
+
+.dark .dropdown {
+    background: #2a2545;
+    border-color: #40376E;
+}
+
+
+/* =========================================================
+   FORM CARD
+========================================================= */
+.form-card {
+    background: linear-gradient(135deg, #ffffff, #f3f0ff);
+    border: 1px solid #cac2d2;
+}
+
+.dark .form-card {
+    background: linear-gradient(135deg, #1e1b2e, #2a2545);
+    border: 1px solid #40376E;
+}
+
+
+/* =========================================================
+   PAGE LAYOUT
+========================================================= */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    transition: background-color 0.3s ease,
+                color 0.3s ease;
+}
+
+body {
+    overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
+
+}
+
+body > div {
+    height: 100vh;
+    overflow: hidden;
+}
+
+nav {
+    position: relative;
+    z-index: 9000;
+}
+
+
+/* =========================================================
+   FLASH MESSAGES
+========================================================= */
+.flash-message {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 12px;
+    max-width: 260px;
+    border-radius: 0.6rem;
+
+    font-size: 13px;
+    height: auto;
+
+    opacity: 0;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+}
+
+.flash-success {
+    background: #16a34a;
+    color: white;
+}
+
+.flash-error {
+    background: #dc2626;
+    color: white;
+}
+
+.dark .flash-success {
+    background: #6d28d9;
+}
+
+.dark .flash-error {
+    background: #ef4444;
+}
+
+
+/* =========================================================
+   SCROLLBARS
+========================================================= */
+.scrollbar-hide {
+    scrollbar-width: thin;
+    scrollbar-color: #22c55e transparent;
+}
+
 .scrollbar-hide::-webkit-scrollbar {
     width: 8px;
 }
@@ -80,30 +275,101 @@
 }
 
 .scrollbar-hide::-webkit-scrollbar-thumb {
-    background-color: #22c55e; /* green */
+    background-color: #22c55e;
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: content-box;
 }
 
-/* Dark mode enhancement */
 .dark .scrollbar-hide::-webkit-scrollbar-thumb {
-    background-color: #a855f7; /* purple */
-}
-#fridge-list {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-}
-#sidebar.hidden-state #drag-handle {
-    animation: bounceHint 1.5s infinite;
+    background-color: #a855f7;
 }
 
-@keyframes bounceHint {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+
+/* =========================================================
+   MOBILE STYLES
+========================================================= */
+@media (max-width: 768px) {
+
+    /* ---------------- SIDEBAR ---------------- */
+#sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    height: 80vh;
+
+    transform: translateY(calc(100% - 110px)); /* only peek handle */
+    transition: transform 0.3s ease;
+
+    border-radius: 18px 18px 0 0;
+
+    z-index: 1000;
 }
-    </style>
-    <script>
+
+#sidebar.open {
+    transform: translateY(0);
+}
+
+/* when user is navigating, shrink sidebar */
+#sidebar.routing {
+    height: 55vh;
+}
+    .dark #sidebar {
+    background: rgba(27,23,48,0.92);
+}
+
+
+
+    #sidebar.hidden-state {
+        transform: translateY(70%);
+    }
+
+
+    /* ---------------- FRIDGE LIST ---------------- */
+    #fridge-list {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    /* ---------------- DRAG HANDLE ---------------- */
+    #sidebar.hidden-state #drag-handle {
+        animation: bounceHint 1.5s infinite;
+    }
+
+    @keyframes bounceHint {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-4px);
+        }
+    }
+}
+    .animated-route {
+        animation: none !important;
+    }
+
+    .leaflet-marker-icon {
+        filter: none !important;
+    }
+
+    .leaflet-marker-icon:hover {
+        transform: none;
+    }
+    #fridge-list li {
+    min-height: 84px;
+}
+#routing-directions .mb-4 {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+</style>
+        <script>
         tailwind.config = {
             darkMode: 'class'
         }
@@ -124,149 +390,36 @@
                 }
             })();
     </script>
-
-    <style>
-        /* INPUT */
-        .input {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            border: 1px solid #d1d5db;
-            background: #f8fafc;
-            transition: 0.25s;
-        }
-
-        .input:focus {
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
-        }
-
-        /* FORM CARD (purple theme) */
-        .form-card {
-            background: linear-gradient(135deg, #ffffff, #f3f0ff);
-            border: 1px solid #cac2d2;
-        }
-
-        .dark .form-card {
-            background: linear-gradient(135deg, #1e1b2e, #2a2545);
-            border: 1px solid #40376E;
-        }
-
-        /* DARK MODE */
-        .dark .input {
-            background: #2a2545;
-            border-color: #40376E;
-            color: #fff;
-        }
-
-        .dark .dropdown {
-            background: #2a2545;
-            border-color: #40376E;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            ransition: background-color 0.3s ease, color 0.3s ease;
-
-        }
-
-        nav {
-    position: relative; /* or fixed/sticky depending on your navbar design */
-    z-index: 9000;      /* Higher than Leaflet's default z-index */
-}
-html, body {
-    height: 100%;
-    margin: 0;
-}
-
-#map {
-    touch-action: pan-x pan-y;
-    height: 100%;
-}
-body > div {
-    height: 100vh;
-    overflow: hidden;
-}body {
-    overflow: hidden;
-}
-
-#map {
-    height: 100%;
-}
-    </style>
-    <style>
-.flash-message {
-    position: fixed;
-    top: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 99999;
-
-    padding: 8px 12px;
-    border-radius: 0.6rem;
-
-    font-size: 13px;
-    height: auto;
-    max-width: 260px;
-
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
-.flash-success {
-    background: #16a34a;
-    color: white;
-}
-
-.flash-error {
-    background: #dc2626;
-    color: white;
-}
-
-.dark .flash-success {
-    background: #6d28d9;
-}
-
-.dark .flash-error {
-    background: #ef4444;
-}
-    </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 font-sans">
 {% include "components/navbar.html.jinja" %}
 
-<div class="relative w-full flex flex-col md:flex-row h-[calc(100vh-5rem)]">
+<div class="relative w-full flex flex-col md:flex-row h-[calc(100vh-5rem)] overflow-hidden">
     <!-- MAP (UNCHANGED) -->
-<div id="map"
-     class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2"
-     style="height: var(--app-height);">
-</div>  <!-- FLOAT BUTTON -->
+        <div id="map"
+         class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2 h-full transition-all duration-300">
+    </div>
 
-<!-- MAP RESTORE BUTTON -->
-<button id="restore-map"
-    class="hidden md:hidden fixed bottom-20 right-6 z-[1001]
-    bg-blue-600 text-white p-4 rounded-full shadow-2xl
-    hover:bg-blue-700 transition">
-    
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 10h11M9 21V3m11 11h-4m0 0l3-3m-3 3l3 3"/>
-    </svg>
+
+<button id="reopen-directions"
+    class="hidden fixed bottom-6 right-6 md:right-6 md:bottom-6 z-[1001]
+    bg-green-600 text-white px-4 py-3 rounded-full shadow-xl
+    hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700
+    transition text-sm font-bold">
+    Directions
 </button>
     <!-- SIDEBAR -->
 <aside id="sidebar"
-class="fixed inset-x-0 bottom-0 z-[1000] w-full h-[60vh] md:h-full
-bg-white text-gray-900
-dark:bg-[#1b1730] dark:text-white
-transition-transform duration-500 transform
-md:translate-y-0 md:static md:w-1/3 
-rounded-t-[2rem] md:rounded-none overflow-hidden flex flex-col">
+        class="w-full md:w-1/3
+               h-[60vh] md:h-full
+               bg-white dark:bg-[#1b1730]
+               transition-transform duration-300
+               md:translate-y-0
+               fixed md:static bottom-0 left-0
+               z-[1000]
+               rounded-t-2xl md:rounded-none
+               flex flex-col">
 <!-- DRAG HANDLE (PRIMARY MOBILE CONTROL) -->
 <div id="drag-handle"
      class="md:hidden w-full flex justify-center pt-3 pb-3 cursor-grab active:cursor-grabbing
@@ -287,7 +440,7 @@ rounded-t-[2rem] md:rounded-none overflow-hidden flex flex-col">
     <div class="w-16"></div> <!-- keeps button centered visually -->
 </div>
 
-<div class="p-6 overflow-y-auto flex-grow scrollbar-hide">
+<div class="px-4 pt-2 pb-24 overflow-y-auto flex-grow scrollbar-hide">
             <!-- ROUTE BOX -->
             <div id="routing-directions"
                 class="hidden mb-6 p-4 rounded-xl border
@@ -423,27 +576,21 @@ rounded-t-[2rem] md:rounded-none overflow-hidden flex flex-col">
 const sidebar = document.getElementById('sidebar');
 const closeBtn = document.getElementById('close-sidebar');
 function openSidebar() {
-    currentTranslate = 0;
-    sidebar.style.transform = "";
     sidebar.classList.add("open");
     sidebar.classList.remove("hidden-state");
-    toggleBtn.classList.add("hidden");
 
-    showRestoreButton(); // 👈 ADD THIS
-
-    setTimeout(() => map.invalidateSize(), 300);
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 300);
 }
 
 function hideSidebar() {
-    currentTranslate = MAX_TRANSLATE;
-    sidebar.style.transform = "";
     sidebar.classList.remove("open");
     sidebar.classList.add("hidden-state");
-    toggleBtn.classList.remove("hidden");
 
-    hideRestoreButton(); // 👈 ADD THIS
-
-    setTimeout(() => map.invalidateSize(), 300);
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 300);
 }
 
 function toggleSidebar() {
@@ -470,26 +617,69 @@ const map = L.map('map', {
     fadeAnimation: true,
     zoomControl: false
 }).setView([40.7128, -74.0060], 12);
+
 setTimeout(() => {
     map.invalidateSize();
 }, 300);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd',
+// 🌗 Light + Dark tile layers
+const lightTiles = L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }
+);
+
+const darkTiles = L.tileLayer(
+  'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+  {
+    attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
     maxZoom: 20
-}).addTo(map);
+  }
+);
+
+// Track current layer
+let currentTileLayer;
+
+// 🎯 Function to apply correct theme
+window.applyMapTheme = function () {
+    const isDark = document.documentElement.classList.contains('dark');
+
+    if (currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+    }
+
+    currentTileLayer = isDark ? darkTiles : lightTiles;
+    currentTileLayer.addTo(map);
+
+    // smooth redraw
+    requestAnimationFrame(() => {
+        map.invalidateSize();
+    });
+};
+
+// Run on load
+applyMapTheme();
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-const userIcon = L.icon({ iconUrl: "/static/images/pin.png", iconSize: [35, 35] });
-const fridgeIcon = L.icon({ iconUrl: "/static/images/fridge.png", iconSize: [45, 45] });
-
+const userIcon = L.icon({
+    iconUrl: "/static/images/pin.png",
+    iconSize: [35, 35],
+    className: "drop-shadow-lg"
+});
+const fridgeIcon = L.icon({
+    iconUrl: "/static/images/fridge.png",
+    iconSize: [45, 45],
+    className: "drop-shadow-lg"
+});
 let recentsBackup = null;
 let undoTimeout = null;
 let undoInterval = null; // ✅ ADD THIS
 let userLat, userLng, userMarker;
-let currentRouteLayer = null; // Stores the polyline
+window.currentRouteLayer = null; // Stores the polyline
 let currentTargetFridge = null;
 let allFridges = [], fridgeMarkers = [];
 
@@ -512,13 +702,16 @@ function setUserLocation(lat, lng) {
     userLat = lat; userLng = lng;
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup("Your Location").openPopup();
-    map.setView([lat, lng], 13);
+    map.flyTo([lat, lng], 13, {
+    duration: 0.8,
+    easeLinearity: 0.25
+});
     renderFridges(allFridges);
 }
 function resetRouteUI() {
     // Remove map route line
-    if (currentRouteLayer) {
-        map.removeLayer(currentRouteLayer);
+    if (window.currentRouteLayer) {
+        map.removeLayer(window.currentRouteLayer);
         currentRouteLayer = null;
     }
 
@@ -538,6 +731,7 @@ function resetRouteUI() {
 }
 // THE FIXED ROUTING FUNCTION
 window.routeToFridge = function(lat, lng) {
+    
     if (!userLat || !userLng) return alert("Please set your starting location first.");
 
     currentTargetFridge = { lat, lng };
@@ -551,6 +745,7 @@ resetRouteUI();
     const itineraryContainer = document.getElementById('itinerary-container');
     const mobileItinerary = document.getElementById('mobile-itinerary-container');
     const modal = document.getElementById('directions-modal');
+    
     
     // Show loading state
     const loadingHtml = "<p class='text-xs text-green-600 animate-pulse'>Calculating route...</p>";
@@ -575,7 +770,28 @@ resetRouteUI();
 
             const routeData = data.features[0];
             const coords = routeData.geometry.coordinates[0].map(c => [c[1], c[0]]);
-            currentRouteLayer = L.polyline(coords, {color: '#16a34a', weight: 5, opacity: 0.8}).addTo(map);
+            const isDark = document.documentElement.classList.contains('dark');
+
+
+// Main animated line
+window.currentRouteLayer = L.polyline(coords, {
+    color: isDark ? '#a855f7' : '#16a34a',
+    weight: 6,
+    opacity: 1,
+    dashArray: '12 16',
+    lineCap: 'round',
+    lineJoin: 'round',
+    className: 'animated-route'
+}).addTo(map);
+setTimeout(() => {
+    const path = window.currentRouteLayer._path;
+
+    if (path) {
+        path.style.filter = isDark
+            ? 'drop-shadow(0 0 8px rgba(168,85,247,0.8))'
+            : 'drop-shadow(0 0 6px rgba(34,197,94,0.7))';
+    }
+}, 0);
             const bounds = currentRouteLayer.getBounds();
 
             if (window.innerWidth < 768) {
@@ -622,7 +838,10 @@ if (summary) {
             routeData.properties.legs[0].steps.forEach((step, i) => {
                 const stepDist = (step.distance * 0.000621371).toFixed(2);
                 stepsHtml += `
-                    <div class="text-sm py-3 border-b border-gray-100 dark:border-[#40376E] last:border-0 flex gap-3">
+                    <div class="text-sm py-3 border-b border-gray-100 dark:border-[#40376E] last:border-0 flex <div class="flex items-start gap-3 py-3 px-3 rounded-xl
+            bg-white/60 dark:bg-white/5
+            border border-gray-100 dark:border-[#40376E]
+            mb-2">
                         <span class="font-bold text-green-600 dark:text-purple-400">${i + 1}.</span> 
                         <div class="flex-grow">
                             <p class="text-gray-800 dark:text-gray-200">${step.instruction.text}</p>
@@ -631,6 +850,7 @@ if (summary) {
                     </div>
                 `;
             });
+            
 
             // Inject into the correct container
             if (isMobile) {
@@ -652,7 +872,7 @@ window.closeDirectionsModal = function() {
 };
 
 window.clearRoute = function() {
-    if (currentRouteLayer) map.removeLayer(currentRouteLayer);
+    if (window.currentRouteLayer) map.removeLayer(window.currentRouteLayer);
 
     document.getElementById('routing-directions').classList.add('hidden');
     document.getElementById('itinerary-container').innerHTML = "";
@@ -664,14 +884,18 @@ window.clearRoute = function() {
     if (mobileItinerary) mobileItinerary.innerHTML = "";
 
     currentTargetFridge = null;
+
     const transportControls = document.getElementById('transport-controls');
     const placeholder = document.getElementById('transport-placeholder');
 
     if (placeholder) {
         placeholder.appendChild(transportControls);
     }
-};
 
+    // ✅ SHOW reopen button ONLY here
+    document.getElementById("reopen-directions")
+        .classList.remove("hidden");
+};
 function renderFridges(fridges) {
     const list = document.getElementById("fridge-list");
     list.innerHTML = "";
@@ -726,8 +950,10 @@ function renderFridges(fridges) {
     fridgeMarkers.push(marker);
 marker.on('click', () => {
     saveRecentlyViewed(f);
-    map.setView([f.lat, f.lng], 16);
-    marker.openPopup();
+map.flyTo([f.lat, f.lng], 16, {
+    duration: 0.6,
+    easeLinearity: 0.25
+});    marker.openPopup();
 
     if (window.innerWidth < 768) {
         toggleBtn.classList.remove('hidden');
@@ -737,7 +963,7 @@ marker.on('click', () => {
     // ✅ Sidebar item
     const li = document.createElement("li");
 li.className = `
-p-5 rounded-3xl cursor-pointer
+p-4 rounded-2xl cursor-pointer
 bg-white dark:bg-[#2a2545]
 border border-gray-200 dark:border-[#40376E]
 shadow-sm hover:shadow-lg
@@ -927,6 +1153,7 @@ function renderFavoritesList(favorites) {
                 // On mobile, close sidebar so they see the map/popup immediately
                 if (window.innerWidth < 768) { 
                     toggleBtn.classList.remove('hidden'); 
+                    hideSidebar();
                 }
             } else {
                 alert("Location data not available for this fridge.");
@@ -1057,40 +1284,30 @@ sidebar.addEventListener("touchmove", (e) => {
     currentY = e.touches[0].clientY;
     const diff = currentY - startY;
 
-    setTranslate(currentTranslate + diff);
+    currentTranslate += diff;
 
-    sidebar.style.transform = `translateY(${currentTranslate}px)`; // 👈 REQUIRED
+    currentTranslate = Math.max(
+        0,
+        Math.min(currentTranslate, MAX_TRANSLATE)
+    );
+
+    sidebar.style.transform = `translateY(${currentTranslate}px)`;
 
     startY = currentY;
 });
 sidebar.addEventListener("touchend", () => {
     if (!isDragging) return;
+
     isDragging = false;
 
-    sidebar.style.transition = "transform 0.3s ease-out";
+    sidebar.style.transition = "transform 0.3s ease";
 
-    const threshold = window.innerHeight * 0.25;
-
-    if (currentTranslate > threshold) {
+    if (currentTranslate > MAX_TRANSLATE * 0.5) {
         hideSidebar();
     } else {
         openSidebar();
     }
 });
-const restoreBtn = document.getElementById("restore-map");
-
-function showRestoreButton() {
-    restoreBtn.classList.remove("hidden");
-}
-
-function hideRestoreButton() {
-    restoreBtn.classList.add("hidden");
-}
-restoreBtn.onclick = () => {
-    hideSidebar(); // closes sidebar
-    map.invalidateSize(); // fixes Leaflet rendering
-    map.setView([userLat || 40.7128, userLng || -74.0060], 13);
-};
 function showFlashMessage(message, type = "error") {
     const existing = document.getElementById("flash-message");
     if (existing) existing.remove();
@@ -1120,12 +1337,25 @@ function showFlashMessage(message, type = "error") {
         setTimeout(() => flash.remove(), 300);
     }, 2000);
 }
+document.getElementById("reopen-directions").onclick = () => {
+    const modal = document.getElementById("directions-modal");
+    const sidebar = document.getElementById("sidebar");
+
+    if (window.innerWidth < 768) {
+        modal.classList.remove("hidden");
+    } else {
+        sidebar.classList.add("open");
+        document.getElementById("routing-directions").classList.remove("hidden");
+    }
+
+    map.invalidateSize();
+};
 </script>
 <!-- MOBILE DIRECTIONS MODAL -->
 <div id="directions-modal"
     class="fixed inset-0 z-[2000] bg-black/40 hidden flex items-end md:hidden">
 
-<div class="w-full max-h-[40vh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-3 overflow-y-auto">
+<div class="w-full max-h-[70vh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-3 overflow-y-auto">
 <div class="flex justify-between items-center mb-3">
     <h2 class="font-bold text-lg">Directions</h2>
 
