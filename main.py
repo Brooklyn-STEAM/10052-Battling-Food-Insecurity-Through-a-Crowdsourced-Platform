@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, flash, abort, jsonify, redirect, url_for, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 import pymysql
 import random
 from dynaconf import Dynaconf
@@ -242,13 +242,8 @@ def logout():
 # --------------------
 # SIGNUP PAGE 
 # --------------------
-from datetime import datetime, date
-
-from datetime import datetime
-
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-
     if current_user.is_authenticated:
         flash("You are already logged in.", "signup_info")
         return redirect("/")
@@ -263,6 +258,10 @@ def signup():
 
         role = request.form.get("role") or "user"
 
+        if 'user_id' in session: 
+            flash("You already have an account and are currently logged in!", "info")
+            return redirect(url_for('index'))
+    
         # ✅ PASSWORD CHECK
         if password != password_repeat:
             flash("Passwords do not match.", "signup_error")
@@ -311,7 +310,6 @@ def signup():
 # DONATE PAGES
 # -----------------------
 @app.route("/donations")
-@login_required
 def donate():
    return render_template("donate.html.jinja")
 
@@ -618,6 +616,7 @@ def personal_fridges(fridge_id):
     connection.close()
     return render_template("fridge.html.jinja", fridge=fridge, items=items_list, reviews=reviews, fridge_status=fridge_status)
 
+    
  
 # -----------------------
 # API: GET FRIDGES
@@ -643,14 +642,14 @@ def get_fridges():
 
 
    for row in rows:
-       if row["lat"] and row["lng"]:
-           fridges.append({
-               "id": row["id"],
-               "name": row["name"],
-               "lat": float(row["lat"]),
-               "lng": float(row["lng"]),
-               "status": row["status"] or "Unknown"
-           })
+    if row["lat"] and row["lng"]:
+        fridges.append({
+            "id": row["id"],
+            "name": row["name"],
+            "lat": float(row["lat"]),
+            "lng": float(row["lng"]), 
+            "status": row["status"] if row["status"] else "Unknown"
+        })
 
 
    return jsonify(fridges)
