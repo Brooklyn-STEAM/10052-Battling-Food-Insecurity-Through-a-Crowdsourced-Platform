@@ -429,8 +429,12 @@ function openSidebar() {
     sidebar.classList.remove("hidden-state");
     toggleBtn.classList.add("hidden");
 
-    showRestoreButton(); // 👈 ADD THIS
+    // ✨ REFRESH DATA: Pulls latest favorites from DB (including ones added on Fridge Page)
+    if (typeof loadFavoritesFromServer === 'function') {
+        loadFavoritesFromServer(); 
+    }
 
+    showRestoreButton();
     setTimeout(() => map.invalidateSize(), 300);
 }
 
@@ -686,37 +690,26 @@ function renderFridges(fridges) {
    fridgesWithData.forEach(f => {
 
     // ✅ Marker (FIXED)
-    const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon })
-        .addTo(map)
-.bindPopup(`
-    <div class="p-3 text-center rounded-xl
-        text-gray-900 dark:text-white">
-
-        <b class="text-lg text-black">${f.name}</b><br>
-
-        <span class="text-[10px] text-gray-500 dark:text-gray-600 uppercase">
-            ${f.status || 'Active'}
-        </span><br>
-        
-<div class="flex gap-2 mt-3">
-
-    <button 
-        onclick="window.location.href='/individfridge/${f.id}'"
-        class="flex-1 text-[11px] bg-gray-200 hover:bg-gray-300 dark:bg-[#1f1a3a] dark:hover:bg-[#2a2545] text-gray-800 dark:text-white px-3 py-2 rounded-lg font-bold transition">
-        Details
-    </button>
-
-    <button 
-        onclick="window.routeToFridge(${f.lat},${f.lng})"
-        class="flex-1 bg-green-600 dark:bg-purple-600
-        hover:bg-green-700 dark:hover:bg-purple-700
-        text-white px-3 py-2 rounded-lg font-bold text-[11px]
-        touch-manipulation">
-        Directions
-    </button>
-
-</div>
-`);
+    // Inside renderFridges loop
+const marker = L.marker([f.lat, f.lng], { icon: fridgeIcon })
+    .addTo(map)
+    .bindPopup(`
+        <div class="p-3 text-center rounded-xl text-gray-900 dark:text-white">
+            <b class="text-lg">${f.name}</b><br>
+            <div class="flex gap-2 mt-3">
+                <button 
+                    onclick="window.location.href='/individfridge/${f.id}'"
+                    class="flex-1 text-[11px] bg-gray-200 dark:bg-[#1f1a3a] px-3 py-2 rounded-lg font-bold">
+                    Details
+                </button>
+                <button 
+                    onclick='window.toggleFavorite(${JSON.stringify(f).replace(/'/g, "&apos;")})'
+                    class="bg-yellow-500 text-white px-3 py-2 rounded-lg font-bold text-[11px]">
+                    ⭐
+                </button>
+            </div>
+        </div>
+    `);
 
     // ✅ Double click on marker → go to page
     marker.on('dblclick', () => {
@@ -859,25 +852,41 @@ function requireLogin() {
 // 3. The Toggle Function (Connects to your Python route)
 // We use 'window' so it can be called from the marker popups
 window.toggleFavorite = async function(fridge) {
+    // Standardize ID access (handles 'id' or 'ID' depending on source)
+    const fId = fridge.id || fridge.ID;
+    
     try {
         const res = await fetch('/toggle-favorite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fridge_id: fridge.id || fridge.ID })
+            body: JSON.stringify({ fridge_id: fId })
         });
 
         if (res.status === 401) {
-            requireLogin();
+            showFlashMessage("Please log in to favorite fridges", "error");
             return;
         }
 
         const data = await res.json();
-        loadFavoritesFromServer();
+        
+        // Show a quick success toast/message
+        if (data.action === "added") {
+            showFlashMessage(`Saved ${fridge.name || fridge.Name} to favorites ⭐`, "success");
+            if (typeof fireConfetti === 'function') fireConfetti();
+        } else {
+            showFlashMessage("Removed from favorites", "success");
+        }
+
+        // 🔄 Sync UI: Refresh both the fridge list and favorites sidebar
+        loadFavoritesFromServer(); 
+        // Re-render the main fridge list to update star colors if needed
+        loadFridges(); 
 
     } catch (err) {
-        console.error("Error toggling favorite:", err);
+        console.error("Favorite Toggle Error:", err);
+        showFlashMessage("Failed to update favorite", "error");
     }
-}; 
+};
 
 // 4. Render the Sidebar Favorites List
 function renderFavoritesList(favorites) {

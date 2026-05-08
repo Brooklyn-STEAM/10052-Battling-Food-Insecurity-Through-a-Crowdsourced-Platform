@@ -288,7 +288,7 @@ def signup():
             flash("Email already registered.", "signup_error")
             return redirect("/signup")
 
-        default_pic = "/static/images/default-profile.png"
+        default_pic = "/static/images/default-profile.png" 
 
         cursor.execute("""
             INSERT INTO User (Name, Email, Password, Address, Role, ProfilePicture)
@@ -541,9 +541,6 @@ def delete_donation(id):
 
     flash("Donation deleted")
     return redirect('/restaurant-dashboard')
-# -----------------------------
-# FRIDGE PAGE
-# -----------------------------
 @app.route("/individfridge/<int:fridge_id>", methods=["GET", "POST"])
 def personal_fridges(fridge_id):
     connection = connect_db()
@@ -559,12 +556,10 @@ def personal_fridges(fridge_id):
         comment = request.form.get("Comment")
         
         if rating and comment:
-            # CHECK FOR DUPLICATE: See if this user already reviewed THIS fridge
             cursor.execute("SELECT ID FROM Reviews WHERE FridgeID = %s AND UserID = %s", (fridge_id, current_user.id))
             existing_review = cursor.fetchone()
 
             if existing_review:
-                # Flash with category 'review-exists' for the 3-second timer
                 flash("You've already reviewed this fridge! Please edit your existing message below.", "review-exists")
             else:
                 try:
@@ -590,6 +585,15 @@ def personal_fridges(fridge_id):
         connection.close()
         abort(404)
 
+    # ⭐ NEW: Check if this fridge is favorited by the current user
+    is_favorited = False
+    if current_user.is_authenticated:
+        cursor.execute(
+            "SELECT 1 FROM Favorites WHERE UserID = %s AND FridgeID = %s",
+            (current_user.id, fridge_id)
+        )
+        is_favorited = cursor.fetchone() is not None
+
     # Fetch Inventory
     cursor.execute("""
         SELECT i.Name, i.Image, fi.Quantity 
@@ -614,8 +618,16 @@ def personal_fridges(fridge_id):
     reviews = cursor.fetchall()
 
     connection.close()
-    return render_template("fridge.html.jinja", fridge=fridge, items=items_list, reviews=reviews, fridge_status=fridge_status)
-
+    
+    # Send is_favorited to the template
+    return render_template(
+        "fridge.html.jinja", 
+        fridge=fridge, 
+        items=items_list, 
+        reviews=reviews, 
+        fridge_status=fridge_status,
+        is_favorited=is_favorited
+    )
     
  
 # -----------------------
@@ -811,10 +823,17 @@ def update_fridge(fridge_id):
         )
 
     # -------- POST --------
+    # -------- POST --------
+    # 1. Define fullness mapping
     value = int(request.form.get("fullness", 2))
     mapping = ["empty", "few", "half", "many", "full"]
     status_value = mapping[value]
+    
+    # 2. Define is_broken from the form
+    # Make sure your HTML checkbox has name="is_broken"
+    is_broken = request.form.get("is_broken") == "on"
 
+    # 3. Process item quantities
     for key in request.form:
         if key.startswith("quantity_"):
             try:
@@ -832,39 +851,29 @@ def update_fridge(fridge_id):
                         VALUES (%s, %s, %s)
                         ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
                     """, (fridge_id, item_id, quantity))
-
             except (ValueError, IndexError):
                 continue
 
+    # 4. Update Status (Only in Fridge_status table)
     current_time = datetime.now(timezone.utc)
 
-    if not is_broken:
-        cursor.execute(
-            "UPDATE Fridge SET status = %s WHERE ID = %s",
-            (status_value, fridge_id)
-        )
-
-        cursor.execute("""
-            INSERT INTO Fridge_status (FridgeID, status, Last_updated)
-            VALUES (%s, %s, %s)
-        """, (fridge_id, status_value, current_time))
-
+    if is_broken:
+        final_status = "Needs Attention"
+        flash("Quantities updated, but status marked as 'Needs Attention'.", "fridge_error")
+    else:
+        final_status = status_value
         flash("Fridge updated successfully!", "fridge_success")
 
-    else:
-        cursor.execute("""
-            INSERT INTO Fridge_status (FridgeID, status, Last_updated)
-            VALUES (%s, %s, %s)
-        """, (fridge_id, "Needs Attention", current_time))
-
-        flash(
-            "Quantities updated, but status remains 'Needs Attention'.",
-            "fridge_error"
-        )
+    # This table exists, so we insert here
+    cursor.execute("""
+        INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
+        VALUES (%s, %s, %s)
+    """, (fridge_id, final_status, current_time))
 
     connection.commit()
     connection.close()
 
+    # Ensure this route name is correct in your app
     return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
 # -----------------------
