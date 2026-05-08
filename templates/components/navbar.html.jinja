@@ -201,22 +201,39 @@
  const menuButton = document.getElementById('mobile-menu-button');
  const mobileMenu = document.getElementById('mobile-menu');
 
-
  if (menuButton && mobileMenu) {
    menuButton.addEventListener('click', () => {
      mobileMenu.classList.toggle('hidden');
    });
  }
 
-
  const themeToggle = document.getElementById("theme-toggle");
 
+ // 🔥 Helper to update route colors dynamically
+ function updateRouteTheme() {
+   if (!window.currentRouteLayer) return;
+
+   const isDark = document.documentElement.classList.contains("dark");
+
+   window.currentRouteLayer.setStyle({
+     color: isDark ? '#a855f7' : '#16a34a'
+   });
+ }
 
  if (themeToggle) {
    themeToggle.addEventListener("click", () => {
+
      const isDark = document.documentElement.classList.toggle("dark");
+
      localStorage.setItem("theme", isDark ? "dark" : "light");
+
+     // 🌗 Update Leaflet map tiles
+     if (window.applyMapTheme) {
+       window.applyMapTheme();
+     }
+
+     // 🎨 Update route polyline color
+     updateRouteTheme();
    });
  }
 </script>
-
