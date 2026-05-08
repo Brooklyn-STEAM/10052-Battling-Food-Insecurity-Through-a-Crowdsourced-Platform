@@ -28,7 +28,7 @@
         .input {
             width: 100%; padding: 0.75rem; border-radius: 0.75rem;
             border: 1px solid #d1d5db; background: #f8fafc; transition: 0.25s;
-            font-size: 16px; /* Prevents iOS auto-zoom on focus */
+            font-size: 16px; 
         }
         .input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3); outline: none; }
         .form-card { background: linear-gradient(135deg, #ffffff, #f3f0ff); border: 1px solid #cac2d2; }
@@ -47,12 +47,21 @@
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
-      {% if category == "donate_money" %}
-        <div class="flash-message mb-4 px-4 py-3 rounded-xl 
-                    bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md fixed top-24 md:top-20 right-5 z-50 space-y-2 ">
+
+      {% if category.startswith("donation_") %}
+
+        <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md
+          {% if category == 'donation_error' %}
+            bg-red-500 dark:bg-red-700
+          {% else %}
+            bg-green-600 dark:bg-[#6f52c9]
+          {% endif %}
+        ">
           {{ message }}
         </div>
+
       {% endif %}
+
     {% endfor %}
   {% endif %}
 {% endwith %}
@@ -68,34 +77,34 @@
 
         <div class="form-card flex flex-col justify-between rounded-3xl p-5 shadow-xl sm:p-8">
             <div>
-                <h2 class="mb-6 flex items-center gap-2 text-2xl font-bold">
-                    Donate Money
-                </h2>
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">Donate Money</h2>
 
                 <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm">
-                    <div class="grid grid-cols-3 gap-3 font-semibold sm:gap-4">
+                    <input type="hidden" name="final_amount" id="finalAmountValue">
+                    
+                    <div class="grid grid-cols-3 gap-3 sm:gap-4 font-semibold">
                         {% for amount in [10, 25, 50] %}
-                        <label class="group cursor-pointer">
-                            <input type="radio" name="amount" value="{{ amount }}" class="peer hidden">
-                            <div class="rounded-2xl border border-gray-200 py-3 text-center transition-all duration-200 hover:bg-orange-50 peer-checked:border-orange-600 peer-checked:bg-orange-600 peer-checked:text-white dark:border-gray-700 dark:peer-checked:border-purple-600 dark:peer-checked:bg-purple-600 sm:py-4">
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="amount" value="{{ amount }}" class="hidden peer preset-radio">
+                            <div class="py-3 sm:py-4 text-center rounded-2xl border border-gray-200 dark:border-gray-700 peer-checked:bg-orange-600 peer-checked:border-orange-600 hover:bg-orange-50 peer-checked:text-white dark:peer-checked:bg-purple-600 dark:peer-checked:border-purple-600 transition-all duration-200">
                                 ${{ amount }}
                             </div>
                         </label>
                         {% endfor %}
                     </div>
 
-                    <div class="relative mt-4">
+                    <div class="mt-4">
                         <input type="number" name="custom_amount" id="customAmount" placeholder="$ Custom amount" class="input" min="1" max="10000">
                     </div>
 
-                    <div class="relative mt-4 space-y-1.5">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Target Fridge</label>
+                    <div class="mt-6 relative space-y-1.5">
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ml-1">Target Fridge</label>
                         <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
                         <button type="button" id="moneyFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition dark:bg-[#2a2545] dark:text-white">
                             <span id="moneyFridgeText">Choose a fridge</span>
                             <span class="text-xs opacity-50">▼</span>
                         </button>
-                        <div id="moneyFridgeMenu" class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl">
+                        <div id="moneyFridgeMenu" class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
                             {% for fridge in fridges %}
                             <div class="money-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
                                 data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
@@ -106,7 +115,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="mt-8 w-full transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg shadow-orange-600/20 transition-all active:scale-[0.98] hover:bg-orange-700 dark:bg-purple-600 dark:shadow-purple-900/20 dark:hover:bg-purple-700">
+                    <button type="submit" class="mt-8 w-full transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] hover:bg-orange-700 dark:bg-purple-600 dark:hover:bg-purple-700">
                         Donate Now
                     </button>
                 </form>
@@ -114,9 +123,7 @@
         </div>
 
         <div class="form-card rounded-3xl p-5 shadow-xl sm:p-8">
-            <h2 class="mb-6 flex items-center gap-2 text-2xl font-bold">
-                Schedule Drop-Off
-            </h2>
+            <h2 class="mb-6 flex items-center gap-2 text-2xl font-bold">Schedule Drop-Off</h2>
 
             <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -137,18 +144,18 @@
                     </div>
                     <div class="space-y-1">
                         <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quantity</label>
-                        <input type="number" name="quantity" placeholder="No. of items" class="input" required>
+                        <input type="number" name="quantity" min = "1" placeholder="No. of items" class="input" required>
                     </div>
                 </div>
 
                 <div class="relative space-y-1">
                     <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Type of Food</label>
                     <input type="hidden" name="food_type" id="foodTypeValue" required>
-                    <button type="button" id="foodTypeBtn" class="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm transition-colors dark:border-gray-700 dark:bg-[#2a2545] dark:text-white">
+                    <button type="button" id="foodTypeBtn" class="border-gray-200 flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition-colors dark:border-gray-700 dark:bg-[#2a2545] dark:text-white">
                         <span id="foodTypeText">Select category</span>
                         <span class="text-xs opacity-50">▼</span>
                     </button>
-                    <div id="foodTypeMenu" class="absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-2xl dark:border-gray-700 dark:bg-[#2a2545]">
+                    <div id="foodTypeMenu" class="absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border bg-white shadow-2xl dark:border-gray-700 dark:bg-[#2a2545]">
                         {% for item in food_types %}
                         <div class="food-type-item border-gray-100 dark:border-gray-700/50 cursor-pointer border-b p-4 transition-colors last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
                              data-id="{{ item['ID'] }}" data-name="{{ item['Name'] }}">
@@ -186,7 +193,6 @@
                 </button>
             </form>
         </div>
-
     </div>
 </div>
 
@@ -228,9 +234,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => m.classList.add('hidden'));
     });
 
-    // Amount Toggle Logic
+    // Money Form Amount Logic
+    const moneyForm = document.getElementById("moneyForm");
     const customInput = document.getElementById("customAmount");
-    const presetRadios = document.querySelectorAll('input[name="amount"]');
+    const presetRadios = document.querySelectorAll('.preset-radio');
+    const finalAmountInput = document.getElementById("finalAmountValue");
 
     customInput?.addEventListener("input", () => {
         if (customInput.value !== "") {
@@ -244,84 +252,49 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Form Validation & Visual State
+    moneyForm?.addEventListener("submit", function(e) {
+        const selectedRadio = document.querySelector('.preset-radio:checked');
+        const fridgeSelected = document.getElementById("moneyFridgeValue").value;
+
+        let total = selectedRadio ? selectedRadio.value : customInput.value;
+
+        if (!total || total <= 0) {
+            e.preventDefault();
+            alert("Please select or enter a donation amount.");
+            return;
+        }
+
+        if (!fridgeSelected) {
+            e.preventDefault();
+            alert("Please select a target fridge.");
+            return;
+        }
+
+        finalAmountInput.value = total;
+        
+        const btn = this.querySelector("button[type='submit']");
+        btn.innerHTML = `<span class="flex items-center justify-center gap-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Processing...
+        </span>`;
+        btn.disabled = true;
+    });
+
+    // Date Restriction
     const dateInput = document.getElementById("dropoffDate");
     if (dateInput) {
-        const today = new Date().toISOString().split("T")[0];
-        dateInput.min = today;
+        dateInput.min = new Date().toISOString().split("T")[0];
     }
     
+    // Auto-hide flash messages
     const flashes = document.querySelectorAll(".flash-message");
-
     flashes.forEach(flash => {
         setTimeout(() => {
             flash.style.opacity = "0";
             flash.style.transition = "opacity 0.5s ease";
-
-            setTimeout(() => {
-                flash.remove();
-            }, 300);
-        }, 3000); // 3 seconds
+            setTimeout(() => flash.remove(), 500);
+        }, 3000);
     });
-
-    document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("submit", (e) => {
-            const btn = form.querySelector("button[type='submit']");
-            btn.innerHTML = `<span class="flex items-center justify-center gap-2">
-                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Processing...
-            </span>`;
-            btn.disabled = true;
-        });
-    });
-});
-// Inside your DOMContentLoaded listener:
-
-const moneyForm = document.getElementById("moneyForm");
-const customInput = document.getElementById("customAmount");
-const presetRadios = document.querySelectorAll('.preset-radio');
-const finalAmountInput = document.getElementById("finalAmountValue");
-
-// If typing custom, uncheck presets
-customInput.addEventListener("input", () => {
-    if (customInput.value !== "") {
-        presetRadios.forEach(r => r.checked = false);
-    }
-});
-
-// If clicking preset, clear custom
-presetRadios.forEach(radio => {
-    radio.addEventListener("change", () => {
-        if(radio.checked) customInput.value = "";
-    });
-});
-
-// Intercept submit to set the final value
-moneyForm.addEventListener("submit", function(e) {
-    const selectedRadio = document.querySelector('.preset-radio:checked');
-    const fridgeSelected = document.getElementById("moneyFridgeValue").value;
-
-    let total = 0;
-    if (selectedRadio) {
-        total = selectedRadio.value;
-    } else if (customInput.value) {
-        total = customInput.value;
-    }
-
-    if (total <= 0) {
-        e.preventDefault();
-        alert("Please select or enter a donation amount.");
-        return;
-    }
-
-    if (!fridgeSelected) {
-        e.preventDefault();
-        alert("Please select a target fridge.");
-        return;
-    }
-
-    // Set the hidden field that the Python backend actually reads
-    finalAmountInput.value = total;
 });
 </script>
 </body>
