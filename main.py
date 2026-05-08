@@ -618,9 +618,6 @@ def personal_fridges(fridge_id):
     connection.close()
     return render_template("fridge.html.jinja", fridge=fridge, items=items_list, reviews=reviews, fridge_status=fridge_status)
 
-    finally:
-        # ✅ ONLY CLOSE ONCE
-        connection.close()
  
 # -----------------------
 # API: GET FRIDGES
