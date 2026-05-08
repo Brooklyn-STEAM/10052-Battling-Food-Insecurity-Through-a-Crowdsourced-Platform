@@ -47,7 +47,7 @@
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
-      {% if category == "donate_money" %}
+      {% if category == "donate_money" or category == "success" %}
         <div class="flash-message mb-4 px-4 py-3 rounded-xl bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md fixed top-24 md:top-20 right-5 z-50">
           {{ message }}
         </div>
@@ -77,34 +77,24 @@
                         <label class="cursor-pointer group">
                             <input type="radio" name="amount" value="{{ amount }}" class="hidden peer preset-radio">
                             <div class="py-3 sm:py-4 text-center rounded-2xl border border-gray-200 dark:border-gray-700 peer-checked:bg-orange-600 peer-checked:border-orange-600 hover:bg-orange-50 peer-checked:text-white dark:peer-checked:bg-purple-600 dark:peer-checked:border-purple-600 transition-all duration-200">
-                <h2 class="mb-6 flex items-center gap-2 text-2xl font-bold">
-                    Donate Money
-                </h2>
-
-                <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm">
-                    <div class="grid grid-cols-3 gap-3 font-semibold sm:gap-4">
-                        {% for amount in [10, 25, 50] %}
-                        <label class="group cursor-pointer">
-                            <input type="radio" name="amount" value="{{ amount }}" class="peer hidden">
-                            <div class="rounded-2xl border border-gray-200 py-3 text-center transition-all duration-200 hover:bg-orange-50 peer-checked:border-orange-600 peer-checked:bg-orange-600 peer-checked:text-white dark:border-gray-700 dark:peer-checked:border-purple-600 dark:peer-checked:bg-purple-600 sm:py-4">
                                 ${{ amount }}
                             </div>
                         </label>
                         {% endfor %}
                     </div>
-                    <br>
-                    <div class="relative">
+
+                    <div class="mt-4">
                         <input type="number" name="custom_amount" id="customAmount" placeholder="$ Custom amount" class="input" min="1" max="10000">
                     </div>
-                    <br>
-                    <div class="relative space-y-1.5">
+
+                    <div class="mt-6 relative space-y-1.5">
                         <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ml-1">Target Fridge</label>
                         <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
                         <button type="button" id="moneyFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition dark:bg-[#2a2545] dark:text-white">
                             <span id="moneyFridgeText">Choose a fridge</span>
                             <span class="text-xs opacity-50">▼</span>
                         </button>
-                        <div id="moneyFridgeMenu" class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl">
+                        <div id="moneyFridgeMenu" class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
                             {% for fridge in fridges %}
                             <div class="money-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
                                 data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
@@ -115,7 +105,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="mt-8 w-full transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg shadow-orange-600/20 transition-all active:scale-[0.98] hover:bg-orange-700 dark:bg-purple-600 dark:shadow-purple-900/20 dark:hover:bg-purple-700">
+                    <button type="submit" class="mt-8 w-full transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] hover:bg-orange-700 dark:bg-purple-600 dark:hover:bg-purple-700">
                         Donate Now
                     </button>
                 </form>
@@ -272,7 +262,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         finalAmountInput.value = total;
         
-        // Visual processing state
         const btn = this.querySelector("button[type='submit']");
         btn.innerHTML = `<span class="flex items-center justify-center gap-2">
             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
