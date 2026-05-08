@@ -99,16 +99,27 @@
 
 
    <!-- Flash Messages -->
-   {% with messages = get_flashed_messages() %}
-     {% if messages %}
-       {% for message in messages %}
-         <div class="flash-message mb-4 px-4 py-3 rounded-xl
-                     bg-green-600 dark:bg-[#6f52c9] text-white text-sm shadow-md ">
-           {{ message }}
-         </div>
-       {% endfor %}
-     {% endif %}
-   {% endwith %}
+   {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+
+      {% if category.startswith("profile_") %}
+
+        <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md
+          {% if category == 'profile_error' %}
+            bg-red-500 dark:bg-red-700
+          {% else %}
+            bg-green-600 dark:bg-[#6f52c9]
+          {% endif %}
+        ">
+          {{ message }}
+        </div>
+
+      {% endif %}
+
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
 
    <!-- Username -->
