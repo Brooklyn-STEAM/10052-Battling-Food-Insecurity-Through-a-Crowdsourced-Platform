@@ -600,7 +600,13 @@ def personal_fridges(fridge_id):
     items_list = cursor.fetchall()
 
     # Fetch Status
-    cursor.execute("SELECT Status, Last_updated FROM Fridge_status WHERE FridgeID=%s ORDER BY Last_updated DESC LIMIT 1", (fridge_id,))
+    cursor.execute("""
+    SELECT *
+    FROM Fridge_status
+    WHERE FridgeID = %s
+    ORDER BY Last_updated DESC
+    LIMIT 1
+""", (fridge_id,))
     fridge_status = cursor.fetchone() or {"Status": "Unknown", "Last_updated": None}
 
     # Fetch Reviews
@@ -688,7 +694,7 @@ def report_fridge(fridge_id):
 
             # 3. UPDATE FRIDGE STATUS
             # Update the main Fridge table so it shows up as Needs Attention globally
-            cursor.execute("UPDATE Fridge SET Status = %s WHERE ID = %s", ("Needs Attention", fridge_id))
+        
             
             # 4. INSERT INTO STATUS HISTORY
             # This ensures the 'Last Sync' info on the fridge page shows the update
