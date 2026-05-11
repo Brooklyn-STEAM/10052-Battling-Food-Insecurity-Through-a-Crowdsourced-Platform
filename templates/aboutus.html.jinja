@@ -105,19 +105,39 @@
     </section>
 
     {% if current_user.is_authenticated %}
-    <div class="float max-w-xl mx-auto p-10 rounded-3xl backdrop-blur-md
-                  bg-white/70 dark:bg-white/5 border border-gray-200 dark:border-white/10
-                  shadow-xl hover:shadow-2xl transition-all duration-300 text-center mb-16">
-      <h3 class="text-2xl font-bold mb-2 text-green-700 dark:text-purple-300">
-        Welcome back, {{ current_user.name }}!
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">
-        Ready to see your impact? Check your recent contributions.
-      </p>
-      <a href="/restaurant-dashboard" class="inline-block bg-orange-600 dark:bg-purple-600 text-white font-semibold px-8 py-3 rounded-xl shadow-md hover:bg-orange-700 dark:hover:bg-purple-700 transition">
-        Go to Dashboard
-      </a>
+    <div class="max-w-4xl mx-auto mt-12 mb-16 px-4">
+    <div class="relative p-[2px] rounded-[2.5rem] bg-gradient-to-br from-green-400 to-blue-500 shadow-2xl">
+        <div class="bg-white dark:bg-[#1b1730] rounded-[2.4rem] p-8 md:p-12 overflow-hidden relative">
+            
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-green-100 dark:bg-green-900/20 rounded-full blur-3xl"></div>
+
+            <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                <div class="w-32 h-32 md:w-44 md:h-44 rounded-3xl overflow-hidden shadow-inner border-4 border-white dark:border-white/10">
+                    <img src="{{ fow.Image }}" alt="{{ fow.Name }}" class="w-full h-full object-cover">
+                </div>
+
+                <div class="flex-1 text-center md:text-left">
+                    <span class="inline-block bg-green-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+                        🔥 Fridge of the Week
+                    </span>
+                    <h3 class="text-3xl font-black text-gray-900 dark:text-white mb-2">
+                        {{ fow.Name }}
+                    </h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mb-6 max-w-md">
+                        This location has been buzzing with {{ fow.activity_count }} updates this week! 
+                        Located at <span class="font-semibold text-gray-700 dark:text-gray-200">{{ fow.Address }}</span>.
+                    </p>
+
+                    <a href="/individfridge/{{ fow.ID }}" 
+                       class="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-2xl font-bold hover:scale-105 transition-transform shadow-lg">
+                        View Live Inventory
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
     {% endif %}
 
     <section class="max-w-5xl mx-auto px-6 pb-20 grid gap-8 md:grid-cols-2 relative z-10">
@@ -218,6 +238,16 @@ async function loadStats() {
 loadStats();
 // refresh every 10 seconds (5s might be too aggressive for some servers)
 setInterval(loadStats, 10000);
+
+    // If we don't already have coordinates in the URL, try to get them and reload
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('lat') && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            window.location.href = `/about?lat=${lat}&lng=${lng}`;
+        });
+    }
 </script>
 </body>
 </html>
