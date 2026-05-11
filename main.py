@@ -977,8 +977,11 @@ def update_picture():
 # -----------------------
 @app.route("/about")
 def about():
+    user_lat = request.args.get('lat', type=float)
+    user_lng = request.args.get('lng', type=float)
+    
     connection = connect_db()
-    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    cursor = connection.cursor(pymysql.cursors.DictCursor)  
 
    
     # TOTAL USERS
@@ -1012,10 +1015,36 @@ def about():
     """)
     money = cursor.fetchone()["total_money"]
 
+    if user_lat and user_lng:
+        # Distance-aware query (10-mile radius)
+        fow_query = """
+            SELECT f.*, COUNT(fs.ID) as activity_count,
+            (3959 * acos(cos(radians(%s)) * cos(radians(f.Latitude)) * cos(radians(f.Longitude) - radians(%s)) + sin(radians(%s)) * sin(radians(f.Latitude)))) AS distance
+            FROM Fridge f
+            LEFT JOIN Fridge_status fs ON f.ID = fs.FridgeID
+            WHERE fs.Last_updated >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY f.ID
+            HAVING distance < 10
+            ORDER BY activity_count DESC, distance ASC
+            LIMIT 1
+        """
+        cursor.execute(fow_query, (user_lat, user_lng, user_lat))
+    else:
+        # Fallback: Just the most active fridge globally
+        fow_query = """
+            SELECT f.*, COUNT(fs.ID) as activity_count
+            FROM Fridge f
+            JOIN Fridge_status fs ON f.ID = fs.FridgeID
+            WHERE fs.Last_updated >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY f.ID
+            ORDER BY activity_count DESC
+            LIMIT 1
+        """
+        cursor.execute(fow_query)
+    
+    fridge_of_week = cursor.fetchone()
     connection.close()
 
-  
-    # BUILD STATS OBJECT (FIX)
     stats = {
         "meals": meals,
         "users": users,
@@ -1024,7 +1053,7 @@ def about():
         "money": money
     }
 
-    return render_template("aboutus.html.jinja", stats=stats)
+    return render_template("aboutus.html.jinja", stats=stats, fow=fridge_of_week)
 
 # -----------------------
 # STATISTICS PAGE 
@@ -1183,37 +1212,66 @@ def contact():
 # --------------------
  # RESTAURANTS CONNECT PAGE 
 # --------------------
+from flask import render_template, request, redirect, url_for
+
 @app.route("/restaurants-connect", methods=["GET", "POST"])
 def restaurants_connect():
-   if request.method == "POST":
-       name = request.form["restaurant_name"]
-       contact = request.form["contact_person"]
-       email = request.form["email"]
-       phone = request.form["phone"]
-       address = request.form["address"]
-       food_type = request.form["food_type"]
-       delivery = request.form["delivery_method"]
-      
+    connection = connect_db()
+    # dictionary=True allows us to access data like fridge['name'] in Jinja
+    cursor = connection.cursor()
 
+    try:
+        if request.method == "POST":
+            # Form Submission Logic
+            name = request.form["restaurant_name"]
+            contact = request.form["contact_person"]
+            email = request.form["email"]
+            phone = request.form["phone"]
+            address = request.form["address"]
+            food_type = request.form["food_type"]
+            delivery = request.form["delivery_method"]
 
-       connection = connect_db()
-       cursor = connection.cursor()
+            cursor.execute("""
+                INSERT INTO restaurant_partners 
+                (Name, Spokesperson, Email, Phone, Address, Food_type, Delivery_method)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (name, contact, email, phone, address, food_type, delivery))
+            
+            connection.commit()
+            return redirect("/thank_you")
 
+        # --- GET DATA FOR LIVE UI ---
+        
+        # 1. Fetch latest fridge statuses using your specific column names
+        cursor.execute("""
+            SELECT f.name, fs.Status, fs.Last_updated 
+            FROM Fridge f
+            JOIN Fridge_status fs ON f.ID = fs.FridgeID
+            WHERE fs.Last_updated = (
+                SELECT MAX(Last_updated) 
+                FROM Fridge_status 
+                WHERE FridgeID = f.ID
+            )
+        """)
+        fridges_data = cursor.fetchall()
 
-       cursor.execute("""
-       INSERT INTO restaurant_partners
-       (Name, Spokesperson, Email, Phone, Address, Food_type, Delivery_method)
-       VALUES (%s, %s, %s, %s, %s, %s, %s)
-       """, (name, contact, email, phone, address, food_type, delivery))
-     
-       connection.commit()
-       connection.close()
+        # 2. Fetch total maintenance count
+        cursor.execute("SELECT COUNT(*) as count FROM maintenance_reports WHERE Status != 'Resolved'")
+        maint_res = cursor.fetchone()
+        maint_count = maint_res['count'] if maint_res else 0
 
+        # 3. Check for any High Priority maintenance issues
+        cursor.execute("SELECT COUNT(*) as high FROM maintenance_reports WHERE Priority = 'High' AND Status != 'Resolved'")
+        high_priority = cursor.fetchone()['high']
 
-       return redirect("/thank_you")
+    finally:
+        cursor.close()
+        connection.close()
 
-
-   return render_template("restaurant_connect.html.jinja")
+    return render_template("restaurant_connect.html.jinja", 
+                           fridges=fridges_data, 
+                           maint_count=maint_count,
+                           urgent=high_priority)
 
 
 # ------------------------------
@@ -1369,6 +1427,8 @@ def all_reviews(fridge_id):
     
     connection.close()
     return render_template("all_reviews.html.jinja", reviews=all_reviews, fridge=fridge)
+
+
 
 # --------------------
 # NAME IF STATEMENT 

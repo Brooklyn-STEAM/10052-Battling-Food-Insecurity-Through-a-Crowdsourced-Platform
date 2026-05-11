@@ -144,37 +144,108 @@
     </div>
 </section>
 
-<section id="how-it-works" class="bg-gray-100/50 dark:bg-white/5 py-24 transition-colors">
-    <div class="max-w-6xl mx-auto px-6 text-center">
-        <h2 class="text-3xl font-bold mb-16">Simple 4-Step Process</h2>
+<section id="how-it-works" class="relative py-24 px-6 overflow-hidden 
+                bg-gradient-to-r from-green-100 via-green-100 to-emerald-200
+                dark:from-[#1b1730] dark:via-[#2a2545] dark:to-[#1b1730] 
+                transition-colors duration-700">
+    
+    <div class="max-w-6xl mx-auto relative z-10 text-center">
+        <h2 class="text-3xl font-black mb-16 tracking-tight text-gray-900 dark:text-white uppercase italic">
+            Simple 4-Step Process
+        </h2>
         
-        <div class="grid md:grid-cols-4 gap-4 relative">
-            <a href="/signup" class="relative z-10 p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent hover:border-orange-500 transition-all hover:shadow-2xl group">
-                <span class="block text-4xl mb-4 group-hover:animate-bounce">📱</span>
-                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 01</span>
-                <h4 class="font-bold">Register Profile</h4>
-            </a>
-
-            <div class="p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent transition-all">
-                <span class="block text-4xl mb-4">🍱</span>
-                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 02</span>
-                <h4 class="font-bold">Log Surplus</h4>
+        <div class="grid md:grid-cols-4 gap-6 relative">
+            <div class="p-8 rounded-[2.5rem] bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl transition-all hover:-translate-y-2">
+                <span class="block text-4xl mb-4">📱</span>
+                <span class="block text-xs font-bold text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-widest">Step 01</span>
+                <h4 class="font-bold text-gray-900 dark:text-white">Register Profile</h4>
             </div>
 
-            <a href="/donate" class="p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent hover:border-orange-500 transition-all hover:shadow-2xl group">
-                <span class="block text-4xl mb-4 group-hover:animate-bounce">🚗</span>
-                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 03</span>
-                <h4 class="font-bold">Route Surplus</h4>
-            </a>
+            <div class="p-8 rounded-[2.5rem] bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl transition-all hover:-translate-y-2">
+                <span class="block text-4xl mb-4">🍱</span>
+                <span class="block text-xs font-bold text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-widest">Step 02</span>
+                <h4 class="font-bold text-gray-900 dark:text-white">Log Surplus</h4>
+            </div>
 
-            <div class="p-6 rounded-2xl bg-white dark:bg-brand-dark border border-transparent transition-all">
+            <div class="p-8 rounded-[2.5rem] bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl transition-all hover:-translate-y-2">
+                <span class="block text-4xl mb-4">🚗</span>
+                <span class="block text-xs font-bold text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-widest">Step 03</span>
+                <h4 class="font-bold text-gray-900 dark:text-white">Route Surplus</h4>
+            </div>
+
+            <div class="p-8 rounded-[2.5rem] bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl transition-all hover:-translate-y-2">
                 <span class="block text-4xl mb-4">❤️</span>
-                <span class="block text-sm font-bold text-orange-500 mb-2 uppercase">Step 04</span>
-                <h4 class="font-bold">Direct Impact</h4>
+                <span class="block text-xs font-bold text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-widest">Step 04</span>
+                <h4 class="font-bold text-gray-900 dark:text-white">Direct Impact</h4>
             </div>
         </div>
     </div>
 </section>
+
+<section class="max-w-7xl mx-auto px-6 py-12">
+<h2 class="text-3xl font-bold flex items-center gap-3">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+<span class="relative inline-flex italic rounded-full h-3 w-3 bg-red-500"></span>
+</span>
+Live Fridge Needs
+</h2>
+<br>
+    <div id="fridge-container" class="flex overflow-x-auto gap-4 pb-8 hide-scrollbar scroll-smooth">
+        {% for fridge in fridges %}
+        <div class="min-w-[300px] md:min-w-[350px] p-6 rounded-3xl bg-white dark:bg-brand-card border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl transition-all group">
+            <div class="flex justify-between items-start mb-6">
+                <div class="bg-orange-500/10 p-3 rounded-2xl text-orange-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                
+                {% if fridge.Status == 'empty' %}
+                    <span class="px-3 py-1 bg-red-500 text-white text-[10px] font-black rounded-full uppercase tracking-tighter">Urgent Need</span>
+                {% elif fridge.Status == 'few' %}
+                    <span class="px-3 py-1 bg-orange-500 text-white text-[10px] font-black rounded-full uppercase tracking-tighter">Low Stock</span>
+                {% else %}
+                    <span class="px-3 py-1 bg-green-500 text-white text-[10px] font-black rounded-full uppercase tracking-tighter">Healthy</span>
+                {% endif %}
+            </div>
+            
+            <a href="/fridge/{{ fridge.FridgeID }}" class="block group/link">
+                <h4 class="font-bold text-xl mb-1 truncate text-gray-900 dark:text-white group-hover/link:text-orange-500 transition-colors">
+                    {{ fridge.name }}
+                </h4>
+            </a>
+            
+            <p class="text-xs text-gray-400 mb-6 italic">Last update: {{ fridge.Last_updated.strftime('%I:%M %p') }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+    
+
+<style>
+    /* Custom CSS to hide scrollbar but keep functionality */
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+
+<script>
+    // Logic for the scroll buttons
+    const container = document.getElementById('fridge-container');
+    document.getElementById('scroll-right').onclick = () => {
+        container.scrollLeft += 350;
+    };
+    document.getElementById('scroll-left').onclick = () => {
+        container.scrollLeft -= 350;
+    };
+</script>
+
+
+
+
     {% include "components/footer.html.jinja" %}
 
 </body>
