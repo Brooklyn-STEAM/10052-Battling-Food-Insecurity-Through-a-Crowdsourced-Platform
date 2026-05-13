@@ -16,6 +16,9 @@
 /* =========================================================
    LEAFLET + MAP
 ========================================================= */
+:root {
+    --vh: 1vh;
+}
 .leaflet-routing-container {
     display: none;
 }
@@ -194,13 +197,14 @@ html {
 
 body {
     overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
     padding-bottom: env(safe-area-inset-bottom);
 
 }
 
 body > div {
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
 }
 
 nav {
@@ -313,85 +317,71 @@ nav {
 /* =========================================================
    MOBILE STYLES
 ========================================================= */
+/* =========================================================
+   MOBILE DECLUTTER
+========================================================= */
 @media (max-width: 768px) {
 
-    /* ---------------- SIDEBAR ---------------- */
-#sidebar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-
-    width: 100%;
-    height: 80vh;
-
-    transform: translateY(calc(100% - 110px)); /* only peek handle */
-    transition: transform 0.3s ease;
-
-    border-radius: 18px 18px 0 0;
-
-    z-index: 1000;
-}
-
-#sidebar.open {
-    transform: translateY(0);
-}
-
-/* when user is navigating, shrink sidebar */
-#sidebar.routing {
-    height: 55vh;
-}
-    .dark #sidebar {
-    background: rgba(27,23,48,0.92);
-}
-
-
-
-    #sidebar.hidden-state {
-        transform: translateY(70%);
+    /* Hide secondary sections on mobile */
+    #recent-list,
+    #clear-recents,
+    #undo-recents,
+ {
+        display: none !important;
     }
 
-
-    /* ---------------- FRIDGE LIST ---------------- */
-    #fridge-list {
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
+    /* Hide helper labels/text */
+    #sidebar p,
+    label[for="start-location"] {
+        display: none !important;
     }
 
-    /* ---------------- DRAG HANDLE ---------------- */
-    #sidebar.hidden-state #drag-handle {
-        animation: bounceHint 1.5s infinite;
+    /* Make sidebar cleaner */
+    #sidebar .px-4.pt-2.pb-24 {
+        padding-top: 0.5rem;
     }
 
-    @keyframes bounceHint {
-        0%,
-        100% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-4px);
-        }
-    }
-}
-    .animated-route {
-        animation: none !important;
-    }
-
-    .leaflet-marker-icon {
-        filter: none !important;
-    }
-
-    .leaflet-marker-icon:hover {
-        transform: none;
-    }
+    /* Reduce fridge card density */
     #fridge-list li {
-    min-height: 84px;
+        padding: 0.85rem;
+        gap: 0.5rem;
+    }
+
+    /* Hide distance pill on mobile */
+    #fridge-list li span.text-xs.font-bold {
+        display: none;
+    }
+
+    /* Smaller buttons */
+    .details-btn,
+    .fav-btn {
+        font-size: 9px;
+        padding: 4px 8px;
+    }
+
+    /* Compact fridge titles */
+    #fridge-list .font-bold.text-base {
+        font-size: 0.95rem;
+    }
+
+    /* Hide desktop search */
+    #fridge-search {
+        display: none;
+    }
+
+    /* Cleaner drag handle spacing */
+    #drag-handle {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
 }
+
 #routing-directions .mb-4 {
     position: sticky;
     top: 0;
     z-index: 10;
 }
+
 /* Directions reopen fade animation */
 .fade-out-directions {
     opacity: 0;
@@ -402,6 +392,8 @@ nav {
         opacity 0.4s ease,
         transform 0.4s ease;
 }
+
+
 </style>
         <script>
         tailwind.config = {
@@ -429,10 +421,23 @@ nav {
 <body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 font-sans">
 {% include "components/navbar.html.jinja" %}
 
-<div class="relative w-full flex flex-col md:flex-row h-[calc(100vh-5rem)] overflow-hidden">
+<div class="relative w-full flex flex-col md:flex-row overflow-hidden"
+     style="height: calc(var(--vh, 1vh) * 100 - 5rem);">
     <!-- MAP (UNCHANGED) -->
+    <div class="md:hidden absolute top-4 left-4 right-4 z-[1200]">
+    <input
+        type="text"
+        id="mobile-search"
+        placeholder="Search nearby fridges..."
+        class="w-full px-4 py-3 rounded-2xl
+               bg-white/95 dark:bg-[#1f1a3a]/95
+               backdrop-blur-xl
+               shadow-xl
+               border border-white/20
+               text-sm outline-none">
+</div>
         <div id="map"
-         class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2 h-full transition-all duration-300">
+     class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2 h-[50vh] md:h-full transition-all duration-300">
     </div>
 
 
@@ -445,8 +450,7 @@ nav {
 </button>
     <!-- SIDEBAR -->
 <aside id="sidebar"
-        class="w-full md:w-1/3
-               h-[60vh] md:h-full
+        class="w-full md:w-1/3 h-[70dvh] md:h-full 
                bg-white dark:bg-[#1b1730]
                transition-transform duration-300
                md:translate-y-0
@@ -616,7 +620,7 @@ nav {
             <ul id="favorites-list" class="space-y-2 mb-4"></ul>
 
             <!-- RECENT -->
-<div class="flex justify-between items-center mb-2">
+<div class="flex justify-between items-center mb-2 hidden md:block">
     <h3 class="text-md font-bold text-gray-500 dark:text-gray-400">
         Recently Viewed
     </h3>
@@ -645,51 +649,208 @@ nav {
         </div>
     </aside>
 </div>
+<div id="directions-modal"
+    class="fixed inset-0 z-[2000] bg-black/40 hidden flex items-end md:hidden">
+
+<div class="w-full max-h-[80dvh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-3 overflow-y-auto md:hidden"><div class="flex justify-between items-center mb-3">
+    <h2 class="font-bold text-lg">Directions</h2>
+
+    <div class="flex gap-2">
+        <button onclick="window.clearRoute(); closeDirectionsModal()"
+            class="text-[11px] font-bold text-red-500 border border-red-300 px-2 py-1 rounded-lg">
+            Clear
+        </button>
+
+        <button onclick="closeDirectionsModal()"
+            class="text-[11px] font-bold text-gray-500">
+            Close
+        </button>
+    </div>
+</div>
+
+<div id="mobile-itinerary-container"
+     class="max-h-[60dvh] overflow-y-auto bg-white dark:bg-[#1b1730] rounded-xl">
+</div>   
+ </div>
+</div>
 <script>
 /* =========================================================
-   SIDEBAR CONTROLS
+   CONFIG
 ========================================================= */
-const sidebar = document.getElementById('sidebar');
-const closeBtn = document.getElementById('close-sidebar');
+const CONFIG = {
+    DEFAULT_LOCATION: [40.7128, -74.0060],
+    DEFAULT_ZOOM: 12,
+    USER_ZOOM: 13,
+    FRIDGE_ZOOM: 16,
 
-function openSidebar() {
-    sidebar.classList.add("open");
-    sidebar.classList.remove("hidden-state");
+    MOBILE_BREAKPOINT: 768,
 
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 300);
-}
+    ROUTE_PADDING: [50, 50],
 
-function hideSidebar() {
-    sidebar.classList.remove("open");
-    sidebar.classList.add("hidden-state");
+    ROUTE_STYLE: {
+        light: '#16a34a',
+        dark: '#a855f7',
+        weight: 6,
+        opacity: 1,
+        dashArray: '12 16'
+    },
 
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 300);
-}
-
-function toggleSidebar() {
-    if (sidebar.classList.contains("open")) {
-        hideSidebar();
-    } else {
-        openSidebar();
+    API: {
+        GEOAPIFY_KEY: "364fdb68178f4a09b69ef7df5051e13b",
+        FRIDGES: "/get-fridges",
+        FAVORITES: "/get-favorites",
+        TOGGLE_FAVORITE: "/toggle-favorite"
     }
-}
-
-closeBtn.onclick = hideSidebar;
+};
 
 
 /* =========================================================
-   DRAGGING STATE
+   DOM CACHE
 ========================================================= */
-let isDragging = false;
-let startY = 0;
-let currentY = 0;
+const DOM = {
+    sidebar: document.getElementById('sidebar'),
+    closeBtn: document.getElementById('close-sidebar'),
+    sidebarToggle: document.getElementById("sidebar-toggle"),
 
-let currentTranslate = 0;
+    fridgeList: document.getElementById("fridge-list"),
+    fridgeSearch: document.getElementById("fridge-search"),
+
+    itinerary: document.getElementById('itinerary-container'),
+    mobileItinerary: document.getElementById('mobile-itinerary-container'),
+
+    directions: document.getElementById('routing-directions'),
+    directionsModal: document.getElementById('directions-modal'),
+
+    reopenDirections: document.getElementById('reopen-directions'),
+
+    startLocation: document.getElementById("start-location"),
+    setStart: document.getElementById("set-start"),
+
+    favoritesList: document.getElementById("favorites-list"),
+    recentList: document.getElementById("recent-list"),
+
+    clearRecents: document.getElementById("clear-recents"),
+    undoRecents: document.getElementById("undo-recents"),
+
+    transportControls: document.getElementById('transport-controls')
+};
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+const state = {
+    userLat: null,
+    userLng: null,
+    userMarker: null,
+
+    currentRouteLayer: null,
+    currentTargetFridge: null,
+
+    allFridges: [],
+    fridgeMarkers: [],
+
+    lastRoute: null,
+
+    recentsBackup: null,
+    undoTimeout: null,
+    undoInterval: null,
+
+    currentTileLayer: null,
+
+    isDragging: false,
+    startY: 0,
+    currentY: 0,
+    currentTranslate: 0,
+    sidebarState: "collapsed"
+};
+state.markerMap = new Map();
+
 const MAX_TRANSLATE = window.innerHeight * 0.6;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function isMobile() {
+    return window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
+}
+
+function show(el) {
+    el?.classList.remove("hidden");
+}
+
+function hide(el) {
+    el?.classList.add("hidden");
+}
+
+function clearHTML(el) {
+    if (el) el.innerHTML = "";
+}
+
+function debounce(fn, delay = 250) {
+
+    let timeout;
+
+    return (...args) => {
+
+        clearTimeout(timeout);
+
+        timeout = setTimeout(() => {
+            fn(...args);
+        }, delay);
+
+    };
+}
+let resizeQueued = false;
+
+function safeMapResize() {
+    if (resizeQueued) return;
+
+    resizeQueued = true;
+
+    requestAnimationFrame(() => {
+        map.invalidateSize(true);
+
+        if (state.currentRouteLayer) {
+            map.fitBounds(state.currentRouteLayer.getBounds(), {
+                padding: [40, 40]
+            });
+        }
+
+        resizeQueued = false;
+    });
+}
+/* =========================================================
+   API HELPERS
+========================================================= */
+async function apiGet(url) {
+
+    const res = await fetch(url);
+
+    if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+    }
+
+    return res.json();
+}
+
+async function apiPost(url, body = {}) {
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+    }
+
+    return res.json();
+}
 
 
 /* =========================================================
@@ -699,15 +860,22 @@ const map = L.map('map', {
     zoomAnimation: true,
     fadeAnimation: true,
     zoomControl: false
-}).setView([40.7128, -74.0060], 12);
+}).setView(
+    CONFIG.DEFAULT_LOCATION,
+    CONFIG.DEFAULT_ZOOM
+);
 
 setTimeout(() => {
-    map.invalidateSize();
+    safeMapResize();
 }, 300);
+
+L.control.zoom({
+    position: 'topright'
+}).addTo(map);
 
 
 /* =========================================================
-   TILE LAYERS (LIGHT / DARK)
+   TILE LAYERS
 ========================================================= */
 const lightTiles = L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
@@ -726,36 +894,34 @@ const darkTiles = L.tileLayer(
     }
 );
 
-// Track current layer
-let currentTileLayer;
-
 
 /* =========================================================
    APPLY MAP THEME
 ========================================================= */
 window.applyMapTheme = function () {
-    const isDark = document.documentElement.classList.contains('dark');
 
-    if (currentTileLayer) {
-        map.removeLayer(currentTileLayer);
+    const isDark =
+        document.documentElement.classList.contains('dark');
+
+    if (state.currentTileLayer) {
+        map.removeLayer(state.currentTileLayer);
     }
 
-    currentTileLayer = isDark ? darkTiles : lightTiles;
-    currentTileLayer.addTo(map);
+    state.currentTileLayer =
+        isDark ? darkTiles : lightTiles;
+
+    state.currentTileLayer.addTo(map);
 
     requestAnimationFrame(() => {
-        map.invalidateSize();
+        safeMapResize();
     });
 };
 
-// Run on load
 applyMapTheme();
-
-L.control.zoom({ position: 'topright' }).addTo(map);
 
 
 /* =========================================================
-   MAP ICONS
+   ICONS
 ========================================================= */
 const userIcon = L.icon({
     iconUrl: "/static/images/pin.png",
@@ -771,38 +937,65 @@ const fridgeIcon = L.icon({
 
 
 /* =========================================================
-   GLOBAL VARIABLES
+   SIDEBAR CONTROLS
 ========================================================= */
-let recentsBackup = null;
-let undoTimeout = null;
-let undoInterval = null;
+function openSidebar() {
 
-let userLat, userLng, userMarker;
+    state.sidebarState = "expanded";
 
-window.currentRouteLayer = null;
+    DOM.sidebar.style.transform = "translateY(0)";
+    DOM.sidebar.classList.add("open");
+    DOM.sidebar.classList.remove("hidden-state");
 
-let currentTargetFridge = null;
+    state.currentTranslate = 0;
 
-let allFridges = [];
-let fridgeMarkers = [];
+    requestAnimationFrame(() => {
+        safeMapResize();
+    });
+}
+function hideSidebar() {
 
+    state.sidebarState = "collapsed";
 
-// Profile Map for Geoapify
-const profileMap = {
-    "foot": "walk",
-    "bicycle": "bicycle",
-    "car": "drive"
-};
+    const collapsedY = window.innerHeight * 0.68;
+DOM.sidebar.style.bottom = `-${collapsedY}px`;
+DOM.sidebar.style.transform = "none";
+
+    DOM.sidebar.classList.remove("open");
+    DOM.sidebar.classList.add("hidden-state");
+
+    state.currentTranslate = collapsedY;
+
+    requestAnimationFrame(() => {
+        safeMapResize();
+    });
+}
+
+function toggleSidebar() {
+
+    if (DOM.sidebar.classList.contains("open")) {
+        hideSidebar();
+    } else {
+        openSidebar();
+    }
+}
+
+DOM.closeBtn.onclick = hideSidebar;
+DOM.sidebarToggle.onclick = toggleSidebar;
 
 
 /* =========================================================
    DISTANCE HELPERS
 ========================================================= */
 function getDistance(lat1, lon1, lat2, lon2) {
+
     const R = 3958.8;
 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const dLat =
+        (lat2 - lat1) * Math.PI / 180;
+
+    const dLon =
+        (lon2 - lon1) * Math.PI / 180;
 
     const a =
         Math.sin(dLat / 2) ** 2 +
@@ -810,7 +1003,12 @@ function getDistance(lat1, lon1, lat2, lon2) {
         Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon / 2) ** 2;
 
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    return R * (
+        2 * Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        )
+    );
 }
 
 
@@ -818,168 +1016,91 @@ function getDistance(lat1, lon1, lat2, lon2) {
    USER LOCATION
 ========================================================= */
 function setUserLocation(lat, lng) {
-    userLat = lat;
-    userLng = lng;
 
-    if (userMarker) {
-        map.removeLayer(userMarker);
+    state.userLat = lat;
+    state.userLng = lng;
+
+    if (state.userMarker) {
+        map.removeLayer(state.userMarker);
     }
 
-    userMarker = L.marker([lat, lng], { icon: userIcon })
-        .addTo(map)
-        .bindPopup("Your Location")
-        .openPopup();
+    state.userMarker = L.marker(
+        [lat, lng],
+        { icon: userIcon }
+    )
 
-    map.flyTo([lat, lng], 13, {
-        duration: 0.8,
-        easeLinearity: 0.25
-    });
+    .addTo(map)
 
-    renderFridges(allFridges);
+.bindPopup(`
+<div class="p-3 text-center rounded-xl text-gray-900 dark:text-white">
+
+    <div class="text-lg font-black mb-1">
+        📍 Your Location
+    </div>
+
+    <div class="text-[11px] uppercase tracking-wide
+                text-gray-500 dark:text-gray-400">
+        Starting Point
+    </div>
+
+</div>
+`)
+    .openPopup();
+
+    map.flyTo(
+        [lat, lng],
+        CONFIG.USER_ZOOM,
+        {
+            duration: 0.8,
+            easeLinearity: 0.25
+        }
+    );
+
+    renderFridges(state.allFridges);
 }
 
 
 /* =========================================================
-   ROUTE UI RESET
+   ROUTE HELPERS
 ========================================================= */
-function resetRouteUI() {
+function clearRouteLayer() {
 
-    // Remove map route line
-    if (window.currentRouteLayer) {
-        map.removeLayer(window.currentRouteLayer);
-        window.currentRouteLayer = null;
-    }
+    if (!state.currentRouteLayer) return;
 
-    // Desktop
-    const itineraryContainer =
-        document.getElementById('itinerary-container');
+    map.removeLayer(state.currentRouteLayer);
 
-    const directionsContainer =
-        document.getElementById('routing-directions');
-
-    if (itineraryContainer) {
-        itineraryContainer.innerHTML = "";
-    }
-
-    if (directionsContainer) {
-        directionsContainer.classList.remove('hidden');
-    }
-
-    // Mobile
-    const mobileItinerary =
-        document.getElementById('mobile-itinerary-container');
-
-    if (mobileItinerary) {
-        mobileItinerary.innerHTML = "";
-    }
-
-    const modal = document.getElementById('directions-modal');
-
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    state.currentRouteLayer = null;
 }
 
+function drawRoute(coords) {
 
-/* =========================================================
-   ROUTING FUNCTION
-========================================================= */
-window.routeToFridge = function(lat, lng) {
+    clearRouteLayer();
 
-    if (!userLat || !userLng) {
-        return alert("Please set your starting location first.");
-    }
+    const isDark =
+        document.documentElement.classList.contains('dark');
 
-    currentTargetFridge = { lat, lng };
+    state.currentRouteLayer = L.polyline(coords, {
+        color: isDark
+            ? CONFIG.ROUTE_STYLE.dark
+            : CONFIG.ROUTE_STYLE.light,
 
-    const isSameDestination =
-        currentTargetFridge &&
-        currentTargetFridge.lat === lat &&
-        currentTargetFridge.lng === lng;
+        weight: CONFIG.ROUTE_STYLE.weight,
+        opacity: CONFIG.ROUTE_STYLE.opacity,
+        dashArray: CONFIG.ROUTE_STYLE.dashArray,
+        className: 'animated-route'
+    }).addTo(map);
 
-    if (isSameDestination && window.currentRouteLayer) {
-        map.removeLayer(window.currentRouteLayer);
-        window.currentRouteLayer = null;
-    }
+    map.fitBounds(
+        state.currentRouteLayer.getBounds(),
+        {
+            padding: CONFIG.ROUTE_PADDING
+        }
+    );
+}
 
-    const isMobile = window.innerWidth < 768;
+function createRouteSummary(distMi, timeMin) {
 
-    const directionsContainer =
-        document.getElementById('routing-directions');
-
-    const transportControls =
-        document.getElementById('transport-controls');
-
-    directionsContainer.prepend(transportControls);
-
-    const itineraryContainer =
-        document.getElementById('itinerary-container');
-
-    const mobileItinerary =
-        document.getElementById('mobile-itinerary-container');
-
-    const modal =
-        document.getElementById('directions-modal');
-
-    // Loading state
-    const loadingHtml =
-        "<p class='text-xs text-green-600 animate-pulse'>Calculating route...</p>";
-
-    if (isMobile && modal && mobileItinerary) {
-        modal.classList.remove('hidden');
-        mobileItinerary.innerHTML = loadingHtml;
-    } else {
-        directionsContainer.classList.remove('hidden');
-        itineraryContainer.innerHTML = loadingHtml;
-    }
-
-    const selectedMode =
-        document.querySelector('input[name="transport"]:checked').value;
-
-    const geoMode = profileMap[selectedMode] || "walk";
-
-    const apiKey =
-        "364fdb68178f4a09b69ef7df5051e13b";
-
-    const url =
-        `https://api.geoapify.com/v1/routing?waypoints=${userLat},${userLng}|${lat},${lng}&mode=${geoMode}&apiKey=${apiKey}`;
-
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-
-            if (!data.features || data.features.length === 0) {
-                throw new Error("No route found");
-            }
-
-            const routeData = data.features[0];
-
-            const coords =
-                routeData.geometry.coordinates[0].map(c => [c[1], c[0]]);
-
-            const isDark =
-                document.documentElement.classList.contains('dark');
-
-            window.currentRouteLayer = L.polyline(coords, {
-                color: isDark ? '#a855f7' : '#16a34a',
-                weight: 6,
-                opacity: 1,
-                dashArray: '12 16',
-                className: 'animated-route'
-            }).addTo(map);
-
-            const bounds = window.currentRouteLayer.getBounds();
-
-            map.fitBounds(bounds, {
-                padding: [50, 50]
-            });
-
-            const distMi =
-                (routeData.properties.distance * 0.000621371).toFixed(1);
-
-            const timeMin =
-                Math.round(routeData.properties.time / 60);
-let stepsHtml = `
+    return `
 <div class="
     mb-5 p-5 rounded-3xl
     border border-white/10 dark:border-[#4c3b73]
@@ -999,7 +1120,6 @@ let stepsHtml = `
 
     <div class="flex items-center justify-between">
 
-        <!-- Distance -->
         <div class="flex flex-col">
             <span class="text-[10px] uppercase tracking-[0.25em] text-white/70 font-semibold">
                 Distance
@@ -1010,10 +1130,8 @@ let stepsHtml = `
             </span>
         </div>
 
-        <!-- Divider -->
         <div class="w-px h-10 bg-white/20 dark:bg-purple-300/20"></div>
 
-        <!-- ETA -->
         <div class="flex flex-col items-end">
             <span class="text-[10px] uppercase tracking-[0.25em] text-white/70 font-semibold">
                 ETA
@@ -1027,203 +1145,181 @@ let stepsHtml = `
     </div>
 </div>
 `;
-            routeData.properties.legs[0].steps.forEach((step, i) => {
-                stepsHtml += `
-                    <div class="text-sm py-2 border-b">
-                        <b>${i + 1}.</b> ${step.instruction.text}
-                    </div>
-                `;
-            });
-
-            document.getElementById(
-                "itinerary-container"
-            ).innerHTML = stepsHtml;
-
-            if (window.innerWidth < 768) {
-                document.getElementById(
-                    "mobile-itinerary-container"
-                ).innerHTML = stepsHtml;
-            }
-
-            window.lastRoute = {
-                lat,
-                lng,
-                coords,
-                stepsHtml,
-                distance: distMi,
-                time: timeMin
-            };
-        })
-
-        .catch(err => {
-
-            console.error(err);
-
-            const errorHtml =
-                `<p class="text-red-500 text-sm">Failed to load route</p>`;
-
-            document.getElementById(
-                "itinerary-container"
-            ).innerHTML = errorHtml;
-
-            document.getElementById(
-                "mobile-itinerary-container"
-            ).innerHTML = errorHtml;
-
-        });
-
-    if (isMobile && mobileItinerary) {
-        mobileItinerary.innerHTML = errorHtml;
-    } else {
-        itineraryContainer.innerHTML = errorHtml;
-    }
-
-    window.lastRoute = {
-        lat,
-        lng,
-        coords,
-        stepsHtml,
-        distance: distMi,
-        time: timeMin
-    };
-};
-
-
-/* =========================================================
-   ROUTE HELPERS
-========================================================= */
-window.closeDirectionsModal = function() {
-    document.getElementById('directions-modal')
-        .classList.add('hidden');
-};
-
-window.clearRoute = function() {
-
-    if (window.currentRouteLayer) {
-        map.removeLayer(window.currentRouteLayer);
-    }
-
-    document.getElementById('routing-directions')
-        .classList.add('hidden');
-
-    const reopenBtn =
-        document.getElementById('reopen-directions');
-
-    reopenBtn.classList.remove("hidden");
-
-    // reset animation state
-    reopenBtn.classList.remove("fade-out-directions");
-
-    // auto fade after 3s
-    clearTimeout(window.reopenDirectionsTimeout);
-
-    window.reopenDirectionsTimeout = setTimeout(() => {
-        reopenBtn.classList.add("fade-out-directions");
-
-        // fully hide after animation
-        setTimeout(() => {
-            reopenBtn.classList.add("hidden");
-            reopenBtn.classList.remove("fade-out-directions");
-        }, 400);
-
-    }, 3000);
-
-    document.getElementById('itinerary-container')
-        .innerHTML = "";
-
-    const modal =
-        document.getElementById('directions-modal');
-
-    const mobileItinerary =
-        document.getElementById('mobile-itinerary-container');
-
-    if (modal) {
-        modal.classList.add('hidden');
-    }
-
-    if (mobileItinerary) {
-        mobileItinerary.innerHTML = "";
-    }
-
-    currentTargetFridge = null;
-};
-function restoreLastRoute() {
-
-    if (!window.lastRoute) return;
-
-    const { lat, lng, coords, stepsHtml } = window.lastRoute;
-
-    const isDark =
-        document.documentElement.classList.contains('dark');
-
-    if (window.currentRouteLayer) {
-        map.removeLayer(window.currentRouteLayer);
-    }
-
-    window.currentRouteLayer = L.polyline(coords, {
-        color: isDark ? '#a855f7' : '#16a34a',
-        weight: 6,
-        opacity: 1,
-        dashArray: '12 16',
-        className: 'animated-route'
-    }).addTo(map);
-
-    map.fitBounds(window.currentRouteLayer.getBounds(), {
-        padding: [50, 50]
-    });
-
-    document.getElementById('routing-directions')
-        .classList.remove('hidden');
-
-    document.getElementById('itinerary-container')
-        .innerHTML = stepsHtml;
-
-    const mobile =
-        document.getElementById('mobile-itinerary-container');
-
-    if (mobile) {
-        mobile.innerHTML = stepsHtml;
-    }
-
-    document.getElementById("directions-modal")
-        ?.classList.remove("hidden");
 }
 
 
 /* =========================================================
-   RENDER FRIDGES
+   ROUTING
 ========================================================= */
-function renderFridges(fridges) {
+const profileMap = {
+    foot: "walk",
+    bicycle: "bicycle",
+    car: "drive"
+};
 
-    const list = document.getElementById("fridge-list");
+window.routeToFridge = async function(lat, lng) {
 
-    list.innerHTML = "";
+    if (!state.userLat || !state.userLng) {
+        return alert("Please set your starting location first.");
+    }
 
-    fridgeMarkers.forEach(m => map.removeLayer(m));
+    state.currentTargetFridge = { lat, lng };
 
-    fridgeMarkers = [];
+    const loadingHtml =
+        `<p class='text-xs text-green-600 animate-pulse'>
+            Calculating route...
+        </p>`;
 
-    const fridgesWithData = fridges
-        .map(f => ({
-            ...f,
-            distance: userLat
-                ? getDistance(userLat, userLng, f.lat, f.lng)
-                : null
-        }))
-        .sort((a, b) => (a.distance || 999) - (b.distance || 999));
+    show(DOM.directions);
 
-    fridgesWithData.forEach(f => {
+    if (isMobile()) {
+        show(DOM.directionsModal);
 
-        /* -----------------------------
-           MAP MARKER
-        ----------------------------- */
-        const marker = L.marker([f.lat, f.lng], {
-            icon: fridgeIcon
-        })
+        requestAnimationFrame(() => {
+            safeMapResize();
+        });
 
-        .addTo(map)
+        DOM.mobileItinerary.innerHTML = loadingHtml;
 
-        .bindPopup(`
+    } else {
+        DOM.itinerary.innerHTML = loadingHtml;
+    }
+
+
+    try {
+
+        const selectedMode =
+            document.querySelector(
+                'input[name="transport"]:checked'
+            ).value;
+
+        const geoMode =
+            profileMap[selectedMode] || "walk";
+
+        const url =
+            `https://api.geoapify.com/v1/routing?waypoints=${state.userLat},${state.userLng}|${lat},${lng}&mode=${geoMode}&apiKey=${CONFIG.API.GEOAPIFY_KEY}`;
+
+        const data = await apiGet(url);
+
+        if (!data.features?.length) {
+            throw new Error("No route found");
+        }
+
+        const routeData = data.features[0];
+
+        const coords =
+            routeData.geometry.coordinates[0]
+                .map(c => [c[1], c[0]]);
+
+        drawRoute(coords);
+
+        const distMi =
+            (
+                routeData.properties.distance *
+                0.000621371
+            ).toFixed(1);
+
+        const timeMin =
+            Math.round(
+                routeData.properties.time / 60
+            );
+
+        let stepsHtml =
+            createRouteSummary(distMi, timeMin);
+
+        routeData.properties.legs[0].steps
+            .forEach((step, i) => {
+
+                stepsHtml += `
+<div class="text-sm py-2 border-b">
+    <b>${i + 1}.</b>
+    ${step.instruction.text}
+</div>
+`;
+            });
+
+        DOM.itinerary.innerHTML = stepsHtml;
+
+        if (isMobile()) {
+            DOM.mobileItinerary.innerHTML = stepsHtml;
+        }
+
+        state.lastRoute = {
+            lat,
+            lng,
+            coords,
+            stepsHtml,
+            distance: distMi,
+            time: timeMin
+        };
+
+    } catch (err) {
+
+        console.error(err);
+
+        const errorHtml =
+            `<p class="text-red-500 text-sm">
+                Failed to load route
+            </p>`;
+
+        DOM.itinerary.innerHTML = errorHtml;
+
+        if (DOM.mobileItinerary) {
+            DOM.mobileItinerary.innerHTML = errorHtml;
+        }
+    }
+};
+
+
+/* =========================================================
+   ROUTE RESTORE / CLEAR
+========================================================= */
+window.clearRoute = function() {
+
+    clearRouteLayer();
+
+    hide(DOM.directions);
+
+    show(DOM.reopenDirections);
+
+    clearHTML(DOM.itinerary);
+
+    hide(DOM.directionsModal);
+
+    clearHTML(DOM.mobileItinerary);
+
+    state.currentTargetFridge = null;
+};
+
+function restoreLastRoute() {
+
+    if (!state.lastRoute) return;
+
+    const {
+        coords,
+        stepsHtml
+    } = state.lastRoute;
+
+    drawRoute(coords);
+
+    show(DOM.directions);
+
+    DOM.itinerary.innerHTML = stepsHtml;
+
+    if (DOM.mobileItinerary) {
+        DOM.mobileItinerary.innerHTML = stepsHtml;
+    }
+
+    show(DOM.directionsModal);
+}
+
+
+/* =========================================================
+   CREATE POPUP HTML
+========================================================= */
+function createFridgePopup(f) {
+
+    return `
 <div class="p-3 text-center rounded-xl text-gray-900 dark:text-white">
 
     <b class="text-lg font-bold text-gray-900 dark:text-white">
@@ -1255,36 +1351,88 @@ function renderFridges(fridges) {
 
     </div>
 </div>
-`);
+`;
+}
+
+
+/* =========================================================
+   RENDER FRIDGES
+========================================================= */
+let lastRenderKey = "";
+function renderFridges(fridges) {
+
+    clearHTML(DOM.fridgeList);
+
+    state.fridgeMarkers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+
+    state.fridgeMarkers = [];
+
+    const fragment =
+        document.createDocumentFragment();
+
+    const fridgesWithData = fridges
+        .map(f => ({
+            ...f,
+            distance: state.userLat
+                ? getDistance(
+                    state.userLat,
+                    state.userLng,
+                    f.lat,
+                    f.lng
+                )
+                : null
+        }))
+
+        .sort((a, b) =>
+            (a.distance || 999) -
+            (b.distance || 999)
+        );
+
+    fridgesWithData.forEach(f => {
+
+        /* -----------------------------
+           MARKER
+        ----------------------------- */
+        const marker = L.marker(
+            [f.lat, f.lng],
+            { icon: fridgeIcon }
+        )
+
+        .addTo(map)
+
+        .bindPopup(createFridgePopup(f));
 
         marker.on('dblclick', () => {
             window.location.href =
                 `/individfridge/${f.id}`;
         });
 
-        fridgeMarkers.push(marker);
-
         marker.on('click', () => {
 
             saveRecentlyViewed(f);
 
-            map.flyTo([f.lat, f.lng], 16, {
-                duration: 0.6,
-                easeLinearity: 0.25
-            });
+            map.flyTo(
+                [f.lat, f.lng],
+                CONFIG.FRIDGE_ZOOM,
+                {
+                    duration: 0.6,
+                    easeLinearity: 0.25
+                }
+            );
 
             marker.openPopup();
-
-            if (window.innerWidth < 768) {
-                toggleBtn.classList.remove('hidden');
-            }
         });
+
+        state.fridgeMarkers.push(marker);
 
 
         /* -----------------------------
            SIDEBAR ITEM
         ----------------------------- */
-        const li = document.createElement("li");
+        const li =
+            document.createElement("li");
 
         li.className = `
 p-4 rounded-2xl cursor-pointer
@@ -1293,7 +1441,9 @@ border border-gray-200 dark:border-[#40376E]
 shadow-sm hover:shadow-lg
 transition-all duration-200
 active:scale-[0.97]
-flex justify-between items-center gap-4
+flex flex-col sm:flex-row
+sm:justify-between sm:items-center
+gap-3
 `;
 
         li.innerHTML = `
@@ -1308,6 +1458,7 @@ flex justify-between items-center gap-4
     </span>
 
     <div class="flex gap-2 mt-2">
+
         <button class="details-btn text-[10px] bg-green-600 text-white px-2 py-1 rounded">
             Details
         </button>
@@ -1315,186 +1466,115 @@ flex justify-between items-center gap-4
         <button class="fav-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded">
             ⭐
         </button>
-    </div>
 
+    </div>
 </div>
 
 ${f.distance
-    ? `<span class="text-xs font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-[#1f1a3a] px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>`
-    : ''}
+? `<span class="text-xs font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-[#1f1a3a] px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>`
+: ''}
 `;
 
-        // Details Button
-        li.querySelector(".details-btn").onclick = (e) => {
-            e.stopPropagation();
+        li.querySelector(".details-btn")
+            .onclick = (e) => {
 
-            saveRecentlyViewed(f);
+                e.stopPropagation();
 
-            window.location.href =
-                `/individfridge/${f.id}`;
-        };
+                saveRecentlyViewed(f);
 
-        // Favorite Button
-        li.querySelector(".fav-btn").onclick = (e) => {
-            e.stopPropagation();
-            toggleFavorite(f);
-        };
+                window.location.href =
+                    `/individfridge/${f.id}`;
+            };
 
-        // Double click
-        li.ondblclick = () => {
-            window.location.href =
-                `/individfridge/${f.id}`;
-        };
+        li.querySelector(".fav-btn")
+            .onclick = (e) => {
 
-        // Normal click
+                e.stopPropagation();
+
+                toggleFavorite(f);
+            };
+
         li.onclick = () => {
 
             saveRecentlyViewed(f);
 
-            map.setView([f.lat, f.lng], 16);
+            map.setView(
+                [f.lat, f.lng],
+                CONFIG.FRIDGE_ZOOM
+            );
 
             marker.openPopup();
 
-            if (window.innerWidth >= 768) {
+            if (!isMobile()) {
                 window.routeToFridge(f.lat, f.lng);
-            }
-
-            if (window.innerWidth < 768) {
-                toggleBtn.classList.remove('hidden');
             }
         };
 
-        list.appendChild(li);
+        fragment.appendChild(li);
     });
+
+    DOM.fridgeList.appendChild(fragment);
 }
-
-
-/* =========================================================
-   TRANSPORT MODE CHANGES
-========================================================= */
-document.querySelectorAll(
-    'input[name="transport"]'
-).forEach(radio => {
-
-    radio.addEventListener("change", () => {
-        window.updateRoute();
-    });
-
-});
-
-window.updateRoute = function () {
-
-    if (!currentTargetFridge || !userLat || !userLng) {
-        return;
-    }
-
-    if (window.currentRouteLayer) {
-        map.removeLayer(window.currentRouteLayer);
-        window.currentRouteLayer = null;
-    }
-
-    window.routeToFridge(
-        currentTargetFridge.lat,
-        currentTargetFridge.lng
-    );
-};
-
-
-/* =========================================================
-   SEARCH
-========================================================= */
-document.getElementById("fridge-search").oninput = (e) => {
-
-    renderFridges(
-        allFridges.filter(f =>
-            f.name.toLowerCase()
-                .includes(e.target.value.toLowerCase())
-        )
-    );
-
-};
-
-
-/* =========================================================
-   START LOCATION SEARCH
-========================================================= */
-document.getElementById("set-start").onclick = () => {
-
-    const address =
-        document.getElementById("start-location").value;
-
-    fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
-    )
-
-    .then(res => res.json())
-
-    .then(data => {
-
-        if (data[0]) {
-            setUserLocation(
-                parseFloat(data[0].lat),
-                parseFloat(data[0].lon)
-            );
-        }
-
-    });
-};
 
 
 /* =========================================================
    LOAD FRIDGES
 ========================================================= */
-function loadFridges() {
+async function loadFridges() {
 
-    fetch("/get-fridges")
+    try {
 
-        .then(res => res.json())
+        state.allFridges =
+            await apiGet(CONFIG.API.FRIDGES);
 
-        .then(data => {
+        renderFridges(state.allFridges);
 
-            allFridges = data;
+    } catch (err) {
 
-            renderFridges(allFridges);
+        console.error(err);
 
-        });
+    }
 }
 
 
 /* =========================================================
-   GEOLOCATION
+   SEARCH
 ========================================================= */
-navigator.geolocation.getCurrentPosition(
+DOM.fridgeSearch.oninput = debounce((e) => {
 
-    pos => {
+    const value =
+        e.target.value.toLowerCase();
 
-        setUserLocation(
-            pos.coords.latitude,
-            pos.coords.longitude
-        );
+    renderFridges(
+        state.allFridges.filter(f =>
+            f.name.toLowerCase()
+                .includes(value)
+        )
+    );
 
-        loadFridges();
-    },
-
-    () => {
-
-        setUserLocation(40.7128, -74.0060);
-
-        loadFridges();
-    }
-);
-
-
-/* =========================================================
-   INITIAL PAGE LOAD
-========================================================= */
-document.addEventListener("DOMContentLoaded", () => {
-
-    loadFavoritesFromServer();
-
-    renderRecent();
 });
 
+const mobileSearch =
+    document.getElementById("mobile-search");
+
+if (mobileSearch) {
+
+    mobileSearch.addEventListener(
+        "input",
+        debounce((e) => {
+
+            const value =
+                e.target.value.toLowerCase();
+
+            renderFridges(
+                state.allFridges.filter(f =>
+                    f.name.toLowerCase()
+                        .includes(value)
+                )
+            );
+        })
+    );
+}
 
 /* =========================================================
    FAVORITES
@@ -1503,86 +1583,59 @@ async function loadFavoritesFromServer() {
 
     try {
 
-        const res = await fetch('/get-favorites');
-
-        const favorites = await res.json();
+        const favorites =
+            await apiGet(CONFIG.API.FAVORITES);
 
         renderFavoritesList(favorites);
 
     } catch (err) {
 
-        console.error(
-            "Error loading favorites from server:",
-            err
-        );
+        console.error(err);
 
     }
-}
-
-function requireLogin() {
-    showFlashMessage(
-        "Please log in to favorite fridges",
-        "error"
-    );
 }
 
 window.toggleFavorite = async function(fridge) {
 
     try {
 
-        const res = await fetch('/toggle-favorite', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                fridge_id: fridge.id || fridge.ID
-            })
-        });
-
-        if (res.status === 401) {
-            requireLogin();
-            return;
-        }
-
-        const data = await res.json();
+        await apiPost(
+            CONFIG.API.TOGGLE_FAVORITE,
+            {
+                fridge_id:
+                    fridge.id || fridge.ID
+            }
+        );
 
         loadFavoritesFromServer();
 
     } catch (err) {
 
-        console.error(
-            "Error toggling favorite:",
-            err
-        );
+        console.error(err);
 
     }
 };
 
-
-/* =========================================================
-   FAVORITES SIDEBAR
-========================================================= */
 function renderFavoritesList(favorites) {
 
-    const list =
-        document.getElementById("favorites-list");
+    if (!DOM.favoritesList) return;
 
-    if (!list) return;
+    clearHTML(DOM.favoritesList);
 
-    list.innerHTML = "";
+    if (!favorites?.length) {
 
-    if (!favorites || favorites.length === 0) {
-
-        list.innerHTML =
-            '<li class="p-2 text-xs text-gray-400 italic text-center">No favorites yet.</li>';
+        DOM.favoritesList.innerHTML =
+            `<li class="p-2 text-xs text-gray-400 italic text-center">
+                No favorites yet.
+            </li>`;
 
         return;
     }
 
     favorites.forEach(f => {
 
-        const li = document.createElement("li");
+        const li =
+            document.createElement("li");
 
         const fID = f.ID || f.id;
         const fName = f.Name || f.name;
@@ -1602,49 +1655,49 @@ function renderFavoritesList(favorites) {
 </button>
 `;
 
-        // Name click
-        li.querySelector('span').onclick = () => {
+        li.querySelector("span").onclick = () => {
 
             if (fLat && fLng) {
-                map.setView([fLat, fLng], 15);
+
+                map.setView(
+                    [fLat, fLng],
+                    15
+                );
+
             } else {
+
                 window.location.href =
                     `/individfridge/${fID}`;
             }
         };
 
-        // Route button
-        li.querySelector('.go-to-btn').onclick = (e) => {
+        li.querySelector(".go-to-btn")
+            .onclick = (e) => {
 
-            e.stopPropagation();
+                e.stopPropagation();
 
-            if (fLat && fLng) {
-
-                map.setView([fLat, fLng], 16);
-
-                window.routeToFridge(fLat, fLng);
-
-                if (window.innerWidth < 768) {
-                    toggleBtn.classList.remove('hidden');
-                    hideSidebar();
-                }
-
-            } else {
-
-                alert(
-                    "Location data not available for this fridge."
+                map.setView(
+                    [fLat, fLng],
+                    CONFIG.FRIDGE_ZOOM
                 );
 
-            }
-        };
+                window.routeToFridge(
+                    fLat,
+                    fLng
+                );
 
-        list.appendChild(li);
+                if (isMobile()) {
+                    hideSidebar();
+                }
+            };
+
+        DOM.favoritesList.appendChild(li);
     });
 }
 
 
 /* =========================================================
-   RECENTLY VIEWED
+   RECENTS
 ========================================================= */
 function saveRecentlyViewed(fridge) {
 
@@ -1654,7 +1707,9 @@ function saveRecentlyViewed(fridge) {
         ) || [];
 
     recent = recent.filter(
-        f => f.id !== (fridge.id || fridge.ID)
+        f => f.id !== (
+            fridge.id || fridge.ID
+        )
     );
 
     recent.unshift({
@@ -1674,21 +1729,18 @@ function saveRecentlyViewed(fridge) {
 
 function renderRecent() {
 
-    const list =
-        document.getElementById("recent-list");
-
-    if (!list) return;
+    if (!DOM.recentList) return;
 
     const data =
         JSON.parse(
             localStorage.getItem("recentFridges")
         ) || [];
 
-    list.innerHTML = "";
+    clearHTML(DOM.recentList);
 
-    if (data.length === 0) {
+    if (!data.length) {
 
-        list.innerHTML = `
+        DOM.recentList.innerHTML = `
 <li class="p-3 text-xs text-gray-400 italic text-center bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] rounded-xl">
     No recent activity
 </li>
@@ -1699,7 +1751,8 @@ function renderRecent() {
 
     data.forEach(f => {
 
-        const li = document.createElement("li");
+        const li =
+            document.createElement("li");
 
         li.className = `
 p-3 bg-gray-50 dark:bg-[#2a2545]
@@ -1712,11 +1765,13 @@ transition-all
 
         li.innerHTML = `
 <div class="flex items-center gap-2 flex-grow">
+
     <span class="text-xs">🕒</span>
 
     <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
         ${f.name}
     </span>
+
 </div>
 
 <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">
@@ -1729,7 +1784,7 @@ transition-all
                 `/individfridge/${f.id}`;
         };
 
-        list.appendChild(li);
+        DOM.recentList.appendChild(li);
     });
 }
 
@@ -1737,93 +1792,161 @@ transition-all
 /* =========================================================
    CLEAR / UNDO RECENTS
 ========================================================= */
-document.getElementById("clear-recents").onclick = () => {
+DOM.clearRecents.onclick = () => {
 
     const current =
         localStorage.getItem("recentFridges");
 
     if (!current) return;
 
-    recentsBackup = current;
+    state.recentsBackup = current;
 
     localStorage.removeItem("recentFridges");
 
     renderRecent();
 
-    const undoBtn =
-        document.getElementById("undo-recents");
-
-    const clearBtn =
-        document.getElementById("clear-recents");
-
-    // show undo
-    undoBtn.classList.remove("hidden");
-
-    // hide clear button
-    clearBtn.classList.add("hidden");
+    show(DOM.undoRecents);
+    hide(DOM.clearRecents);
 
     let timeLeft = 3;
 
-    undoBtn.textContent = `Undo (${timeLeft})`;
+    DOM.undoRecents.textContent =
+        `Undo (${timeLeft})`;
 
-    clearTimeout(undoTimeout);
-    clearInterval(undoInterval);
+    clearTimeout(state.undoTimeout);
+    clearInterval(state.undoInterval);
 
-    undoInterval = setInterval(() => {
+    state.undoInterval = setInterval(() => {
 
         timeLeft--;
 
         if (timeLeft > 0) {
-            undoBtn.textContent = `Undo (${timeLeft})`;
+
+            DOM.undoRecents.textContent =
+                `Undo (${timeLeft})`;
+
         } else {
-            undoBtn.textContent = "Undo";
-            clearInterval(undoInterval);
+
+            DOM.undoRecents.textContent =
+                "Undo";
+
+            clearInterval(state.undoInterval);
         }
 
     }, 1000);
 
-    undoTimeout = setTimeout(() => {
+    state.undoTimeout = setTimeout(() => {
 
-        recentsBackup = null;
+        state.recentsBackup = null;
 
-        undoBtn.classList.add("hidden");
-        undoBtn.textContent = "Undo";
+        hide(DOM.undoRecents);
+        show(DOM.clearRecents);
 
-        // show clear button again
-        clearBtn.classList.remove("hidden");
+        DOM.undoRecents.textContent =
+            "Undo";
 
-        clearInterval(undoInterval);
+        clearInterval(state.undoInterval);
 
     }, 3000);
 };
-document.getElementById("undo-recents").onclick = () => {
 
-    if (!recentsBackup) return;
+DOM.undoRecents.onclick = () => {
+
+    if (!state.recentsBackup) return;
 
     localStorage.setItem(
         "recentFridges",
-        recentsBackup
+        state.recentsBackup
     );
 
     renderRecent();
 
-    recentsBackup = null;
+    state.recentsBackup = null;
 
-    const undoBtn =
-        document.getElementById("undo-recents");
+    hide(DOM.undoRecents);
+    show(DOM.clearRecents);
 
-    const clearBtn =
-        document.getElementById("clear-recents");
-
-    undoBtn.classList.add("hidden");
-    undoBtn.textContent = "Undo";
-
-    // restore clear button
-    clearBtn.classList.remove("hidden");
-
-    clearTimeout(undoTimeout);
-    clearInterval(undoInterval);
+    clearTimeout(state.undoTimeout);
+    clearInterval(state.undoInterval);
 };
+
+
+/* =========================================================
+   GEOLOCATION
+========================================================= */
+navigator.geolocation.getCurrentPosition(
+
+    pos => {
+
+        setUserLocation(
+            pos.coords.latitude,
+            pos.coords.longitude
+        );
+
+        loadFridges();
+    },
+
+    () => {
+
+        setUserLocation(
+            CONFIG.DEFAULT_LOCATION[0],
+            CONFIG.DEFAULT_LOCATION[1]
+        );
+
+        loadFridges();
+    }
+);
+
+
+/* =========================================================
+   TRANSPORT MODE
+========================================================= */
+document.querySelectorAll(
+    'input[name="transport"]'
+).forEach(radio => {
+
+    radio.addEventListener("change", () => {
+
+        if (!state.currentTargetFridge) return;
+
+        window.routeToFridge(
+            state.currentTargetFridge.lat,
+            state.currentTargetFridge.lng
+        );
+    });
+
+});
+
+
+/* =========================================================
+   START LOCATION SEARCH
+========================================================= */
+DOM.setStart.onclick = async () => {
+
+    try {
+
+        const address =
+            DOM.startLocation.value;
+
+        const data = await apiGet(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+        );
+
+        if (data[0]) {
+
+            setUserLocation(
+                parseFloat(data[0].lat),
+                parseFloat(data[0].lon)
+            );
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+};
+
 
 /* =========================================================
    WINDOW RESIZE
@@ -1835,77 +1958,99 @@ window.addEventListener("resize", () => {
     }, 250);
 
 });
-
-
 /* =========================================================
-   SIDEBAR DRAG HELPERS
+   SIDEBAR DRAGGING
 ========================================================= */
-function setTranslate(y) {
-    currentTranslate = Math.max(
-        0,
-        Math.min(y, MAX_TRANSLATE)
-    );
-}
+DOM.sidebar.addEventListener(
+    "touchstart",
+    (e) => {
 
-document.getElementById("sidebar-toggle").onclick =
-    toggleSidebar;
+        if (!e.target.closest("#drag-handle")) {
+            return;
+        }
 
-sidebar.addEventListener("touchstart", (e) => {
+        state.isDragging = true;
 
-    if (!e.target.closest("#drag-handle")) return;
+        state.startY =
+            e.touches[0].clientY;
 
-    isDragging = true;
-
-    startY = e.touches[0].clientY;
-
-    sidebar.style.transition = "none";
-});
-
-sidebar.addEventListener("touchmove", (e) => {
-
-    if (!isDragging) return;
-
-    currentY = e.touches[0].clientY;
-
-    const diff = currentY - startY;
-
-    currentTranslate += diff;
-
-    currentTranslate = Math.max(
-        0,
-        Math.min(currentTranslate, MAX_TRANSLATE)
-    );
-
-    sidebar.style.transform =
-        `translateY(${currentTranslate}px)`;
-
-    startY = currentY;
-});
-
-sidebar.addEventListener("touchend", () => {
-
-    if (!isDragging) return;
-
-    isDragging = false;
-
-    sidebar.style.transition =
-        "transform 0.3s ease";
-
-    if (currentTranslate > MAX_TRANSLATE * 0.5) {
-        hideSidebar();
-    } else {
-        openSidebar();
+        DOM.sidebar.style.transition = "none";
     }
-});
+);
+
+DOM.sidebar.addEventListener(
+    "touchmove",
+    (e) => {
+
+        if (!state.isDragging) return;
+
+        state.currentY = e.touches[0].clientY;
+
+        const diff = state.currentY - state.startY;
+
+        const now = Date.now();
+
+        state.velocity =
+            diff / (now - (state.lastMoveTime || now));
+
+        state.lastMoveTime = now;
+
+        const nextTranslate =
+            state.currentTranslate + diff;
+
+        state.currentTranslate = Math.max(
+            0,
+            Math.min(nextTranslate, MAX_TRANSLATE)
+        );
+
+        DOM.sidebar.style.transform =
+            `translateY(${state.currentTranslate}px)`;
+
+        state.startY = state.currentY;
+
+    },
+    { passive: true }
+);
+DOM.sidebar.addEventListener(
+    "touchend",
+    () => {
+
+        if (!state.isDragging) return;
+
+        state.isDragging = false;
+
+        DOM.sidebar.style.transition =
+            "transform 0.3s ease";
+
+        const shouldClose =
+    state.currentTranslate > MAX_TRANSLATE * 0.45 ||
+    state.velocity > 0.6;
+
+if (shouldClose)
+ {
+
+            hideSidebar();
+
+        } else {
+
+            openSidebar();
+        }
+    }
+);
 
 
 /* =========================================================
-   FLASH MESSAGE
+   FLASH MESSAGES
 ========================================================= */
-function showFlashMessage(message, type = "error") {
+function showFlashMessage(
+    message,
+    type = "error"
+) {
 
     const existing =
-        document.getElementById("flash-message");
+        document.getElementById(
+            "flash-message"
+        );
 
     if (existing) {
         existing.remove();
@@ -1922,7 +2067,8 @@ function showFlashMessage(message, type = "error") {
             : "flash-success"
     }`;
 
-    flash.innerHTML = `<span>${message}</span>`;
+    flash.innerHTML =
+        `<span>${message}</span>`;
 
     document.body.appendChild(flash);
 
@@ -1941,7 +2087,9 @@ function showFlashMessage(message, type = "error") {
         flash.style.transform =
             "translateX(-50%) translateY(-6px)";
 
-        setTimeout(() => flash.remove(), 300);
+        setTimeout(() => {
+            flash.remove();
+        }, 300);
 
     }, 2000);
 }
@@ -1950,71 +2098,47 @@ function showFlashMessage(message, type = "error") {
 /* =========================================================
    REOPEN DIRECTIONS
 ========================================================= */
-document.getElementById("reopen-directions").onclick = () => {
+DOM.reopenDirections.onclick = () => {
 
-    const sidebar =
-        document.getElementById("sidebar");
-
-    if (window.lastRoute) {
+    if (state.lastRoute) {
 
         restoreLastRoute();
 
     } else if (
-        currentTargetFridge &&
-        userLat &&
-        userLng
+        state.currentTargetFridge &&
+        state.userLat &&
+        state.userLng
     ) {
 
         window.routeToFridge(
-            currentTargetFridge.lat,
-            currentTargetFridge.lng
+            state.currentTargetFridge.lat,
+            state.currentTargetFridge.lng
         );
     }
 
-    if (window.innerWidth < 768) {
+    if (isMobile()) {
 
-        document.getElementById("directions-modal")
-            .classList.remove("hidden");
+        show(DOM.directionsModal);
 
     } else {
 
-        sidebar.classList.add("open");
+        openSidebar();
     }
 
-    document.getElementById("reopen-directions")
-        .classList.add("hidden");
+    hide(DOM.reopenDirections);
 
-    map.invalidateSize();
+    safeMapResize();
 };
 
+window.closeDirectionsModal = function () {
+    hide(DOM.directionsModal);
+};
+
+/* =========================================================
+   INITIAL LOAD
+========================================================= */
+
 </script>
-<!-- MOBILE DIRECTIONS MODAL -->
-<div id="directions-modal"
-    class="fixed inset-0 z-[2000] bg-black/40 hidden flex items-end md:hidden">
 
-<div class="w-full max-h-[70vh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-3 overflow-y-auto">
-<div class="flex justify-between items-center mb-3">
-    <h2 class="font-bold text-lg">Directions</h2>
-
-    <div class="flex gap-2">
-        <button onclick="window.clearRoute(); closeDirectionsModal()"
-            class="text-[11px] font-bold text-red-500 border border-red-300 px-2 py-1 rounded-lg">
-            Clear
-        </button>
-
-        <button onclick="closeDirectionsModal()"
-            class="text-[11px] font-bold text-gray-500">
-            Close
-        </button>
-    </div>
-</div>
-
-<div id="mobile-itinerary-container"
-     class="
-            max-h-[35vh] bg-white dark:bg-[#1b1730] 
-            overflow-y-auto rounded-t-2xl shadow-xl">
-</div>   
- </div>
-</div>
 </body>
 </html>
