@@ -62,7 +62,7 @@
         </div>
     </div>
 
-    <form method="POST" onsubmit="return validateForm()">
+    <form method="POST" onsubmit="return validateForm(event)">
         <h2 class="text-xl font-bold text-gray-400 uppercase tracking-widest mb-4">Items in Fridge</h2>
         <div class="grid gap-4 mb-10">
             {% for item in items %}
@@ -139,7 +139,7 @@
 </div>
 
 {% include "components/footer.html.jinja" %}
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 const originalQuantities = {
     {% for item in items %}
@@ -184,8 +184,39 @@ function confirmReset() {
     closeResetPopup();
 }
 
-function validateForm() {
-    return confirm("Save these updates to the database?");
+function validateForm(event) {
+    event.preventDefault();
+
+    Swal.fire({
+    title: "Save Updates?",
+    text: "These changes will update the fridge inventory.",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Save Changes",
+    cancelButtonText: "Cancel",
+
+    background: "#ffffff",
+    color: "#166534",
+
+    confirmButtonColor: "#22c55e",
+    cancelButtonColor: "#808080",
+
+    buttonsStyling: true,
+
+    customClass: {
+        popup: 'rounded-3xl shadow-xl',
+        title: 'text-2xl font-semibold',
+        confirmButton: 'rounded-xl px-5 py-2',
+        cancelButton: 'rounded-xl px-5 py-2'
+    }
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            event.target.submit();
+        }
+    });
+
+    return false;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

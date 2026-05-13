@@ -499,7 +499,6 @@ def donate_food():
                 flash("Donation saved, but we couldn't send the confirmation email.", "donation_error")
 
             # Final Success Redirect
-            flash("Success! Your food donation has been logged.", "donation_success")
             return redirect(url_for("thank"))
 
         except Exception as e:

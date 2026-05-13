@@ -64,15 +64,17 @@
       commitment to building a stronger, more connected community. Your contribution helps ensure that fresh food is
       available to those in need while minimizing food waste. Thank you for being a part of the FridgeNet movement!
     </p>
+  <div class="flex gap-4 justify-center">
+      <a href="{{ url_for('index') }}"
+        class="inline-block bg-green-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition">
+        Return Home
+      </a>
 
-    <a href="{{ url_for('index') }}"
-       class="inline-block bg-green-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition">
-      Return Home
-    </a>
-    <a href="/restaurant-dashboard"
-       class="inline-block bg-green-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition">
-      My Donations
-    </a>
+      <a href="/restaurant-dashboard"
+        class="inline-block bg-green-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition">
+        My Donations
+      </a>
+  </div>
   </section>
 
   <!-- FEATURE HIGHLIGHTS -->
