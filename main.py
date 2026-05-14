@@ -229,6 +229,7 @@ def login():
            return redirect(url_for("index"))
   
    return render_template("login.html.jinja")
+
 # --------------------
 # LOGOUT FUNCTION 
 # --------------------
@@ -541,6 +542,10 @@ def delete_donation(id):
 
     flash("Donation deleted")
     return redirect('/restaurant-dashboard')
+
+# -----------------------
+# PERSONAL FRIDGES
+# -----------------------
 @app.route("/individfridge/<int:fridge_id>", methods=["GET", "POST"])
 def personal_fridges(fridge_id):
     connection = connect_db()
@@ -924,7 +929,7 @@ def update_password():
    return redirect("/profile_page")
 
 
-
+# PROFILE PICTURE 
 @app.route("/profile/update-picture", methods=["POST"])
 @login_required
 def update_picture():
@@ -971,6 +976,41 @@ def update_picture():
         connection.close()
 
     return redirect("/profile_page")
+
+# DELETE ACCOUNT
+@app.route("/delete-account", methods=["POST"])
+@login_required
+def delete_account():
+    connection = connect_db()
+    cursor = connection.cursor()
+    
+    try:
+        user_id = current_user.id
+        
+        # 1. DELETE EVERYTHING CONNECTED TO THE USER FIRST
+        cursor.execute("DELETE FROM Reviews WHERE UserID = %s", (user_id,))
+        cursor.execute("DELETE FROM Favorites WHERE UserID = %s", (user_id,))
+        cursor.execute("DELETE FROM Fridge_items WHERE UserID = %s", (user_id,)) # If applicable
+        
+        # 2. NOW DELETE THE USER
+        cursor.execute("DELETE FROM User WHERE ID = %s", (user_id,))
+        
+        connection.commit()
+        
+        # 3. CLEAR SESSION
+        logout_user()
+        flash("Account deleted successfully.", "info")
+        return redirect(url_for("index"))
+        
+    except Exception as e:
+        print(f"DATABASE ERROR: {e}") # Check your terminal for this output!
+        connection.rollback()
+        flash("Could not delete account. System error.", "error")
+        return redirect(url_for("account"))
+    finally:
+        cursor.close()
+        connection.close()
+
 
 # -----------------------
 # ABOUT PAGE
@@ -1212,8 +1252,6 @@ def contact():
 # --------------------
  # RESTAURANTS CONNECT PAGE 
 # --------------------
-from flask import render_template, request, redirect, url_for
-
 @app.route("/restaurants-connect", methods=["GET", "POST"])
 def restaurants_connect():
     connection = connect_db()
@@ -1242,9 +1280,9 @@ def restaurants_connect():
 
         # --- GET DATA FOR LIVE UI ---
         
-        # 1. Fetch latest fridge statuses using your specific column names
+        # 1. Fetch latest fridge statuses 
         cursor.execute("""
-            SELECT f.name, fs.Status, fs.Last_updated 
+            SELECT f.ID, f.name, fs.Status, fs.Last_updated 
             FROM Fridge f
             JOIN Fridge_status fs ON f.ID = fs.FridgeID
             WHERE fs.Last_updated = (
@@ -1427,8 +1465,6 @@ def all_reviews(fridge_id):
     
     connection.close()
     return render_template("all_reviews.html.jinja", reviews=all_reviews, fridge=fridge)
-
-
 
 # --------------------
 # NAME IF STATEMENT 

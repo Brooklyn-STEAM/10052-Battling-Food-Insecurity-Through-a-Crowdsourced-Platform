@@ -15,7 +15,7 @@
      tailwind.config = { darkMode: 'class' }
    </script>
 
-
+  
    <!-- ✅ Theme Init (SYNCED with navbar) -->
    <script>
      (function () {
@@ -197,7 +197,20 @@
        </button>
      </div>
    </form>
+  <div class="mt-12 p-6 border border-red-200 dark:border-red-900/30 rounded-3xl bg-red-50 dark:bg-red-900/10">
+    <h3 class="text-xl font-bold text-red-700 dark:text-red-400 mb-2">Danger Zone</h3>
+    <p class="text-sm text-red-600 dark:text-red-300/70 mb-6">
+        Once you delete your account, there is no going back. All your reviews, favorites, and profile data will be permanently removed.
+    </p>
 
+    <form action="{{ url_for('delete_account') }}" method="POST" 
+          onsubmit="return confirm('Are you absolutely sure? This action cannot be undone.');">
+        <button type="submit" 
+                class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/20">
+            Delete My Account
+        </button>
+    </form>
+</div>
 
    <div class="border-t border-gray-300 dark:border-[#40376E] mb-8"></div>
 
