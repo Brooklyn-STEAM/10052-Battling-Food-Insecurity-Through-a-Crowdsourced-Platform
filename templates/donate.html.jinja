@@ -33,12 +33,17 @@
              min-h-screen flex flex-col text-gray-900 dark:text-gray-100 transition-colors duration-300">
     {% include "components/navbar.html.jinja" %}
 
-    <main class="flex-grow pt-2">
+   <main class="flex-grow pt-6"> <div class="max-w-6xl mx-auto px-6 mb-4">
+        <a href="/donate" class="inline-flex items-center gap-2 text-orange-600 dark:text-[#b9a6ff] hover:text-green-700 dark:hover:text-white font-bold text-sm uppercase tracking-wider transition-all group">
+            <span class="transform group-hover:-translate-x-1 transition-transform">←</span> 
+            Back to Donate
+        </a>
+    </div>
         <section class="max-w-6xl mx-auto py-16 px-6 text-center">
             <h1 class="font-extrabold text-5xl md:text-6xl mb-6 text-[#166534] dark:text-[#b9a6ff] tracking-tight">
                 DONATE FOOD <span class="text-[#f97316]">NEAR YOU</span>
             </h1>
-            
+   
             <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12 text-xl leading-relaxed">
                 FridgeNet connects neighbors, restaurants, and community fridges to make free food easy to find and share.
             </p>
@@ -78,14 +83,9 @@
             </div>
         </section>
 
-        <div class="flex justify-center pb-24">
-            <a href="/donate"
-               class="px-10 py-4 bg-[#f97316] text-white font-semibold text-lg rounded-xl shadow-lg hover:bg-[#ea580c] transform hover:scale-105 transition-all">
-                Donate Here
-            </a>
-        </div>
+        
     </main>
 
-    {% include "components/footer.html.jinja" %}
+    
 </body>
 </html>

@@ -208,13 +208,20 @@ Live Fridge Needs
                 {% endif %}
             </div>
             
-            <a href="/fridge/{{ fridge.FridgeID }}" class="block group/link">
-                <h4 class="font-bold text-xl mb-1 truncate text-gray-900 dark:text-white group-hover/link:text-orange-500 transition-colors">
-                    {{ fridge.name }}
-                </h4>
-            </a>
+            <a href="{{ url_for('personal_fridges', fridge_id=fridge['ID']) }}" class="block group/link">
+    <h4 class="font-bold text-xl mb-1 truncate text-gray-900 dark:text-white group-hover/link:text-orange-500 transition-colors">
+        {{ fridge.name }}
+    </h4>
+</a>
             
-            <p class="text-xs text-gray-400 mb-6 italic">Last update: {{ fridge.Last_updated.strftime('%I:%M %p') }}</p>
+            <p class="text-xs text-gray-400 mb-6 italic">
+    Last update: 
+    {% if fridge.Last_updated is string %}  
+        {{ fridge.Last_updated }}
+    {% else %}
+        {{ fridge.Last_updated.strftime('%I:%M %p') }}
+    {% endif %}
+</p>
         </div>
         {% endfor %}
     </div>

@@ -9,11 +9,13 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { darkMode: 'class' }
+        tailwind.config = {
+            darkMode: 'class'
+        }
     </script>
 
     <script>
-        (function () {
+        (function() {
             const saved = localStorage.getItem("theme");
             if (saved === "dark") document.documentElement.classList.add("dark");
             else if (saved === "light") document.documentElement.classList.remove("dark");
@@ -26,276 +28,318 @@
 
     <style>
         .input {
-            width: 100%; padding: 0.75rem; border-radius: 0.75rem;
-            border: 1px solid #d1d5db; background: #f8fafc; transition: 0.25s;
-            font-size: 16px; 
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            transition: 0.25s;
+            font-size: 16px;
         }
-        .input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3); outline: none; }
-        .form-card { background: linear-gradient(135deg, #ffffff, #f3f0ff); border: 1px solid #cac2d2; }
-        .dark .form-card { background: linear-gradient(135deg, #1e1b2e, #2a2545); border: 1px solid #40376E; }
-        .dark .input { background: #2a2545; border-color: #40376E; color: #fff; }
-        .dropdown { background: white; }
-        .dark .dropdown { background: #2a2545; border-color: #40376E; }
-        html { scroll-behavior: smooth; transition: background-color 0.3s ease, color 0.3s ease; }
+
+        .input:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
+            outline: none;
+        }
+
+        .form-card {
+            background: linear-gradient(135deg, #ffffff, #f3f0ff);
+            border: 1px solid #cac2d2;
+        }
+
+        .dark .form-card {
+            background: linear-gradient(135deg, #1e1b2e, #2a2545);
+            border: 1px solid #40376E;
+        }
+
+        .dark .input {
+            background: #2a2545;
+            border-color: #40376E;
+            color: #fff;
+        }
+
+        .dropdown {
+            background: white;
+        }
+
+        .dark .dropdown {
+            background: #2a2545;
+            border-color: #40376E;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
     </style>
 </head>
 
 <body class="bg-white text-gray-800 dark:bg-[#1b1730] dark:text-gray-100 transition-colors duration-300">
 
-{% include "components/navbar.html.jinja" %}
+    {% include "components/navbar.html.jinja" %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-
-      {% if category.startswith("donation_") %}
-
-        <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md
-          {% if category == 'donation_error' %}
-            bg-red-500 dark:bg-red-700
-          {% else %}
-            bg-green-600 dark:bg-[#6f52c9]
-          {% endif %}
-        ">
-          {{ message }}
-        </div>
-
-      {% endif %}
-
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
-<div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 lg:py-12">
-
-    <div class="mb-8 lg:mb-12 text-center lg:text-left">
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">Help People In Need</h1>
-        <p class="text-gray-600 dark:text-gray-300 mt-3 text-base sm:text-lg">Donate money or food to support local communities.</p>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %} 
+            {% if messages %} 
+                {% for category, message in messages %} 
+                    {% if category.startswith("donation_") %}
+                        <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md {% if category == 'donation_error' %} bg-red-500 dark:bg-red-700 {% else %} bg-green-600 dark:bg-[#6f52c9] {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endif %} 
+                {% endfor %} 
+            {% endif %} 
+        {% endwith %}
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 lg:py-12">
+        
+        <div class="form-card rounded-3xl p-6 mb-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-bold text-orange-600 dark:text-purple-400">Your Support Matters</h2>
+                <p class="text-gray-600 dark:text-gray-300 max-w-xl">
+                    100% of your donations go directly to restocking community fridges. Whether you give food or funds, you're helping feed a neighbor today.
+                </p>
+            </div>
+            <a href="/donations" 
+   class="whitespace-nowrap rounded-xl px-6 py-3 font-bold transition-all duration-300
+          /* Light Mode */
+          bg-white text-gray-900 border border-gray-200 shadow-sm
+          hover:shadow-orange-500/20 hover:border-orange-500 hover:-translate-y-0.5 hover:text-orange-600
+          /* Dark Mode */
+          dark:bg-[#2a2545] dark:text-white dark:border-[#40376E]
+          dark:hover:border-purple-500 dark:hover:shadow-purple-500/20 dark:hover:text-purple-400">
+    Learn How it Works ↓
+</a>
+        </div>
 
-        <div class="form-card flex flex-col justify-between rounded-3xl p-5 shadow-xl sm:p-8">
-            <div>
-                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">Donate Money</h2>
+        <div class="mb-8 lg:mb-12 text-center lg:text-left">
+            <h1 class="text-3xl sam:text-4xl lg:text-5xl font-extrabold tracking-tight">Help People In Need</h1>
+            <p class="text-gray-600 dark:text-gray-300 mt-3 text-base sm:text-lg">Donate money or food to support local communities.</p>
+        </div>
 
-                <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm">
-                    <input type="hidden" name="final_amount" id="finalAmountValue">
-                    
-                    <div class="grid grid-cols-3 gap-3 sm:gap-4 font-semibold">
-                        {% for amount in [10, 25, 50] %}
-                        <label class="cursor-pointer group">
-                            <input type="radio" name="amount" value="{{ amount }}" class="hidden peer preset-radio">
-                            <div class="py-3 sm:py-4 text-center rounded-2xl border border-gray-200 dark:border-gray-700 peer-checked:bg-orange-600 peer-checked:border-orange-600 hover:bg-orange-50 peer-checked:text-white dark:peer-checked:bg-purple-600 dark:peer-checked:border-purple-600 transition-all duration-200">
-                                ${{ amount }}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
+
+            <div class="form-card flex flex-col justify-between rounded-3xl p-5 shadow-xl sm:p-8">
+                <div>
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">Donate Money</h2>
+                    <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm">
+                        <input type="hidden" name="final_amount" id="finalAmountValue">
+
+                        <div class="grid grid-cols-3 gap-3 sm:gap-4 font-semibold">
+                            {% for amount in [10, 25, 50] %}
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="amount" value="{{ amount }}" class="hidden peer preset-radio">
+                                <div class="py-3 sm:py-4 text-center rounded-2xl border border-gray-200 dark:border-gray-700 peer-checked:bg-green-600 peer-checked:border-green-600 hover:bg-green-50 peer-checked:text-white dark:peer-checked:bg-purple-600 dark:peer-checked:border-purple-600 transition-all duration-200">
+                                    ${{ amount }}
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4">
+                            <input type="number" name="custom_amount" id="customAmount" placeholder="$ Custom amount" class="input" min="1" max="10000">
+                        </div>
+
+                        <div class="mt-6 relative space-y-1.5">
+                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ml-1">Target Fridge</label>
+                            <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
+                            <button type="button" id="moneyFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition dark:bg-[#2a2545] dark:text-white">
+                                <span id="moneyFridgeText">Choose a fridge</span>
+                                <span class="text-xs opacity-50">▼</span>
+                            </button>
+                            <div id="moneyFridgeMenu" class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
+                                {% for fridge in fridges %}
+                                <div class="money-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]" data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                                    <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover" alt="{{ fridge['Name'] }}">
+                                    <span class="text-sm font-bold">{{ fridge['Name'] }}</span>
+                                </div>
+                                {% endfor %}
                             </div>
-                        </label>
-                        {% endfor %}
+                        </div>
+
+                        <button type="submit" class="mt-8 w-full transform rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] hover:bg-orange-600 dark:bg-purple-600 dark:hover:bg-purple-700">
+                            Donate Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="form-card rounded-3xl p-5 shadow-xl sm:p-8">
+                <h2 class="mb-6 flex items-center gap-2 text-2xl font-bold">Schedule Drop-Off</h2>
+                <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="space-y-1">
+                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Name</label>
+                            <input type="text" name="full_name" placeholder="Full Name" class="input" required>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Email</label>
+                            <input type="email" name="food_email" placeholder="Email" class="input" required>
+                        </div>
                     </div>
 
-                    <div class="mt-4">
-                        <input type="number" name="custom_amount" id="customAmount" placeholder="$ Custom amount" class="input" min="1" max="10000">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="space-y-1">
+                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Dropoff Date</label>
+                            <input type="date" name="dropoff_date" id="dropoffDate" class="input" required>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quantity</label>
+                            <input type="number" name="quantity" min="1" placeholder="No. of items" class="input" required>
+                        </div>
                     </div>
 
-                    <div class="mt-6 relative space-y-1.5">
-                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ml-1">Target Fridge</label>
-                        <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
-                        <button type="button" id="moneyFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition dark:bg-[#2a2545] dark:text-white">
-                            <span id="moneyFridgeText">Choose a fridge</span>
+                    <div class="relative space-y-1">
+                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Type of Food</label>
+                        <input type="hidden" name="food_type" id="foodTypeValue" required>
+                        <button type="button" id="foodTypeBtn" class="border-gray-200 flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition-colors dark:border-gray-700 dark:bg-[#2a2545] dark:text-white">
+                            <span id="foodTypeText">Select category</span>
                             <span class="text-xs opacity-50">▼</span>
                         </button>
-                        <div id="moneyFridgeMenu" class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
+                        <div id="foodTypeMenu" class="absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border bg-white shadow-2xl dark:border-gray-700 dark:bg-[#2a2545]">
+                            {% for item in food_types %}
+                            <div class="food-type-item border-gray-100 dark:border-gray-700/50 cursor-pointer border-b p-4 transition-colors last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]" data-id="{{ item['ID'] }}" data-name="{{ item['Name'] }}">
+                                <span class="text-sm font-bold">{{ item['Name'] }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="relative space-y-1">
+                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Target Fridge</label>
+                        <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
+                        <button type="button" id="foodFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm dark:bg-[#2a2545] dark:text-white">
+                            <span id="foodFridgeText">Choose a location</span>
+                            <span class="text-xs opacity-50">▼</span>
+                        </button>
+                        <div id="foodFridgeMenu" class="dropdown absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
                             {% for fridge in fridges %}
-                            <div class="money-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
-                                data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
-                                <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover">
+                            <div class="food-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]" data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                                <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover" alt="{{ fridge['Name'] }}">
                                 <span class="text-sm font-bold">{{ fridge['Name'] }}</span>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <button type="submit" class="mt-8 w-full transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] hover:bg-orange-700 dark:bg-purple-600 dark:hover:bg-purple-700">
-                        Donate Now
+                    <div class="space-y-1">
+                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Notes</label>
+                        <textarea name="notes" rows="2" class="input" placeholder="Any dietary info or specifics?"></textarea>
+                    </div>
+
+                    <button type="submit" class="mt-4 w-full hover:bg-green-600 transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg transition active:scale-[0.98] dark:bg-purple-600 dark:hover:bg-purple-700">
+                        Complete Donation
                     </button>
                 </form>
             </div>
         </div>
-
-        <div class="form-card rounded-3xl p-5 shadow-xl sm:p-8">
-            <h2 class="mb-6 flex items-center gap-2 text-2xl font-bold">Schedule Drop-Off</h2>
-
-            <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Name</label>
-                        <input type="text" name="full_name" placeholder="Full Name" class="input" required>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Email</label>
-                        <input type="email" name="food_email" placeholder="Email" class="input" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div class="space-y-1">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Dropoff Date</label>
-                        <input type="date" name="dropoff_date" id="dropoffDate" class="input" required>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quantity</label>
-                        <input type="number" name="quantity" min = "1" placeholder="No. of items" class="input" required>
-                    </div>
-                </div>
-
-                <div class="relative space-y-1">
-                    <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Type of Food</label>
-                    <input type="hidden" name="food_type" id="foodTypeValue" required>
-                    <button type="button" id="foodTypeBtn" class="border-gray-200 flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition-colors dark:border-gray-700 dark:bg-[#2a2545] dark:text-white">
-                        <span id="foodTypeText">Select category</span>
-                        <span class="text-xs opacity-50">▼</span>
-                    </button>
-                    <div id="foodTypeMenu" class="absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border bg-white shadow-2xl dark:border-gray-700 dark:bg-[#2a2545]">
-                        {% for item in food_types %}
-                        <div class="food-type-item border-gray-100 dark:border-gray-700/50 cursor-pointer border-b p-4 transition-colors last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
-                             data-id="{{ item['ID'] }}" data-name="{{ item['Name'] }}">
-                            <span class="text-sm font-bold">{{ item['Name'] }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div class="relative space-y-1">
-                    <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Target Fridge</label>
-                    <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
-                    <button type="button" id="foodFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm dark:bg-[#2a2545] dark:text-white">
-                        <span id="foodFridgeText">Choose a location</span>
-                        <span class="text-xs opacity-50">▼</span>
-                    </button>
-                    <div id="foodFridgeMenu" class="dropdown absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
-                        {% for fridge in fridges %}
-                        <div class="food-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
-                             data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
-                            <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover">
-                            <span class="text-sm font-bold">{{ fridge['Name'] }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Notes</label>
-                    <textarea name="notes" rows="2" class="input" placeholder="Any dietary info or specifics?"></textarea>
-                </div>
-
-                <button type="submit" class="mt-4 w-full transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg transition active:scale-[0.98] hover:bg-orange-700 dark:bg-purple-600 dark:hover:bg-purple-700">
-                    Complete Donation
-                </button>
-            </form>
-        </div>
     </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Dropdown Logic
-    function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
-        const btn = document.getElementById(btnId);
-        const menu = document.getElementById(menuId);
-        const hiddenInput = document.getElementById(hiddenInputId);
-        const btnText = document.getElementById(textId);
 
-        if (!btn || !menu) return;
 
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => {
-                if(m !== menu) m.classList.add('hidden');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown Logic
+            function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
+                const btn = document.getElementById(btnId);
+                const menu = document.getElementById(menuId);
+                const hiddenInput = document.getElementById(hiddenInputId);
+                const btnText = document.getElementById(textId);
+
+                if (!btn || !menu) return;
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => {
+                        if (m !== menu) m.classList.add('hidden');
+                    });
+                    menu.classList.toggle('hidden');
+                });
+
+                menu.querySelectorAll(itemClass).forEach(item => {
+                    item.addEventListener('click', function() {
+                        hiddenInput.value = this.getAttribute('data-id');
+                        btnText.innerText = this.getAttribute('data-name');
+                        menu.classList.add('hidden');
+                        btn.classList.add('border-orange-500', 'dark:border-purple-500');
+                    });
+                });
+            }
+
+            setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
+            setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
+            setupDropdown('foodTypeBtn', 'foodTypeMenu', 'foodTypeValue', 'foodTypeText', '.food-type-item');
+
+            // Close on outside click
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => m.classList.add('hidden'));
             });
-            menu.classList.toggle('hidden');
-        });
 
-        menu.querySelectorAll(itemClass).forEach(item => {
-            item.addEventListener('click', function () {
-                hiddenInput.value = this.getAttribute('data-id');
-                btnText.innerText = this.getAttribute('data-name');
-                menu.classList.add('hidden');
-                btn.classList.add('border-orange-500', 'dark:border-purple-500');
+            // Money Form Amount Logic
+            const moneyForm = document.getElementById("moneyForm");
+            const customInput = document.getElementById("customAmount");
+            const presetRadios = document.querySelectorAll('.preset-radio');
+            const finalAmountInput = document.getElementById("finalAmountValue");
+
+            customInput?.addEventListener("input", () => {
+                if (customInput.value !== "") {
+                    presetRadios.forEach(r => r.checked = false);
+                }
             });
-        });
-    }
 
-    setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
-    setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
-    setupDropdown('foodTypeBtn', 'foodTypeMenu', 'foodTypeValue', 'foodTypeText', '.food-type-item');
+            presetRadios.forEach(radio => {
+                radio.addEventListener("change", () => {
+                    if (radio.checked) customInput.value = "";
+                });
+            });
 
-    // Close on outside click
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => m.classList.add('hidden'));
-    });
+            moneyForm?.addEventListener("submit", function(e) {
+                const selectedRadio = document.querySelector('.preset-radio:checked');
+                const fridgeSelected = document.getElementById("moneyFridgeValue").value;
 
-    // Money Form Amount Logic
-    const moneyForm = document.getElementById("moneyForm");
-    const customInput = document.getElementById("customAmount");
-    const presetRadios = document.querySelectorAll('.preset-radio');
-    const finalAmountInput = document.getElementById("finalAmountValue");
+                let total = selectedRadio ? selectedRadio.value : customInput.value;
 
-    customInput?.addEventListener("input", () => {
-        if (customInput.value !== "") {
-            presetRadios.forEach(r => r.checked = false);
-        }
-    });
+                if (!total || total <= 0) {
+                    e.preventDefault();
+                    alert("Please select or enter a donation amount.");
+                    return;
+                }
 
-    presetRadios.forEach(radio => {
-        radio.addEventListener("change", () => { 
-            if(radio.checked) customInput.value = ""; 
-        });
-    });
+                if (!fridgeSelected) {
+                    e.preventDefault();
+                    alert("Please select a target fridge.");
+                    return;
+                }
 
-    moneyForm?.addEventListener("submit", function(e) {
-        const selectedRadio = document.querySelector('.preset-radio:checked');
-        const fridgeSelected = document.getElementById("moneyFridgeValue").value;
+                finalAmountInput.value = total;
 
-        let total = selectedRadio ? selectedRadio.value : customInput.value;
-
-        if (!total || total <= 0) {
-            e.preventDefault();
-            alert("Please select or enter a donation amount.");
-            return;
-        }
-
-        if (!fridgeSelected) {
-            e.preventDefault();
-            alert("Please select a target fridge.");
-            return;
-        }
-
-        finalAmountInput.value = total;
-        
-        const btn = this.querySelector("button[type='submit']");
-        btn.innerHTML = `<span class="flex items-center justify-center gap-2">
+                const btn = this.querySelector("button[type='submit']");
+                btn.innerHTML = `<span class="flex items-center justify-center gap-2">
             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             Processing...
         </span>`;
-        btn.disabled = true;
-    });
+                btn.disabled = true;
+            });
 
-    // Date Restriction
-    const dateInput = document.getElementById("dropoffDate");
-    if (dateInput) {
-        dateInput.min = new Date().toISOString().split("T")[0];
-    }
-    
-    // Auto-hide flash messages
-    const flashes = document.querySelectorAll(".flash-message");
-    flashes.forEach(flash => {
-        setTimeout(() => {
-            flash.style.opacity = "0";
-            flash.style.transition = "opacity 0.5s ease";
-            setTimeout(() => flash.remove(), 500);
-        }, 3000);
-    });
-});
-</script>
+            // Date Restriction
+            const dateInput = document.getElementById("dropoffDate");
+            if (dateInput) {
+                dateInput.min = new Date().toISOString().split("T")[0];
+            }
+
+            // Auto-hide flash messages
+            const flashes = document.querySelectorAll(".flash-message");
+            flashes.forEach(flash => {
+                setTimeout(() => {
+                    flash.style.opacity = "0";
+                    flash.style.transition = "opacity 0.5s ease";
+                    setTimeout(() => flash.remove(), 500);
+                }, 3000);
+            });
+        });
+    </script>
 </body>
+
 </html>
