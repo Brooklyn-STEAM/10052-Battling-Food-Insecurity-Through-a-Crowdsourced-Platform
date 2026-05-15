@@ -8,33 +8,30 @@
  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
  <script>tailwind.config = { darkMode: 'class' }</script>
  <style>
-    html { scroll-behavior: smooth; transition: background-color 0.3s ease; }
-    .star-rating label { color: #d1d5db; transition: color 0.2s ease; font-size: 2.5rem; }
-    /* Peer-checked logic for the stars */
+    html { scroll-behavior: smooth; transition: background-color 0.3s ease; overflow-x: hidden; }
+    /* Responsive Star Sizes */
+    .star-rating label { color: #d1d5db; transition: color 0.2s ease; font-size: 2.2rem; }
+    @media (min-width: 640px) { .star-rating label { font-size: 3rem; } }
+    
     .star-rating input:checked ~ label, 
     .star-rating label:hover, 
     .star-rating label:hover ~ label { color: #fbbf24 !important; }
+    
     .flash-msg { animation: slideIn 0.5s ease-out; pointer-events: auto; }
     @keyframes slideIn { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-    .edit-mode-active {
-    animation: expandDown 0.3s ease-out forwards;
-    border-left: 4px solid #16a34a; /* A green accent to show it's being edited */
-}
-
-@keyframes expandDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    
+    .edit-mode-active { animation: expandDown 0.3s ease-out forwards; border-left: 4px solid #16a34a; }
+    @keyframes expandDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
  </style>
 </head>
 
-<body class="bg-yellow-50 dark:bg-[#1b1730] text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
+<body class="bg-yellow-50 dark:bg-[#1b1730] text-gray-900 dark:text-gray-100 flex flex-col min-h-screen overflow-x-hidden">
   
-  <div id="flash-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-md px-4 pointer-events-none">
+  <div id="flash-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-[10000] w-[90%] max-w-md px-2 pointer-events-none">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="flash-msg {{ category }} {% if category == 'review-exists' %}bg-orange-500{% else %}bg-green-600{% endif %} text-white px-6 py-4 rounded-2xl shadow-xl mb-4 transition-all duration-500 flex items-center gap-3">
+          <div class="flash-msg {{ category }} {% if category == 'review-exists' %}bg-orange-500{% else %}bg-green-600{% endif %} text-white px-4 py-3 rounded-2xl shadow-xl mb-4 flex items-center gap-3 text-sm md:text-base">
             <span>{{ '⚠️' if category == 'review-exists' else '✅' }}</span>
             <p class="font-bold">{{ message }}</p>
           </div>
@@ -43,159 +40,191 @@
     {% endwith %}
   </div>
 
+  <div id="fav-toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[99999] px-4 py-2 rounded-xl text-white font-bold text-sm shadow-lg opacity-0 pointer-events-none transition-all duration-300 w-auto max-w-[80%] text-center"></div>
+
   {% include "components/navbar.html.jinja" %}
-<div id="fav-toast"
-     class="fixed top-24 left-1/2 -translate-x-1/2 z-[99999]
-     px-4 py-2 rounded-xl text-white font-bold text-sm
-     shadow-lg opacity-0 pointer-events-none
-     transition-all duration-300">
-</div>
+
   <div class="flex-grow">
-    <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-16 px-6">
-      <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 dark:text-purple-300 mb-3">{{ fridge["Name"] }}</h1>
-            <p class="text-gray-700 dark:text-purple-100/80 text-lg">📍 {{ fridge["Address"] }}</p>
+    <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-10 md:py-16 px-4 md:px-6">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+      
+      <div class="text-center md:text-left">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-green-800 dark:text-purple-300 mb-2 md:mb-3 leading-tight">
+          {{ fridge["Name"] }}
+        </h1>
+        <p class="text-gray-700 dark:text-purple-100/80 text-base md:text-lg">
+          📍 {{ fridge["Address"] }}
+        </p>
+      </div>
+
+      <div class="flex flex-col w-full md:w-72 lg:w-96 gap-3">
+          
+          {% set status = (fridge_status['Status'] | default('Unknown')) | lower | trim %}
+          <div class="w-full">
+            {% if status in ["full", "many", "half"] %}
+              <div class="w-full bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow-md text-center text-sm md:text-base border-b-4 border-green-800">
+                🟢 Open & Stocked
+              </div>
+            {% elif status in ["low", "few"] %}
+              <div class="w-full bg-yellow-500 text-white px-6 py-3 rounded-xl font-bold shadow-md text-center text-sm md:text-base border-b-4 border-yellow-700">
+                🟡 Low Stock
+              </div>
+            {% else %}
+              <div class="w-full bg-red-600 text-white px-6 py-3 rounded-xl font-bold shadow-md text-center text-sm md:text-base border-b-4 border-red-800">
+                🔴 Needs Attention
+              </div>
+            {% endif %}
           </div>
-          <div class="flex flex-col sm:flex-row gap-4">
-           {% set status = (fridge_status['Status'] or 'Unknown') | lower | trim %}
-           {% if status in ["full", "many", "half"] %}
-             <span class="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟢 Open & Stocked</span>
-           {% elif status in ["low", "few"] %}
-             <span class="bg-yellow-500 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🟡 Low Stock</span>
-           {% else %}
-             <span class="bg-red-600 text-white px-5 py-3 rounded-xl font-semibold text-center shadow-md">🔴 Closed / Needs Attention</span>
-           {% endif %}
-            <a href="/update_fridge/{{ fridge['ID'] }}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-center font-semibold transition">Update Inventory</a>
-            <a href="/report/{{ fridge['ID'] }}" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl transition text-center">Report Issue</a>
-            {% if current_user.is_authenticated %}
-             <button id="fav-btn"
-  data-fridge-id="{{ fridge['ID'] }}"
-  class="group relative p-3 rounded-full 
-         bg-white dark:bg-gray-800 
-         shadow-md border border-gray-200 dark:border-gray-700 
-         hover:shadow-lg transition-all duration-200 
-         active:scale-90">
 
-  <svg id="star-icon"
-    class="h-7 w-7 transition-all duration-300 
-  {% if is_favorited %}
-    fill-yellow-300 stroke-yellow-300 scale-110
-  {% else %}
-    fill-none stroke-gray-400 group-hover:stroke-yellow-400
-  {% endif %}"
-  xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 26 26">
-
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
-</svg>
-
-</button>
+          <div class="flex flex-row items-stretch gap-3 w-full">
+              <a href="/update_fridge/{{ fridge['ID'] }}" 
+                 class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-bold transition shadow-md active:scale-95 text-center text-sm md:text-base flex items-center justify-center whitespace-nowrap">
+                 Update
+              </a>
+              
+              <a href="/report/{{ fridge['ID'] }}" 
+                 class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-xl font-bold transition shadow-md active:scale-95 text-center text-sm md:text-base flex items-center justify-center whitespace-nowrap">
+                 Report
+              </a>
+              
+              {% if current_user.is_authenticated %}
+              <button id="fav-btn" data-fridge-id="{{ fridge['ID'] }}" 
+                      class="aspect-square p-3 rounded-xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 active:scale-90 transition-all flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700">
+                <svg id="star-icon" class="h-5 w-5 md:h-6 md:w-6 transition-all duration-300 {% if is_favorited %}fill-yellow-400 stroke-yellow-500 scale-110{% else %}fill-none stroke-gray-400{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.1 6.465a1 1 0 00.95.69h6.805c.969 0 1.371 1.24.588 1.81l-5.506 4a1 1 0 00-.364 1.118l2.1 6.465c.3.921-.755 1.688-1.54 1.118l-5.506-4a1 1 0 00-1.176 0l-5.506 4c-.784.57-1.838-.197-1.539-1.118l2.1-6.465a1 1 0 00-.364-1.118l-5.506-4c-.783-.57-.38-1.81.588-1.81h6.805a1 1 0 00.95-.69l2.1-6.465z" />
+                </svg>
+              </button>
               {% endif %}
           </div>
-
       </div>
-    </section>
+  </div>
+</section>
 
-    <section class="py-12 px-6 max-w-6xl mx-auto">
-      <div class="grid md:grid-cols-2 gap-8 items-start">
-        <img src="{{ fridge['Image'] }}" class="w-full aspect-square rounded-3xl shadow-lg object-cover max-h-[400px]">
-        <div class="space-y-3">
-          <h2 class="text-2xl font-bold text-green-800 dark:text-purple-300 mb-4">Available Items</h2>
-          <ul class="grid gap-2">
-            {% for item in items %}
-                <li class="flex items-center justify-between bg-white dark:bg-[#2a2545] p-2 pr-4 rounded-xl shadow-sm border dark:border-[#40376E]">
-                  <div class="flex items-center space-x-3">
-                    <img src="{{ item['Image'] }}" class="w-10 h-10 rounded-lg object-cover">
-                    <p class="font-medium">{{ item['Name'] }}</p>
-                  </div>
-                  <span class="text-xs font-bold px-2 py-1 bg-green-100 dark:bg-purple-900/40 rounded-md">{{ item['Quantity'] }} left</span>
-                </li>
-            {% endfor %}
-          </ul>
+    <section class="py-8 md:py-12 px-4 md:px-6 max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
+        <div class="relative group">
+            <img src="{{ fridge['Image'] | default('/static/images/default-fridge.png') }}" class="w-full aspect-video md:aspect-square rounded-2xl md:rounded-3xl shadow-xl object-cover max-h-[400px] md:max-h-[500px]">
+            <div class="absolute inset-0 rounded-2xl md:rounded-3xl ring-1 ring-inset ring-black/10"></div>
+        </div>
+        
+        <div class="space-y-4 md:space-y-6">
+          <h2 class="text-2xl md:text-3xl font-bold text-green-800 dark:text-purple-300">Available Items</h2>
+          <ul class="space-y-2 md:space-y-3">
+  {% for item in items %}
+      <li class="flex items-center justify-between bg-white dark:bg-[#2a2545] p-3 pr-4 md:pr-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 dark:border-[#40376E]">
+        <div class="flex items-center space-x-3 md:space-x-4">
+          <img src="{{ item['Image'] | default('/static/images/default-food.png') }}" class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl object-cover">
+          <p class="font-bold text-sm md:text-lg">{{ item['Name'] }}</p>
+        </div>
+        <span class="text-[10px] md:text-sm font-black px-2 md:px-3 py-1 bg-green-100 dark:bg-purple-900/40 text-green-700 dark:text-purple-300 rounded-full shrink-0">
+          {{ item['Quantity'] }} left
+        </span>
+      </li>
+  {% else %}
+      <li class="flex flex-col items-center justify-center p-8 bg-white/50 dark:bg-[#2a2545]/50 border-2 border-dashed border-gray-200 dark:border-[#40376E] rounded-2xl">
+          <span class="text-4xl mb-2 grayscale opacity-60">🥘</span>
+          <p class="text-gray-500 dark:text-purple-200/60 font-medium">No items currently available.</p>
+          <p class="text-xs text-gray-400 dark:text-purple-300/40">Check back later or help by donating!</p>
+      </li>
+  {% endfor %}
+</ul>
         </div>
       </div>
 
-      <div class="mt-16 border-t border-gray-200 dark:border-[#40376E] pt-12">
-        <div class="flex justify-between items-center mb-10">
-    <h2 class="text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
-    
-    <div class="flex gap-3"> {% if reviews|length > 3 %}
-            <button id="see-more-btn" class="bg-white dark:bg-[#2a2545] text-green-700 dark:text-purple-300 border border-green-600 dark:border-purple-500 px-4 py-2 rounded-xl font-bold hover:bg-green-50 transition text-sm">
-                See All ({{ reviews|length }})
-            </button>
-        {% endif %}
+      <div class="mt-12 md:mt-20 border-t border-gray-200 dark:border-[#40376E] pt-8 md:pt-12">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
+            
+            <div class="flex gap-2 w-full sm:w-auto"> 
+                {% if reviews|length > 3 %}
+                    <button id="see-more-btn" class="flex-1 sm:flex-none bg-white dark:bg-[#2a2545] text-green-700 dark:text-purple-300 border border-green-600 dark:border-purple-500 px-4 py-2 rounded-xl font-bold hover:bg-green-50 transition text-xs md:text-sm">
+                        See All ({{ reviews|length }})
+                    </button>
+                {% endif %}
 
-        {% if current_user.is_authenticated %}
-            <button id="open-review-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl font-bold transition transform hover:scale-105 text-sm">
-                Add Review
-            </button>
-        {% endif %}
-    </div>
-</div>
+                {% if current_user.is_authenticated %}
+                    <button id="open-review-btn" class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-bold transition shadow-lg text-xs md:text-sm">
+                        + Add Review
+                    </button>
+                {% endif %}
+            </div>
+        </div>
 
-<div id="reviews-container" class="space-y-4">
+        <div id="reviews-container" class="grid gap-4 md:gap-6">
     {% for review in reviews %}
         <div id="review-card-{{ review['ReviewID'] }}" 
              data-user-id="{{ review['UserID'] }}" 
-             class="review-card {% if loop.index > 3 %}hidden{% endif %} bg-white dark:bg-[#2a2545] rounded-2xl shadow-md p-6 border dark:border-[#40376E]">
-            
-            <div class="flex justify-between items-center mb-2">
+             class="review-card {% if loop.index > 3 %}hidden{% endif %} bg-white dark:bg-[#2a2545] rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border dark:border-[#40376E]">
+            <div class="flex justify-between items-start mb-2 md:mb-4">
                 <div>
-                    <p class="font-semibold text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
-                    <span id="display-rating-{{ review['ReviewID'] }}" class="text-sm text-gray-500 dark:text-purple-200/70">⭐ {{ review["Rating"] }}/5</span>
+                    <p class="font-bold text-base md:text-lg text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
+                    <div class="flex text-yellow-400 text-sm mt-1">
+                        {% for _ in range(review["Rating"] | int) %}★{% endfor %}
+                        <span class="ml-2 text-xs text-gray-400">({{ review["Rating"] }}/5)</span>
+                    </div>
                 </div>
-                {% if current_user.id == review['UserID'] %}
-                    <button onclick="toggleEdit('{{ review['ReviewID'] }}')" class="text-xs text-blue-500 hover:underline">Edit</button>
-                {% endif %}
             </div>
-            <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200">{{ review["Comment"] }}</p>
-            
-            
-                {% if current_user.id == review['UserID'] %}
-                    <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-4 mt-2">
-                        <div class="star-rating flex flex-row-reverse justify-end gap-1">
-                            {% for i in range(5, 0, -1) %}
-                            <input type="radio" id="edit-star{{i}}-{{ review['ReviewID'] }}" name="Rating" value="{{i}}" 
-                                   class="hidden peer" {% if review['Rating'] == i %}checked {% endif %} required />
-                            <label for="edit-star{{i}}-{{ review['ReviewID'] }}" class="cursor-pointer text-2xl hover:scale-110 transition-transform">★</label>
-                            {% endfor %}
-                        </div>
-                        <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
-                        <div class="flex gap-2">
-                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-green-700">Save Changes</button>
-                            <button type="button" onclick="toggleEdit('{{ review['ReviewID'] }}')" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
-                        </div>
-                    </form>
-                {% endif %}
-            </div>
-          {% endfor %}
+            <p id="comment-text-{{ review['ReviewID'] }}" class="text-sm md:text-base text-gray-700 dark:text-gray-200 leading-relaxed">{{ review["Comment"] }}</p>
         </div>
+    {% else %}
+        <div class="text-center py-10 bg-white/30 dark:bg-[#2a2545]/30 rounded-2xl border-2 border-dotted border-gray-200 dark:border-[#40376E]">
+            <span class="text-4xl mb-3 block">💬</span>
+            <p class="text-gray-600 dark:text-purple-200 font-semibold">No reviews yet.</p>
+            <p class="text-sm text-gray-400 dark:text-purple-300/40">Be the first to share your experience!</p>
+        </div>
+    {% endfor %}
+</div>
       </div>
     </section>
   </div>
 
-  <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
-      <div class="bg-white dark:bg-[#1b1730] p-8 rounded-xl shadow-lg border dark:border-[#403760] w-[420px]">
-        <h2 class="text-2xl font-bold text-green-800 dark:text-purple-100 mb-6" id="open-review-btn">Add Review</h2>
+  <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+      <div class="bg-white dark:bg-[#1b1730] p-6 md:p-8 rounded-t-3xl sm:rounded-3xl shadow-2xl border dark:border-[#403760] w-full max-w-md relative">
+        <button id="close-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl md:text-2xl">✕</button>
+        <h2 class="text-xl md:text-2xl font-bold text-green-800 dark:text-purple-100 mb-2">Share Your Feedback</h2>
+        
         <form method="POST" action="/individfridge/{{ fridge['ID'] }}">       
-          <label class="block text-sm font-bold text-green-800 dark:text-purple-300 mb-2">Rating</label>
-          <div class="star-rating flex flex-row-reverse justify-end gap-2 mb-6">
+          <div class="star-rating flex flex-row-reverse justify-center gap-1 md:gap-2 mb-6 mt-4">
             {% for i in range(5, 0, -1) %}
             <input type="radio" id="star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
-            <label for="star{{i}}" class="cursor-pointer hover:scale-110 transition-transform">★</label>
+            <label for="star{{i}}" class="cursor-pointer peer-hover:text-yellow-400 peer-checked:text-yellow-400 transition-colors">★</label>
             {% endfor %}
           </div>
-          <label class="block text-sm text-green-800 dark:text-purple-300 mb-1">Comment</label>
-          <textarea name="Comment" required class="w-full rounded-lg border border-green-400 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
-          <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold">Submit Review</button>
+          
+          <textarea name="Comment" rows="4" required placeholder="Tell others about the stock..." class="w-full rounded-xl border border-green-200 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-4 py-3 mb-6 focus:ring-2 ring-green-500 outline-none text-sm"></textarea>
+          
+          <button type="submit" class="w-full py-3 md:py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold shadow-lg transform transition active:scale-95 text-sm md:text-base">Submit Review</button>
         </form>
       </div>
   </div>
+
+    
+
+  <script>
+    // Add logic for the new close button
+    document.getElementById('close-popup')?.addEventListener('click', () => {
+        document.getElementById('review-popup').classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    // Modified fireConfetti to be slightly more subtle for reviews
+    function fireConfetti() {
+        const count = 200;
+        const defaults = { origin: { y: 0.7 } };
+
+        function fire(particleRatio, opts) {
+            confetti(Object.assign({}, defaults, opts, {
+                particleCount: Math.floor(count * particleRatio),
+                colors: ['#16a34a', '#fbbf24', '#f97316']
+            }));
+        }
+
+        fire(0.25, { spread: 26, startVelocity: 55 });
+        fire(0.2, { spread: 60 });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+    }
+  </script>
 <script>
-/* =========================
-   GLOBAL UTILITIES
-========================= */
+
 function fireConfetti() {
     confetti({ 
         particleCount: 150, 
@@ -256,9 +285,6 @@ const Toast = (() => {
     };
 })();
 
-/* =========================
-   DOM CONTENT LOADED
-========================= */
 document.addEventListener("DOMContentLoaded", () => {
     const openBtn = document.getElementById('open-review-btn');
     const popup = document.getElementById('review-popup');
@@ -287,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* --- SEE MORE LOGIC --- */
+    /* --- MORE LOGIC --- */
     if (seeMoreBtn) {
         seeMoreBtn.addEventListener('click', () => {
             const isShowingAll = seeMoreBtn.getAttribute('data-state') === 'open';
@@ -317,7 +343,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* --- FAVORITES SYNC --- */
     /* --- FAVORITES SYNC --- */
 if (favBtn && favIcon) {
     favBtn.addEventListener("click", async () => {
