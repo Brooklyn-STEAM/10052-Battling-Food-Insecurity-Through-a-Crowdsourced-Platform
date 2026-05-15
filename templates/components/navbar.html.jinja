@@ -109,16 +109,17 @@
   <div id="mobile-menu" class="hidden md:hidden bg-green-700 dark:bg-[#1b1730] border-t border-white/10 shadow-xl">
     <ul class="flex flex-col px-6 py-6 space-y-4 font-medium">
       <li><a class="block hover:text-yellow-300 transition" href="/map">Map</a></li>
-      <li><a class="block hover:text-yellow-300 transition" href="/donations">Donate</a></li>
+      <li><a class="block hover:text-yellow-300 transition" href="/donate">Donate</a></li>
       {% if current_user.is_authenticated %}
         <li><a class="block hover:text-yellow-300 transition" href="/profile_page">Profile</a></li>
         <li><a class="block hover:text-yellow-300 transition" href="/restaurant-dashboard">Dashboard</a></li>
+        <li><a class="block hover:text-yellow-300 transition" href="/about">About Us</a></li>
         <li><a class="block text-red-300" href="/logout">Logout</a></li>
       {% else %}
         <li><a class="block hover:text-yellow-300 transition" href="/login">Sign In</a></li>
         <li><a class="block hover:text-yellow-300 transition" href="/signup">Register</a></li>
       {% endif %}
-      <li><a class="block hover:text-yellow-300 transition" href="/about">About Us</a></li>
+      
     </ul>
   </div>
 </nav>

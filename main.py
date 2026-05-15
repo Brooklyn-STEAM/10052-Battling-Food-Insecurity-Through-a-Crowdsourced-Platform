@@ -989,7 +989,6 @@ def delete_account():
         # 1. DELETE EVERYTHING CONNECTED TO THE USER FIRST
         cursor.execute("DELETE FROM Reviews WHERE UserID = %s", (user_id,))
         cursor.execute("DELETE FROM Favorites WHERE UserID = %s", (user_id,))
-        cursor.execute("DELETE FROM Fridge_items WHERE UserID = %s", (user_id,)) # If applicable
         
         # 2. NOW DELETE THE USER
         cursor.execute("DELETE FROM User WHERE ID = %s", (user_id,))
