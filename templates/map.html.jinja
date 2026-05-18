@@ -9,6 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
@@ -83,10 +86,15 @@
 .animated-route {
     stroke-linecap: round;
     stroke-linejoin: round;
+}
 
-    animation:
-        routeFlow 1.2s linear infinite,
-        routePulse 2s ease-in-out infinite;
+/* Desktop only */
+@media (min-width: 769px) {
+    .animated-route {
+        animation:
+            routeFlow 1.2s linear infinite,
+            routePulse 2s ease-in-out infinite;
+    }
 }
 
 /* Moving dashed effect */
@@ -196,11 +204,8 @@ html {
 }
 
 body {
-    overflow: hidden;
-    overscroll-behavior: none;
-    touch-action: manipulation;
-    padding-bottom: env(safe-area-inset-bottom);
-
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body > div {
@@ -325,7 +330,7 @@ nav {
     /* Hide secondary sections on mobile */
     #recent-list,
     #clear-recents,
-    #undo-recents,
+    #undo-recents
  {
         display: none !important;
     }
@@ -374,6 +379,129 @@ nav {
         padding-top: 10px;
         padding-bottom: 10px;
     }
+
+/* =========================================================
+   MOBILE BOTTOM SHEET POLISH
+========================================================= */
+
+#sidebar {
+    will-change: transform;
+    touch-action: none;
+    overscroll-behavior: contain;
+
+    box-shadow:
+        0 -10px 40px rgba(0,0,0,0.18);
+
+    backdrop-filter: blur(18px);
+}
+
+#drag-handle {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#drag-handle div {
+    transition:
+        width 0.2s ease,
+        opacity 0.2s ease;
+}
+
+#drag-handle:active div {
+    width: 5rem;
+    opacity: 0.8;
+}
+
+/* smoother scroll */
+#sidebar .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* prevents ugly bounce */
+body.dragging-sheet {
+    overflow: hidden;
+}
+
+    /* Route summary box */
+    #mobile-itinerary-container .p-3.mb-3 {
+        font-size: 12px;
+        padding: 10px;
+        border-radius: 12px;
+    }
+
+    /* Distance/ETA header */
+    #mobile-itinerary-container .text-3xl {
+        font-size: 1.1rem !important;
+    }
+
+    #mobile-itinerary-container .text-[10px] {
+        font-size: 9px !important;
+    }
+
+    /* Step instructions */
+    #mobile-itinerary-container .text-sm {
+        font-size: 12px !important;
+        line-height: 1.35rem;
+    }
+
+    /* Make spacing tighter */
+    #mobile-itinerary-container div {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Reduce modal padding slightly */
+    #directions-modal > div {
+        padding: 10px !important;
+    }
+
+/* Bigger Leaflet popup */
+.leaflet-popup-content-wrapper {
+    width: 320px !important;   /* 👈 increase width */
+    max-width: 90vw;
+    border-radius: 16px;
+}
+
+.leaflet-popup-content {
+    width: 100% !important;
+    min-width: 260px;
+    padding: 8px;
+}
+
+/* Make buttons feel less cramped */
+.leaflet-popup-content button {
+    font-size: 12px;
+    padding: 10px 12px;
+}
+
+/* Optional: increase popup tip spacing */
+.leaflet-popup-tip {
+    margin-top: -1px;
+}
+/* =========================================================
+   MOBILE FRIDGE BOTTOM SHEET
+========================================================= */
+
+#fridge-sheet {
+    will-change: transform;
+}
+
+#fridge-sheet.open {
+    transform: translateY(0%);
+}
+
+#fridge-sheet::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(2px);
+    z-index: -1;
+}
+
+/* smooth scroll */
+#fridge-sheet-content {
+    -webkit-overflow-scrolling: touch;
+}
 }
 
 #routing-directions .mb-4 {
@@ -392,7 +520,6 @@ nav {
         opacity 0.4s ease,
         transform 0.4s ease;
 }
-
 
 </style>
         <script>
@@ -439,7 +566,32 @@ nav {
         <div id="map"
      class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2 h-[50vh] md:h-full transition-all duration-300">
     </div>
+<!-- MOBILE FRIDGE SHEET -->
+<div id="fridge-sheet"
+class="fixed inset-x-0 bottom-0 z-[3000]
+translate-y-full
+transition-transform duration-300 ease-out
+md:hidden">
 
+    <div class="
+        bg-white dark:bg-[#1b1730]
+        rounded-t-3xl
+        shadow-2xl
+        border-t border-gray-200 dark:border-[#40376E]
+        p-5
+        max-h-[70vh]
+        overflow-y-auto
+    ">
+
+        <!-- drag handle -->
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        </div>
+
+        <div id="fridge-sheet-content"></div>
+
+    </div>
+</div>
 
 <button id="reopen-directions"
     class="hidden fixed bottom-6 right-6 md:right-6 md:bottom-6 z-[1001]
@@ -479,198 +631,208 @@ nav {
 </div>
 
 <div class="px-4 pt-2 pb-24 overflow-y-auto flex-grow scrollbar-hide">
-            <!-- ROUTE BOX -->
-            <div id="routing-directions"
-                class="hidden mb-6 p-4 rounded-xl border
-                bg-green-50 border-green-200
-                dark:bg-[#2a2545] dark:border-[#40376E]">
 
-                <div class="flex justify-between items-center mb-2 border-b pb-2
-                    border-green-200 dark:border-[#40376E]">
-                    <h3 class="font-bold text-green-800 dark:text-purple-300 text-sm uppercase">
-                        Route Instructions
-                    </h3>
-                    <button onclick="window.clearRoute()"
-                        class="text-[10px] text-red-500 font-bold hover:underline">
-                        CLEAR
-                    </button>
-                </div>
+    <!-- =====================================================
+         TRANSPORT (NORMAL FLOW - ABOVE ROUTE BOX)
+    ====================================================== -->
+    <div id="transport-controls"
+        class="grid grid-cols-3 gap-2 mb-5 p-2 rounded-xl
+        bg-white dark:bg-[#1b1730]
+        border border-gray-200 dark:border-[#40376E]">
 
-                <div id="itinerary-container"></div>
+        <!-- WALK -->
+        <label class="cursor-pointer">
+            <input type="radio" name="transport" value="foot" class="hidden peer" checked>
+            <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
+                border-2 border-gray-200 dark:border-[#40376E]
+                bg-white dark:bg-[#2a2545]
+                peer-checked:border-green-600 dark:peer-checked:border-purple-500
+                peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
+                peer-checked:text-green-700 dark:peer-checked:text-purple-300
+                transition">
+                🚶 Walk
             </div>
+        </label>
 
-<div id="sidebar-toggle" class="cursor-pointer">
-    <h2 class="text-xl font-black mb-2 flex items-center gap-2">
-        🧊 Nearby Fridges
-    </h2>
-</div>
-<p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-    Swipe and tap to explore locations near you
-</p>
-
-            <!-- START LOCATION -->
-            <div class="mb-4">
-                <label class="font-semibold text-xs text-gray-600 dark:text-gray-400 block mb-1">
-                    Starting Location
-                </label>
-
-                <div class="flex gap-2">
-                    <input type="text" id="start-location"
-                        placeholder="Enter address"
-                        class="flex-grow p-2 border rounded-lg text-sm
-                        bg-gray-50 dark:bg-[#2a2545]
-                        border-gray-200 dark:border-[#40376E]
-                        text-gray-900 dark:text-white
-                        outline-none focus:ring-2 focus:ring-green-500" />
-
-                    <button id="set-start"
-                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg font-bold text-sm
-                        dark:bg-purple-600 dark:hover:bg-purple-700">
-                        Set
-                    </button>
-                </div>
+        <!-- BIKE -->
+        <label class="cursor-pointer">
+            <input type="radio" name="transport" value="bicycle" class="hidden peer">
+            <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
+                border-2 border-gray-200 dark:border-[#40376E]
+                bg-white dark:bg-[#2a2545]
+                peer-checked:border-green-600 dark:peer-checked:border-purple-500
+                peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
+                peer-checked:text-green-700 dark:peer-checked:text-purple-300
+                transition">
+                🚴 Bike
             </div>
+        </label>
 
-            <!-- SEARCH -->
-            <input type="text" id="fridge-search"
-                placeholder="Search fridges..."
-                class="w-full p-2 border rounded-lg mb-4 text-sm
-                bg-gray-50 dark:bg-[#2a2545]
-                border-gray-200 dark:border-[#40376E]
-                text-gray-900 dark:text-white outline-none" />
+        <!-- DRIVE -->
+        <label class="cursor-pointer">
+            <input type="radio" name="transport" value="car" class="hidden peer">
+            <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
+                border-2 border-gray-200 dark:border-[#40376E]
+                bg-white dark:bg-[#2a2545]
+                peer-checked:border-green-600 dark:peer-checked:border-purple-500
+                peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
+                peer-checked:text-green-700 dark:peer-checked:text-purple-300
+                transition">
+                🚗 Drive
+            </div>
+        </label>
 
-            <!-- TRANSPORT -->
-<div id="transport-controls" class="grid grid-cols-3 gap-2 mb-6">
-
-    <!-- WALK -->
-    <label class="cursor-pointer">
-        <input type="radio" name="transport" value="foot" class="hidden peer" checked>
-
-        <div class="
-            p-2 rounded-xl text-center text-[10px] font-bold uppercase tracking-wide
-            border-2 border-gray-200 dark:border-[#40376E]
-            bg-white dark:bg-[#2a2545]
-            text-gray-700 dark:text-gray-200
-
-            transition-all duration-200
-
-            peer-checked:border-green-600 dark:peer-checked:border-purple-500
-            peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
-            peer-checked:text-green-700 dark:peer-checked:text-purple-300
-
-            peer-checked:shadow-md
-            active:scale-[0.98]
-        ">
-            🚶 Walk
-        </div>
-    </label>
-
-    <!-- BIKE -->
-    <label class="cursor-pointer">
-        <input type="radio" name="transport" value="bicycle" class="hidden peer">
-
-        <div class="
-            p-2 rounded-xl text-center text-[10px] font-bold uppercase tracking-wide
-            border-2 border-gray-200 dark:border-[#40376E]
-            bg-white dark:bg-[#2a2545]
-            text-gray-700 dark:text-gray-200
-
-            transition-all duration-200
-
-            peer-checked:border-green-600 dark:peer-checked:border-purple-500
-            peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
-            peer-checked:text-green-700 dark:peer-checked:text-purple-300
-
-            peer-checked:shadow-md
-            active:scale-[0.98]
-        ">
-            🚴 Bike
-        </div>
-    </label>
-
-    <!-- DRIVE -->
-    <label class="cursor-pointer">
-        <input type="radio" name="transport" value="car" class="hidden peer">
-
-        <div class="
-            p-2 rounded-xl text-center text-[10px] font-bold uppercase tracking-wide
-            border-2 border-gray-200 dark:border-[#40376E]
-            bg-white dark:bg-[#2a2545]
-            text-gray-700 dark:text-gray-200
-
-            transition-all duration-200
-
-            peer-checked:border-green-600 dark:peer-checked:border-purple-500
-            peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
-            peer-checked:text-green-700 dark:peer-checked:text-purple-300
-
-            peer-checked:shadow-md
-            active:scale-[0.98]
-        ">
-            🚗 Drive
-        </div>
-    </label>
-
-</div>
-
-            <!-- FAVORITES -->
-            <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
-                Favorites
-            </h3>
-            <ul id="favorites-list" class="space-y-2 mb-4"></ul>
-
-            <!-- RECENT -->
-<div class="flex justify-between items-center mb-2 hidden md:block">
-    <h3 class="text-md font-bold text-gray-500 dark:text-gray-400">
-        Recently Viewed
-    </h3>
-
-    <div class="flex gap-2 items-center">
-        <button id="undo-recents"
-            class="text-[10px] font-bold uppercase text-blue-500 hover:underline hidden">
-            Undo
-        </button>
-
-        <button id="clear-recents"
-            class="text-[10px] font-bold uppercase text-gray-400 hover:text-red-500">
-            Clear
-        </button>
     </div>
-</div>
-<ul id="recent-list" 
-    class="space-y-2 mb-4 text-sm font-medium 
-           text-gray-700 dark:text-gray-300 
-           transition-colors">
-</ul>
-            <!-- LIST -->
-<ul id="fridge-list"
-    class="space-y-3 pb-20 overflow-y-auto max-h-[50vh] md:max-h-full pr-1">
-</ul>
+
+
+    <!-- =====================================================
+         ROUTE BOX (NO STICKY HEADER, SIMPLE FLOW)
+    ====================================================== -->
+    <div id="routing-directions"
+        class="hidden mb-6 p-4 rounded-2xl border
+        bg-gradient-to-br from-green-50 to-white
+        dark:from-[#241a3a] dark:to-[#1b1730]
+        border-green-200 dark:border-[#40376E]
+        shadow-lg">
+
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-black text-green-800 dark:text-purple-300 text-sm uppercase tracking-wide">
+                Route Instructions
+            </h3>
+
+            <button onclick="window.clearRoute()"
+                class="text-[10px] px-2 py-1 rounded-md
+                text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-500/10 transition">
+                CLEAR
+            </button>
         </div>
+
+        <div id="itinerary-container"></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         HEADER SECTION (FRIDGES)
+    ====================================================== -->
+    <div class="mb-4">
+
+        <div id="sidebar-toggle" class="cursor-pointer">
+            <h2 class="text-2xl font-black flex items-center gap-2">
+                🧊 Nearby Fridges
+            </h2>
+        </div>
+
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Swipe, tap, and explore community fridges near you
+        </p>
+    </div>
+
+
+    <!-- =====================================================
+         START LOCATION
+    ====================================================== -->
+    <div class="mb-5 p-3 rounded-xl bg-gray-50 dark:bg-[#2a2545]
+        border border-gray-200 dark:border-[#40376E]">
+
+        <label class="font-semibold text-xs text-gray-600 dark:text-gray-400 block mb-2">
+            Starting Location
+        </label>
+
+        <div class="flex gap-2">
+
+            <input type="text" id="start-location"
+                placeholder="Enter address"
+                class="flex-grow p-2 rounded-lg text-sm
+                bg-white dark:bg-[#1f1a3a]
+                border border-gray-200 dark:border-[#40376E]
+                text-gray-900 dark:text-white
+                outline-none focus:ring-2 focus:ring-green-500" />
+
+            <button id="set-start"
+                class="bg-green-500 hover:bg-green-600
+                text-white px-3 py-2 rounded-lg font-bold text-sm
+                dark:bg-purple-600 dark:hover:bg-purple-700 transition">
+                Set
+            </button>
+
+        </div>
+    </div>
+
+
+    <!-- SEARCH -->
+    <input type="text" id="fridge-search"
+        placeholder="Search fridges..."
+        class="w-full p-3 mb-5 rounded-xl text-sm
+        bg-gray-50 dark:bg-[#2a2545]
+        border border-gray-200 dark:border-[#40376E]
+        text-gray-900 dark:text-white
+        outline-none focus:ring-2 focus:ring-green-500" />
+
+
+    <!-- FAVORITES -->
+    <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
+        Favorites
+    </h3>
+    <ul id="favorites-list" class="space-y-2 mb-5"></ul>
+
+
+    <!-- RECENTS -->
+    <div class="flex justify-between items-center mb-2 hidden md:flex">
+        <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400">
+            Recently Viewed
+        </h3>
+
+        <div class="flex gap-2">
+            <button id="undo-recents"
+                class="text-[10px] font-bold uppercase text-blue-500 hover:underline hidden">
+                Undo
+            </button>
+
+            <button id="clear-recents"
+                class="text-[10px] font-bold uppercase text-gray-400 hover:text-red-500">
+                Clear
+            </button>
+        </div>
+    </div>
+
+    <ul id="recent-list"
+        class="space-y-2 mb-5 text-sm text-gray-700 dark:text-gray-300">
+    </ul>
+
+
+    <!-- FRIDGE LIST -->
+    <ul id="fridge-list"
+        class="space-y-3 pb-24 overflow-y-auto max-h-[50vh] md:max-h-full pr-1">
+    </ul>
+
+</div>
     </aside>
 </div>
-<div id="directions-modal"
-    class="fixed inset-0 z-[2000] bg-black/40 hidden flex items-end md:hidden">
+<div id="directions-controls-mobile" class="mb-2"></div>
 
-<div class="w-full max-h-[80dvh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-3 overflow-y-auto md:hidden"><div class="flex justify-between items-center mb-3">
-    <h2 class="font-bold text-lg">Directions</h2>
+<div class="w-full max-h-[45dvh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-2 overflow-y-auto md:hidden">    <h2 class="font-bold text-base">Directions</h2>
 
     <div class="flex gap-2">
         <button onclick="window.clearRoute(); closeDirectionsModal()"
-            class="text-[11px] font-bold text-red-500 border border-red-300 px-2 py-1 rounded-lg">
+            class="text-[10px] font-bold text-red-500 border border-red-300 px-2 py-1 rounded-md">
             Clear
         </button>
 
         <button onclick="closeDirectionsModal()"
-            class="text-[11px] font-bold text-gray-500">
+            class="text-[10px] font-bold text-gray-500">
             Close
         </button>
     </div>
 </div>
 
 <div id="mobile-itinerary-container"
-     class="max-h-[60dvh] overflow-y-auto bg-white dark:bg-[#1b1730] rounded-xl">
-</div>   
+     class="max-h-[55dvh] overflow-y-auto rounded-lg px-2 py-3
+       text-sm leading-relaxed
+            bg-white text-gray-900
+            dark:bg-[#1b1730] dark:text-gray-100
+            transition-colors">
+</div>
  </div>
 </div>
 <script>
@@ -748,8 +910,6 @@ const state = {
     currentTargetFridge: null,
 
     allFridges: [],
-    fridgeMarkers: [],
-
     lastRoute: null,
 
     recentsBackup: null,
@@ -802,28 +962,25 @@ function debounce(fn, delay = 250) {
 
     };
 }
-let resizeQueued = false;
+let resizeRAF = null;
 
 function safeMapResize() {
-    if (resizeQueued) return;
+    if (resizeRAF) return;
 
-    resizeQueued = true;
+    resizeRAF = requestAnimationFrame(() => {
 
-    requestAnimationFrame(() => {
-        map.invalidateSize(true);
+        map.invalidateSize({
+            pan: false,
+            animate: false
+        });
 
-        if (state.currentRouteLayer) {
-            map.fitBounds(state.currentRouteLayer.getBounds(), {
-                padding: [40, 40]
-            });
-        }
-
-        resizeQueued = false;
+        resizeRAF = null;
     });
 }
 /* =========================================================
    API HELPERS
 ========================================================= */
+
 async function apiGet(url) {
 
     const res = await fetch(url);
@@ -869,11 +1026,32 @@ setTimeout(() => {
     safeMapResize();
 }, 300);
 
-L.control.zoom({
-    position: 'topright'
-}).addTo(map);
+// Only show zoom controls on desktop
+if (!isMobile()) {
+    L.control.zoom({
+        position: 'topright'
+    }).addTo(map);
+}
+map.on("click", (e) => {
+    if (!isMobile()) return;
 
+    closeFridgeSheet();
 
+    const el = e.originalEvent?.target;
+
+    // ignore map UI interactions
+    if (
+        el?.closest("#sidebar") ||
+        el?.closest(".leaflet-popup") ||
+        el?.closest(".leaflet-control") ||
+        el?.closest("#directions-modal")
+    ) return;
+
+    // collapse BOTH sidebar + directions for clean map focus
+    hideSidebar();
+    hide(DOM.directionsModal);
+    hide(DOM.directions);
+});
 /* =========================================================
    TILE LAYERS
 ========================================================= */
@@ -882,7 +1060,11 @@ const lightTiles = L.tileLayer(
     {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
         subdomains: 'abcd',
-        maxZoom: 20
+        maxZoom: 20,
+        updateWhenIdle: false,
+        updateWhenZooming: true,
+        keepBuffer: 4
+        
     }
 );
 
@@ -890,7 +1072,10 @@ const darkTiles = L.tileLayer(
     'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
     {
         attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
-        maxZoom: 20
+        maxZoom: 20,
+        updateWhenIdle: false,
+        updateWhenZooming: true,
+        keepBuffer: 4
     }
 );
 
@@ -913,7 +1098,9 @@ window.applyMapTheme = function () {
     state.currentTileLayer.addTo(map);
 
     requestAnimationFrame(() => {
-        safeMapResize();
+        setTimeout(() => {
+    safeMapResize();
+}, 250);
     });
 };
 
@@ -937,53 +1124,180 @@ const fridgeIcon = L.icon({
 
 
 /* =========================================================
-   SIDEBAR CONTROLS
+   MOBILE BOTTOM SHEET
 ========================================================= */
+
+const SHEET = {
+    FULL: 0,
+    HALF: window.innerHeight * 0.45,
+    PEEK: window.innerHeight * 0.6
+};
+
+state.sheetPosition = SHEET.FULL;
+state.dragStartY = 0;
+state.dragStartTranslate = 0;
+state.lastDragY = 0;
+state.lastDragTime = 0;
+state.velocity = 0;
+state.isDragging = false;
+
+/* =========================
+   APPLY POSITION
+========================= */
+function setSheetPosition(y, animate = true) {
+
+    state.sheetPosition = y;
+
+    DOM.sidebar.style.transition =
+        animate
+            ? "transform 0.28s cubic-bezier(.22,.9,.35,1)"
+            : "none";
+
+    DOM.sidebar.style.transform =
+        `translateY(${y}px)`;
+}
+
+/* =========================
+   SNAP LOGIC
+========================= */
+function snapSheet() {
+
+    const y = state.sheetPosition;
+
+    const snapPoints = [SHEET.FULL, SHEET.HALF, SHEET.PEEK];
+
+    // fast flick down → close
+    if (state.velocity > 1.2) {
+        return setSheetPosition(SHEET.CLOSED);
+    }
+
+    // fast flick up → open fully
+    if (state.velocity < -1.2) {
+        return setSheetPosition(SHEET.FULL);
+    }
+
+    let nearest = snapPoints[0];
+
+    for (const point of snapPoints) {
+        if (Math.abs(point - y) < Math.abs(nearest - y)) {
+            nearest = point;
+        }
+    }
+
+    setSheetPosition(nearest);
+}
+/* =========================
+   OPEN/CLOSE HELPERS
+========================= */
 function openSidebar() {
-
-    state.sidebarState = "expanded";
-
-    DOM.sidebar.style.transform = "translateY(0)";
-    DOM.sidebar.classList.add("open");
-    DOM.sidebar.classList.remove("hidden-state");
-
-    state.currentTranslate = 0;
-
-    requestAnimationFrame(() => {
-        safeMapResize();
-    });
+    setSheetPosition(SHEET.FULL);
 }
+
+function halfSidebar() {
+    setSheetPosition(SHEET.HALF);
+}
+
 function hideSidebar() {
+    setSheetPosition(SHEET.PEEK);
+}
 
-    state.sidebarState = "collapsed";
-
-    const collapsedY = window.innerHeight * 0.68;
-DOM.sidebar.style.bottom = `-${collapsedY}px`;
-DOM.sidebar.style.transform = "none";
-
-    DOM.sidebar.classList.remove("open");
-    DOM.sidebar.classList.add("hidden-state");
-
-    state.currentTranslate = collapsedY;
-
+/* initial mobile state */
+if (isMobile()) {
     requestAnimationFrame(() => {
-        safeMapResize();
+        setSheetPosition(SHEET.PEEK, false);
     });
 }
 
-function toggleSidebar() {
+/* =========================================================
+   DRAGGING
+========================================================= */
 
-    if (DOM.sidebar.classList.contains("open")) {
+const dragHandle =
+    document.getElementById("drag-handle");
+
+dragHandle.addEventListener(
+    "touchstart",
+    (e) => {
+
+        state.isDragging = true;
+
+        state.dragStartY =
+            e.touches[0].clientY;
+
+        state.dragStartTranslate =
+            state.sheetPosition;
+
+        state.lastDragY =
+            state.dragStartY;
+
+        state.lastDragTime =
+            performance.now();
+
+        DOM.sidebar.style.transition = "none";
+    },
+    { passive: true }
+);
+window.addEventListener(
+    "touchmove",
+    (e) => {
+        if (!state.isDragging) return;
+
+        const currentY = e.touches[0].clientY;
+        const delta = currentY - state.dragStartY;
+
+        let next = state.dragStartTranslate + delta;
+
+        // clamp bounds
+        next = Math.max(SHEET.FULL, Math.min(next, SHEET.PEEK));
+
+        const now = performance.now();
+
+        state.velocity =
+            (currentY - state.lastDragY) /
+            Math.max(1, (now - state.lastDragTime));
+
+        state.lastDragY = currentY;
+        state.lastDragTime = now;
+
+        setSheetPosition(next, false);
+    },
+    { passive: true }
+);
+window.addEventListener(
+    "touchend",
+    () => {
+
+        if (!state.isDragging) return;
+
+        state.isDragging = false;
+
+        snapSheet();
+    }
+);
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+DOM.closeBtn.onclick = () => {
+    hideSidebar();
+};
+DOM.sidebarToggle.onclick = () => {
+
+    if (state.sheetPosition <= SHEET.HALF) {
         hideSidebar();
     } else {
         openSidebar();
     }
+};
+
+/* =========================================================
+   INITIAL MOBILE STATE
+========================================================= */
+
+if (isMobile()) {
+    hideSidebar();
 }
-
-DOM.closeBtn.onclick = hideSidebar;
-DOM.sidebarToggle.onclick = toggleSidebar;
-
-
 /* =========================================================
    DISTANCE HELPERS
 ========================================================= */
@@ -1156,7 +1470,50 @@ const profileMap = {
     bicycle: "bicycle",
     car: "drive"
 };
+function getStepIcon(text = "") {
+    const t = text.toLowerCase();
 
+    if (t.includes("left")) return "⬅️";
+    if (t.includes("right")) return "➡️";
+    if (t.includes("slight left")) return "↖️";
+    if (t.includes("slight right")) return "↗️";
+    if (t.includes("sharp left")) return "⤴️";
+    if (t.includes("sharp right")) return "⤵️";
+    if (t.includes("continue") || t.includes("straight")) return "⬆️";
+    if (t.includes("arrive")) return "📍";
+
+    return "•";
+}
+
+function renderMobileDirections(distMi, timeMin, steps) {
+    let html = `
+        <div class="p-2 mb-2 rounded-lg bg-green-600 text-white font-bold text-xs flex justify-between">
+            <span>${distMi} mi</span>
+            <span>${timeMin} min</span>
+        </div>
+    `;
+
+    steps.forEach((step, i) => {
+        const icon = getStepIcon(step.instruction.text);
+
+        html += `
+<div class="flex items-start gap-2 text-sm py-2 border-b border-gray-200 dark:border-[#40376E] leading-relaxed">
+
+                <span class="text-sm w-5 text-center">
+                    ${icon}
+                </span>
+
+                <div class="flex-1">
+                    <span class="font-bold mr-1">${i + 1}.</span>
+                    ${step.instruction.text}
+                </div>
+
+            </div>
+        `;
+    });
+
+    return html;
+}
 window.routeToFridge = async function(lat, lng) {
 
     if (!state.userLat || !state.userLng) {
@@ -1176,7 +1533,9 @@ window.routeToFridge = async function(lat, lng) {
         show(DOM.directionsModal);
 
         requestAnimationFrame(() => {
-            safeMapResize();
+            setTimeout(() => {
+    safeMapResize();
+}, 250);
         });
 
         DOM.mobileItinerary.innerHTML = loadingHtml;
@@ -1224,34 +1583,46 @@ window.routeToFridge = async function(lat, lng) {
                 routeData.properties.time / 60
             );
 
-        let stepsHtml =
-            createRouteSummary(distMi, timeMin);
+let stepsHtml = createRouteSummary(distMi, timeMin);
 
-        routeData.properties.legs[0].steps
-            .forEach((step, i) => {
+routeData.properties.legs[0].steps.forEach((step, i) => {
 
-                stepsHtml += `
-<div class="text-sm py-2 border-b">
-    <b>${i + 1}.</b>
-    ${step.instruction.text}
-</div>
-`;
-            });
+    const icon = getStepIcon(step.instruction.text);
 
-        DOM.itinerary.innerHTML = stepsHtml;
+    stepsHtml += `
+        <div class="flex items-start gap-2 text-xs py-2 border-b border-gray-200 dark:border-[#40376E] leading-snug">
+
+            <span class="text-base w-6 text-center">
+                ${icon}
+            </span>
+
+            <div class="flex-1">
+                <span class="font-bold mr-1">${i + 1}.</span>
+                ${step.instruction.text}
+            </div>
+
+        </div>
+    `;
+show(DOM.directions);
+DOM.sidebar.classList.add("directions-open");
+});
+
+DOM.itinerary.innerHTML = stepsHtml;
 
         if (isMobile()) {
-            DOM.mobileItinerary.innerHTML = stepsHtml;
-        }
+    DOM.mobileItinerary.innerHTML =
+        renderMobileDirections(distMi, timeMin, routeData.properties.legs[0].steps);
+         hideSidebar();
+}
 
         state.lastRoute = {
-            lat,
-            lng,
-            coords,
-            stepsHtml,
-            distance: distMi,
-            time: timeMin
-        };
+    lat,
+    lng,
+    coords,
+    distance: distMi,
+    time: timeMin,
+    rawSteps: routeData.properties.legs[0].steps
+};
 
     } catch (err) {
 
@@ -1268,6 +1639,17 @@ window.routeToFridge = async function(lat, lng) {
             DOM.mobileItinerary.innerHTML = errorHtml;
         }
     }
+
+
+if (isMobile()) {
+    show(DOM.directionsModal);
+
+    const clone = DOM.transportControls.cloneNode(true);
+    document.getElementById("directions-controls-mobile").innerHTML = "";
+    document.getElementById("directions-controls-mobile").appendChild(clone);
+
+    DOM.mobileItinerary.innerHTML = loadingHtml;
+}
 };
 
 
@@ -1280,6 +1662,8 @@ window.clearRoute = function() {
 
     hide(DOM.directions);
 
+    DOM.sidebar.classList.remove("directions-open");
+
     show(DOM.reopenDirections);
 
     clearHTML(DOM.itinerary);
@@ -1290,29 +1674,51 @@ window.clearRoute = function() {
 
     state.currentTargetFridge = null;
 };
-
 function restoreLastRoute() {
-
     if (!state.lastRoute) return;
 
     const {
         coords,
-        stepsHtml
+        distance,
+        time,
+        steps
     } = state.lastRoute;
 
     drawRoute(coords);
 
     show(DOM.directions);
 
-    DOM.itinerary.innerHTML = stepsHtml;
+    const selectedMode =
+        document.querySelector('input[name="transport"]:checked').value;
 
-    if (DOM.mobileItinerary) {
-        DOM.mobileItinerary.innerHTML = stepsHtml;
+    const geoMode =
+        profileMap[selectedMode] || "walk";
+
+    const stepsData =
+        state.lastRoute.rawSteps || [];
+
+    const html = createRouteSummary(distance, time) +
+        stepsData.map((step, i) => {
+            const icon = getStepIcon(step.instruction.text);
+
+            return `
+                <div class="flex items-start gap-2 text-xs py-2 border-b border-gray-200 dark:border-[#40376E]">
+                    <span class="w-5 text-center">${icon}</span>
+                    <div><b>${i + 1}.</b> ${step.instruction.text}</div>
+                </div>
+            `;
+        }).join("");
+
+    DOM.itinerary.innerHTML = html;
+
+    if (isMobile()) {
+        DOM.mobileItinerary.innerHTML =
+            renderMobileDirections(distance, time, stepsData);
+
+        show(DOM.directionsModal);
+        hideSidebar();
     }
-
-    show(DOM.directionsModal);
 }
-
 
 /* =========================================================
    CREATE POPUP HTML
@@ -1353,21 +1759,135 @@ function createFridgePopup(f) {
 </div>
 `;
 }
+function openFridgeSheet(fridge) {
+
+    const sheet =
+        document.getElementById("fridge-sheet");
+
+    const content =
+        document.getElementById("fridge-sheet-content");
+
+    content.innerHTML = `
+<div class="space-y-4">
+
+    <div>
+        <h2 class="text-2xl font-black text-gray-900 dark:text-white">
+            ${fridge.name}
+        </h2>
+
+        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1">
+            ${fridge.status || "Active"}
+        </p>
+    </div>
+
+    <div class="
+        bg-gray-100 dark:bg-[#2a2545]
+        rounded-2xl p-4 text-sm
+    ">
+        Community fridge available for public access.
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+
+        <button
+            onclick="window.location.href='/individfridge/${fridge.id}'"
+            class="
+                py-3 rounded-2xl font-bold
+                bg-gray-200 hover:bg-gray-300
+                dark:bg-[#40376E]
+                dark:hover:bg-[#56458d]
+                transition
+            ">
+            Details
+        </button>
+
+        <button
+            onclick="
+                window.routeToFridge(${fridge.lat}, ${fridge.lng});
+                closeFridgeSheet();
+            "
+            class="
+                py-3 rounded-2xl font-bold text-white
+                bg-green-600 hover:bg-green-700
+                dark:bg-purple-600 dark:hover:bg-purple-700
+                transition
+            ">
+            Directions
+        </button>
+
+    </div>
+
+</div>
+`;
+
+    sheet.classList.add("open");
+}
+
+function closeFridgeSheet() {
+
+    document
+        .getElementById("fridge-sheet")
+        .classList.remove("open");
+}
+
+function createMarkers(fridges) {
+
+    fridges.forEach(f => {
+
+        if (state.markerMap.has(f.id)) return;
+
+        const marker = L.marker(
+    [f.lat, f.lng],
+    { icon: fridgeIcon }
+).addTo(map);
+
+// ONLY use Leaflet popups on desktop
+if (!isMobile()) {
+    marker.bindPopup(createFridgePopup(f));
+}
+
+        marker.on('dblclick', () => {
+            window.location.href =
+                `/individfridge/${f.id}`;
+        });
+
+        marker.on('click', () => {
+
+    saveRecentlyViewed(f);
+
+    map.setView(
+        [f.lat, f.lng],
+        CONFIG.FRIDGE_ZOOM
+    );
+
+    if (isMobile()) {
+        openFridgeSheet(f);
+    } else {
+        marker.openPopup();
+    }
+});
+
+        state.markerMap.set(f.id, marker);
+    });
+}
 
 
 /* =========================================================
    RENDER FRIDGES
 ========================================================= */
 let lastRenderKey = "";
+
+
+
+
+
+
+/* =========================
+   RENDER SIDEBAR ONLY
+========================= */
 function renderFridges(fridges) {
 
     clearHTML(DOM.fridgeList);
-
-    state.fridgeMarkers.forEach(marker => {
-        map.removeLayer(marker);
-    });
-
-    state.fridgeMarkers = [];
 
     const fragment =
         document.createDocumentFragment();
@@ -1384,7 +1904,6 @@ function renderFridges(fridges) {
                 )
                 : null
         }))
-
         .sort((a, b) =>
             (a.distance || 999) -
             (b.distance || 999)
@@ -1392,45 +1911,8 @@ function renderFridges(fridges) {
 
     fridgesWithData.forEach(f => {
 
-        /* -----------------------------
-           MARKER
-        ----------------------------- */
-        const marker = L.marker(
-            [f.lat, f.lng],
-            { icon: fridgeIcon }
-        )
+        const marker = state.markerMap.get(f.id);
 
-        .addTo(map)
-
-        .bindPopup(createFridgePopup(f));
-
-        marker.on('dblclick', () => {
-            window.location.href =
-                `/individfridge/${f.id}`;
-        });
-
-        marker.on('click', () => {
-
-            saveRecentlyViewed(f);
-
-            map.flyTo(
-                [f.lat, f.lng],
-                CONFIG.FRIDGE_ZOOM,
-                {
-                    duration: 0.6,
-                    easeLinearity: 0.25
-                }
-            );
-
-            marker.openPopup();
-        });
-
-        state.fridgeMarkers.push(marker);
-
-
-        /* -----------------------------
-           SIDEBAR ITEM
-        ----------------------------- */
         const li =
             document.createElement("li");
 
@@ -1516,7 +1998,6 @@ ${f.distance
     DOM.fridgeList.appendChild(fragment);
 }
 
-
 /* =========================================================
    LOAD FRIDGES
 ========================================================= */
@@ -1527,6 +2008,8 @@ async function loadFridges() {
         state.allFridges =
             await apiGet(CONFIG.API.FRIDGES);
 
+        createMarkers(state.allFridges);
+
         renderFridges(state.allFridges);
 
     } catch (err) {
@@ -1535,7 +2018,6 @@ async function loadFridges() {
 
     }
 }
-
 
 /* =========================================================
    SEARCH
@@ -1958,86 +2440,6 @@ window.addEventListener("resize", () => {
     }, 250);
 
 });
-/* =========================================================
-   SIDEBAR DRAGGING
-========================================================= */
-DOM.sidebar.addEventListener(
-    "touchstart",
-    (e) => {
-
-        if (!e.target.closest("#drag-handle")) {
-            return;
-        }
-
-        state.isDragging = true;
-
-        state.startY =
-            e.touches[0].clientY;
-
-        DOM.sidebar.style.transition = "none";
-    }
-);
-
-DOM.sidebar.addEventListener(
-    "touchmove",
-    (e) => {
-
-        if (!state.isDragging) return;
-
-        state.currentY = e.touches[0].clientY;
-
-        const diff = state.currentY - state.startY;
-
-        const now = Date.now();
-
-        state.velocity =
-            diff / (now - (state.lastMoveTime || now));
-
-        state.lastMoveTime = now;
-
-        const nextTranslate =
-            state.currentTranslate + diff;
-
-        state.currentTranslate = Math.max(
-            0,
-            Math.min(nextTranslate, MAX_TRANSLATE)
-        );
-
-        DOM.sidebar.style.transform =
-            `translateY(${state.currentTranslate}px)`;
-
-        state.startY = state.currentY;
-
-    },
-    { passive: true }
-);
-DOM.sidebar.addEventListener(
-    "touchend",
-    () => {
-
-        if (!state.isDragging) return;
-
-        state.isDragging = false;
-
-        DOM.sidebar.style.transition =
-            "transform 0.3s ease";
-
-        const shouldClose =
-    state.currentTranslate > MAX_TRANSLATE * 0.45 ||
-    state.velocity > 0.6;
-
-if (shouldClose)
- {
-
-            hideSidebar();
-
-        } else {
-
-            openSidebar();
-        }
-    }
-);
-
 
 /* =========================================================
    FLASH MESSAGES
@@ -2127,11 +2529,18 @@ DOM.reopenDirections.onclick = () => {
 
     hide(DOM.reopenDirections);
 
+    setTimeout(() => {
     safeMapResize();
+}, 250);
 };
 
 window.closeDirectionsModal = function () {
     hide(DOM.directionsModal);
+
+    // show compact reopen button like "CLEAR"
+    if (state.lastRoute || state.currentTargetFridge) {
+        show(DOM.reopenDirections);
+    }
 };
 
 /* =========================================================
