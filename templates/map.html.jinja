@@ -86,6 +86,10 @@ href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
 .animated-route {
     stroke-linecap: round;
     stroke-linejoin: round;
+    animation:
+        routeFlow 1s linear infinite,
+        routePulseColor 2.5s linear infinite,
+        routeGlow 2s ease-in-out infinite;
 }
 
 /* Desktop only */
@@ -137,12 +141,7 @@ href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
         stroke-dashoffset: 0;
     }
 }
-/* =========================================================
-   POPUPS
-========================================================= */
-.leaflet-popup-content button {
-    pointer-events: auto;
-}
+
 
 
 /* =========================================================
@@ -293,31 +292,7 @@ nav {
 .dark .scrollbar-hide::-webkit-scrollbar-thumb {
     background-color: #a855f7;
 }
-/* Light mode popup */
-.leaflet-popup-content-wrapper {
-    background: white;
-    color: #111;
-    border-radius: 12px;
-}
 
-.leaflet-popup-tip {
-    background: white;
-}
-
-/* 🌙 Dark mode popup */
-.dark .leaflet-popup-content-wrapper {
-    background: #1f1a3a !important;
-    color: white !important;
-}
-
-.dark .leaflet-popup-tip {
-    background: #1f1a3a !important;
-}
-
-/* optional polish */
-.leaflet-popup-content {
-    margin: 0;
-}
 
 /* =========================================================
    MOBILE STYLES
@@ -454,29 +429,7 @@ body.dragging-sheet {
         padding: 10px !important;
     }
 
-/* Bigger Leaflet popup */
-.leaflet-popup-content-wrapper {
-    width: 320px !important;   /* 👈 increase width */
-    max-width: 90vw;
-    border-radius: 16px;
-}
 
-.leaflet-popup-content {
-    width: 100% !important;
-    min-width: 260px;
-    padding: 8px;
-}
-
-/* Make buttons feel less cramped */
-.leaflet-popup-content button {
-    font-size: 12px;
-    padding: 10px 12px;
-}
-
-/* Optional: increase popup tip spacing */
-.leaflet-popup-tip {
-    margin-top: -1px;
-}
 /* =========================================================
    MOBILE FRIDGE BOTTOM SHEET
 ========================================================= */
@@ -502,7 +455,17 @@ body.dragging-sheet {
 #fridge-sheet-content {
     -webkit-overflow-scrolling: touch;
 }
+#fridge-sheet > div {
+    touch-action: none;
+    will-change: transform;
 }
+
+#fridge-sheet.open {
+    transform: translateY(0%);
+    transition: transform 0.28s cubic-bezier(.22,.9,.35,1);
+}
+}
+
 
 #routing-directions .mb-4 {
     position: sticky;
@@ -520,7 +483,99 @@ body.dragging-sheet {
         opacity 0.4s ease,
         transform 0.4s ease;
 }
+/* =========================
+   CLEAN LEAFLET POPUP FIX
+========================= */
 
+.leaflet-popup {
+    z-index: 9999;
+}
+
+/* main popup container */
+.leaflet-popup-content-wrapper {
+    width: 260px;
+    max-width: 85vw;
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+    background: white;
+    color: #111;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+}
+
+/* dark mode */
+.dark .leaflet-popup-content-wrapper {
+    background: #1f1a3a;
+    color: white;
+    box-shadow: 0 18px 55px rgba(0,0,0,0.6);
+}
+
+/* content reset */
+.leaflet-popup-content {
+    margin: 0;
+    padding: 12px;
+    width: 100% !important;
+}
+
+/* remove default tip cleanly */
+.leaflet-popup-tip {
+    background: inherit;
+    box-shadow: none;
+}
+
+/* title styling */
+.leaflet-popup-content b {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* buttons */
+.leaflet-popup-content button {
+    border-radius: 10px;
+    font-size: 12px;
+    padding: 8px 10px;
+    font-weight: 700;
+    transition: 0.2s ease;
+}
+
+.leaflet-popup-content button:hover {
+    transform: translateY(-1px);
+}
+    .fav-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 0.5rem;
+    color: white;
+    background: #eab308; /* yellow */
+    transition: all 0.2s ease;
+}
+
+/* unfavorite state = RED */
+.fav-btn.favorited {
+    background: #dc2626;
+    color: #fff;
+}
+
+.fav-btn:hover {
+    transform: scale(1.05);
+}
+/* mobile sizing */
+@media (max-width: 768px) {
+    .leaflet-popup-content-wrapper {
+        width: 220px;
+        max-width: 80vw;
+    }
+
+    .leaflet-popup-content {
+        font-size: 12px;
+    }
+
+    .leaflet-popup-content button {
+        font-size: 11px;
+        padding: 7px 9px;
+    }
+}
 </style>
         <script>
         tailwind.config = {
@@ -717,7 +772,7 @@ md:hidden">
     ====================================================== -->
     <div class="mb-4">
 
-        <div id="sidebar-toggle" class="cursor-pointer">
+        <div id="sidebar-toggle" class="md:cursor-default cursor-pointer">
             <h2 class="text-2xl font-black flex items-center gap-2">
                 🧊 Nearby Fridges
             </h2>
@@ -938,8 +993,12 @@ function isMobile() {
 
 function show(el) {
     el?.classList.remove("hidden");
-}
 
+    requestAnimationFrame(() => {
+        el.style.opacity = "1";
+        el.style.transform = "translateY(0)";
+    });
+}
 function hide(el) {
     el?.classList.add("hidden");
 }
@@ -1284,13 +1343,14 @@ DOM.closeBtn.onclick = () => {
 };
 DOM.sidebarToggle.onclick = () => {
 
+    if (!isMobile()) return;
+
     if (state.sheetPosition <= SHEET.HALF) {
         hideSidebar();
     } else {
         openSidebar();
     }
 };
-
 /* =========================================================
    INITIAL MOBILE STATE
 ========================================================= */
@@ -1346,19 +1406,31 @@ function setUserLocation(lat, lng) {
     .addTo(map)
 
 .bindPopup(`
-<div class="p-3 text-center rounded-xl text-gray-900 dark:text-white">
+<div class="
+    px-2 py-1.5
+    text-center
+    rounded-lg
+    text-gray-900 dark:text-white
+    w-[140px]
+    md:w-auto
+">
 
-    <div class="text-lg font-black mb-1">
+    <div class="text-sm md:text-lg font-black leading-tight">
         📍 Your Location
     </div>
 
-    <div class="text-[11px] uppercase tracking-wide
-                text-gray-500 dark:text-gray-400">
+    <div class="
+        text-[9px] md:text-[11px]
+        uppercase tracking-wide
+        text-gray-500 dark:text-gray-400
+        mt-0.5
+    ">
         Starting Point
     </div>
 
 </div>
-`)
+`)  
+    
     .openPopup();
 
     map.flyTo(
@@ -1514,6 +1586,19 @@ function renderMobileDirections(distMi, timeMin, steps) {
 
     return html;
 }
+window.updateRouteTheme = function () {
+    if (!state.currentRouteLayer) return;
+
+    const isDark =
+        document.documentElement.classList.contains('dark');
+
+    state.currentRouteLayer.setStyle({
+        color: isDark
+            ? CONFIG.ROUTE_STYLE.dark
+            : CONFIG.ROUTE_STYLE.light
+    });
+};
+
 window.routeToFridge = async function(lat, lng) {
 
     if (!state.userLat || !state.userLng) {
@@ -1660,19 +1745,29 @@ window.clearRoute = function() {
 
     clearRouteLayer();
 
-    hide(DOM.directions);
+    // animate directions panel out
+    DOM.directions.classList.add("fade-out-directions");
+
+    setTimeout(() => {
+        hide(DOM.directions);
+        DOM.directions.classList.remove("fade-out-directions");
+    }, 400);
 
     DOM.sidebar.classList.remove("directions-open");
 
-    show(DOM.reopenDirections);
-
     clearHTML(DOM.itinerary);
-
     hide(DOM.directionsModal);
-
     clearHTML(DOM.mobileItinerary);
 
     state.currentTargetFridge = null;
+
+    // fade in reopen button
+    DOM.reopenDirections.classList.remove("hidden");
+
+    requestAnimationFrame(() => {
+        DOM.reopenDirections.style.opacity = "1";
+        DOM.reopenDirections.style.transform = "translateY(0)";
+    });
 };
 function restoreLastRoute() {
     if (!state.lastRoute) return;
@@ -1726,77 +1821,83 @@ function restoreLastRoute() {
 function createFridgePopup(f) {
 
     return `
-<div class="p-3 text-center rounded-xl text-gray-900 dark:text-white">
+<div class="p-4 rounded-2xl text-center text-gray-900 dark:text-white">
 
-    <b class="text-lg font-bold text-gray-900 dark:text-white">
-        ${f.name}
-    </b><br>
+    <div class="mb-2">
+        <div class="text-base font-black leading-tight">
+            ${f.name}
+        </div>
 
-    <span class="text-[10px] text-gray-500 dark:text-gray-400 uppercase">
-        ${f.status || 'Active'}
-    </span><br>
+        <div class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1">
+            ${f.status || 'Active'}
+        </div>
+    </div>
 
-    <div class="flex gap-2 mt-3">
+    <div class="flex gap-2 mt-4">
 
-        <button 
+        <button
             onclick="window.location.href='/individfridge/${f.id}'"
-            class="flex-1 text-[11px] bg-gray-200 hover:bg-gray-300 
-                   dark:bg-[#A855F7] dark:hover:bg-[#693D9E]
-                   text-gray-800 dark:text-white px-3 py-2 rounded-lg font-bold transition">
+            class="flex-1 py-2.5 rounded-xl text-xs font-bold
+                   bg-gray-100 hover:bg-gray-200
+                   dark:bg-[#2a2545] dark:hover:bg-[#3a3160]
+                   transition active:scale-[0.98]">
             Details
         </button>
 
-        <button 
+        <button
             onclick="window.routeToFridge(${f.lat},${f.lng})"
-            class="flex-1 bg-green-600 dark:bg-purple-600
-                   hover:bg-green-700 dark:hover:bg-purple-700
-                   text-white px-3 py-2 rounded-lg font-bold text-[11px]
-                   touch-manipulation">
+            class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white
+                   bg-green-600 hover:bg-green-700
+                   dark:bg-purple-600 dark:hover:bg-purple-700
+                   transition active:scale-[0.98] touch-manipulation">
             Directions
         </button>
 
     </div>
+
 </div>
 `;
 }
+
+
 function openFridgeSheet(fridge) {
 
-    const sheet =
-        document.getElementById("fridge-sheet");
-
-    const content =
-        document.getElementById("fridge-sheet-content");
+    const sheet = document.getElementById("fridge-sheet");
+    const content = document.getElementById("fridge-sheet-content");
 
     content.innerHTML = `
 <div class="space-y-4">
 
-    <div>
-        <h2 class="text-2xl font-black text-gray-900 dark:text-white">
+
+    <!-- TITLE -->
+    <div class="text-center">
+        <h2 class="text-xl font-black text-gray-900 dark:text-white">
             ${fridge.name}
         </h2>
 
-        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1">
+        <p class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1">
             ${fridge.status || "Active"}
         </p>
     </div>
 
+    <!-- DESCRIPTION CARD -->
     <div class="
         bg-gray-100 dark:bg-[#2a2545]
-        rounded-2xl p-4 text-sm
+        rounded-2xl p-4 text-sm text-center
     ">
-        Community fridge available for public access.
+        Community fridge open to everyone. Take what you need, leave what you can.
     </div>
 
+    <!-- ACTIONS -->
     <div class="grid grid-cols-2 gap-3">
 
         <button
             onclick="window.location.href='/individfridge/${fridge.id}'"
             class="
-                py-3 rounded-2xl font-bold
+                py-3 rounded-2xl font-bold text-sm
                 bg-gray-200 hover:bg-gray-300
-                dark:bg-[#40376E]
-                dark:hover:bg-[#56458d]
-                transition
+                dark:bg-[#40376E] dark:hover:bg-[#56458d]
+                transition active:scale-[0.98]
             ">
             Details
         </button>
@@ -1807,10 +1908,10 @@ function openFridgeSheet(fridge) {
                 closeFridgeSheet();
             "
             class="
-                py-3 rounded-2xl font-bold text-white
+                py-3 rounded-2xl font-bold text-sm text-white
                 bg-green-600 hover:bg-green-700
                 dark:bg-purple-600 dark:hover:bg-purple-700
-                transition
+                transition active:scale-[0.98]
             ">
             Directions
         </button>
@@ -1820,16 +1921,17 @@ function openFridgeSheet(fridge) {
 </div>
 `;
 
+    // open sheet
     sheet.classList.add("open");
 }
-
 function closeFridgeSheet() {
+    const sheet = document.getElementById("fridge-sheet");
 
-    document
-        .getElementById("fridge-sheet")
-        .classList.remove("open");
+    sheet.classList.remove("open");
+
+    // reset swipe transform
+    sheet.style.transform = "";
 }
-
 function createMarkers(fridges) {
 
     fridges.forEach(f => {
@@ -1861,15 +1963,48 @@ if (!isMobile()) {
     );
 
     if (isMobile()) {
-        openFridgeSheet(f);
+        openFridgeSheet(f);   // 👈 bottom sheet instead of popup
     } else {
-        marker.openPopup();
+        marker.openPopup();   // desktop stays same
     }
 });
-
         state.markerMap.set(f.id, marker);
     });
 }
+let sheetStartY = 0;
+let sheetDragging = false;
+
+const sheet = document.getElementById("fridge-sheet");
+
+sheet.addEventListener("touchstart", (e) => {
+    sheetStartY = e.touches[0].clientY;
+    sheetDragging = true;
+});
+
+sheet.addEventListener("touchmove", (e) => {
+    if (!sheetDragging) return;
+
+    const currentY = e.touches[0].clientY;
+    const delta = currentY - sheetStartY;
+
+    // swipe down only
+    if (delta > 0) {
+        sheet.style.transform = `translateY(${delta}px)`;
+    }
+});
+
+sheet.addEventListener("touchend", (e) => {
+    sheetDragging = false;
+
+    const endY = e.changedTouches[0].clientY;
+    const delta = endY - sheetStartY;
+
+    if (delta > 120) {
+        closeFridgeSheet();
+    } else {
+        sheet.style.transform = "";
+    }
+});
 
 
 /* =========================================================
@@ -1945,9 +2080,9 @@ gap-3
             Details
         </button>
 
-        <button class="fav-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded">
-            ⭐
-        </button>
+        <button class="fav-btn ${f.isFavorite ? 'favorited' : ''}">
+    ⭐
+</button>
 
     </div>
 </div>
@@ -1969,12 +2104,18 @@ ${f.distance
             };
 
         li.querySelector(".fav-btn")
-            .onclick = (e) => {
+    .onclick = async (e) => {
 
-                e.stopPropagation();
+        e.stopPropagation();
 
-                toggleFavorite(f);
-            };
+        await toggleFavorite(f);
+
+        // toggle local state
+        f.isFavorite = !f.isFavorite;
+
+        // update button color instantly
+        e.target.classList.toggle("favorited");
+    };
 
         li.onclick = () => {
 
