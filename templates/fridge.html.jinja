@@ -183,7 +183,8 @@
         <button id="close-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl md:text-2xl">✕</button>
         <h2 class="text-xl md:text-2xl font-bold text-green-800 dark:text-purple-100 mb-2">Share Your Feedback</h2>
         
-        <form method="POST" action="/individfridge/{{ fridge['ID'] }}">       
+        <form method="POST" action="/individfridge/{{ fridge['ID'] }}"> 
+         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">      
           <div class="star-rating flex flex-row-reverse justify-center gap-1 md:gap-2 mb-6 mt-4">
             {% for i in range(5, 0, -1) %}
             <input type="radio" id="star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
