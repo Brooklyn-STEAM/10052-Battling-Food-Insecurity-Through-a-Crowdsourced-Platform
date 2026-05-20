@@ -102,7 +102,9 @@ alert.style.transform = "scale(0.95)";
   <div class="w-full max-w-3xl bg-white dark:bg-[#1f1a35] rounded-2xl shadow-xl p-10">
 
     <form method="post" action="/contact" class="space-y-6">
-
+            <input type="hidden"
+              name="csrf_token"
+              value="{{ csrf_token() }}">
       <div>
         <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Name *</label>
         <input type="text" name="name" required

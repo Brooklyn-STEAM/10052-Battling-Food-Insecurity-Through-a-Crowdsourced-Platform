@@ -124,6 +124,10 @@
 
    <!-- Username -->
    <form method="POST" action="/profile/update-username" class="mb-8">
+  
+   <input type="hidden"
+       name="csrf_token"
+       value="{{ csrf_token() }}">
  <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
    Username
  </label>
@@ -150,6 +154,9 @@
 
    <!-- New Password -->
    <form method="POST" action="/profile/update-password" class="mb-8">
+    <input type="hidden"
+        name="csrf_token"
+        value="{{ csrf_token() }}">
      <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
        New Password
      </label>
@@ -175,6 +182,9 @@
 
    <!-- Profile Picture -->
    <form method="POST" action="/profile/update-picture" class="mb-10">
+    <input type="hidden"
+        name="csrf_token"
+        value="{{ csrf_token() }}">
      <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
        Profile Picture URL
      </label>
@@ -205,6 +215,7 @@
 
     <form action="{{ url_for('delete_account') }}" method="POST" 
           onsubmit="return confirm('Are you absolutely sure? This action cannot be undone.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" 
                 class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/20">
             Delete My Account

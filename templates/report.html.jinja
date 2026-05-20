@@ -77,8 +77,11 @@
                 </div>
 
                 <form action="/report/{{ fridge['ID'] }}" method="POST" 
+        
                       class="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-gray-800 space-y-6">
-                    
+                    <input type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                         <div>
                             <label for="priority" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Priority Level</label>

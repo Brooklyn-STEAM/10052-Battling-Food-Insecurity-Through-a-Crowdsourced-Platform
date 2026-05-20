@@ -121,7 +121,9 @@
         {% endif %}
       {% endwith %}
       <form method="post" class="mt-8 space-y-5">
-
+        <input type="hidden"
+       name="csrf_token"
+       value="{{ csrf_token() }}">
         <!-- Email -->
         <div>
           <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -165,6 +167,11 @@
           <a href="/signup" 
              class="text-green-700 dark:text-purple-300 font-semibold hover:underline">
             Create one
+          </a>
+      
+          <a href="/forgot_password"
+             class="text-red-700 dark:text-purple-300 font-semibold hover:underline">
+            Forgot Password?
           </a>
         </p>
 

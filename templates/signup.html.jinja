@@ -72,6 +72,9 @@
 
       <form method="post" class="space-y-4 md:space-y-5">
         
+        <input type="hidden"
+        name="csrf_token"
+        value="{{ csrf_token() }}">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-purple-300/50 mb-1 ml-1">Full Name</label>
@@ -126,10 +129,7 @@
             class="order-1 sm:order-2 w-full bg-green-600 hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all">
             Create Account
           </button>
-          <button type="reset"
-            class="order-2 sm:order-1 w-full bg-gray-100 dark:bg-[#2a2545] hover:bg-gray-200 dark:hover:bg-[#40376E] text-gray-600 dark:text-purple-100 font-bold py-3 rounded-xl transition-all">
-            Reset
-          </button>
+
         </div>
 
         <p class="text-center text-sm text-gray-500 dark:text-purple-200/50 pt-4">
