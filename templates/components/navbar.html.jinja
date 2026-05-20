@@ -149,6 +149,8 @@
   if (themeToggle) {
     themeToggle.addEventListener("click", () => {
       const isDark = document.documentElement.classList.toggle("dark");
+      window.applyMapTheme();
+      window.updateRouteTheme();
       localStorage.setItem("theme", isDark ? "dark" : "light");
 
       if (window.applyMapTheme) {
