@@ -31,8 +31,8 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="flash-msg {{ category }} {% if category == 'review-exists' %}bg-orange-500{% else %}bg-green-600{% endif %} text-white px-4 py-3 rounded-2xl shadow-xl mb-4 flex items-center gap-3 text-sm md:text-base">
-            <span>{{ '⚠️' if category == 'review-exists' else '✅' }}</span>
+          <div class="flash-msg {{ category }} {% if category == 'review-exists' or 'error' in category %}bg-orange-500{% else %}bg-green-600{% endif %} text-white px-4 py-3 rounded-2xl shadow-xl mb-4 flex items-center gap-3 text-sm md:text-base">
+            <span>{{ '⚠️' if category == 'review-exists' or 'error' in category else '✅' }}</span>
             <p class="font-bold">{{ message }}</p>
           </div>
         {% endfor %}
@@ -55,6 +55,22 @@
         <p class="text-gray-700 dark:text-purple-100/80 text-base md:text-lg">
           📍 {{ fridge["Address"] }}
         </p>
+        <div class="text-yellow-400 text-2xl mt-2">
+    {% set full_stars = avg_rating|int %}
+    {% set empty_stars = 5 - full_stars %}
+
+    {% for i in range(full_stars) %}
+        ★
+    {% endfor %}
+
+    {% for i in range(empty_stars) %}
+        ☆
+    {% endfor %}
+</div>
+
+<div class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+    {{ avg_rating }} / 5 ({{ total_reviews }} reviews)
+</div>
       </div>
 
       <div class="flex flex-col w-full md:w-72 lg:w-96 gap-3">
@@ -132,107 +148,261 @@
       </div>
 
       <div class="mt-12 md:mt-20 border-t border-gray-200 dark:border-[#40376E] pt-8 md:pt-12">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
-            <h2 class="text-2xl md:text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
-            
-            <div class="flex gap-2 w-full sm:w-auto"> 
-                {% if reviews|length > 3 %}
-                    <button id="see-more-btn" class="flex-1 sm:flex-none bg-white dark:bg-[#2a2545] text-green-700 dark:text-purple-300 border border-green-600 dark:border-purple-500 px-4 py-2 rounded-xl font-bold hover:bg-green-50 transition text-xs md:text-sm">
-                        See All ({{ reviews|length }})
-                    </button>
-                {% endif %}
-
-                {% if current_user.is_authenticated %}
-                    <button id="open-review-btn" class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-bold transition shadow-lg text-xs md:text-sm">
-                        + Add Review
-                    </button>
-                {% endif %}
-            </div>
-        </div>
-
-        <div id="reviews-container" class="grid gap-4 md:gap-6">
-    {% for review in reviews %}
-        <div id="review-card-{{ review['ReviewID'] }}" 
-             data-user-id="{{ review['UserID'] }}" 
-             class="review-card {% if loop.index > 3 %}hidden{% endif %} bg-white dark:bg-[#2a2545] rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border dark:border-[#40376E]">
-            <div class="flex justify-between items-start mb-2 md:mb-4">
-                <div>
-                    <p class="font-bold text-base md:text-lg text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
-                    <div class="flex text-yellow-400 text-sm mt-1">
-                        {% for _ in range(review["Rating"] | int) %}★{% endfor %}
-                        <span class="ml-2 text-xs text-gray-400">({{ review["Rating"] }}/5)</span>
-                    </div>
-                </div>
-            </div>
-            <p id="comment-text-{{ review['ReviewID'] }}" class="text-sm md:text-base text-gray-700 dark:text-gray-200 leading-relaxed">{{ review["Comment"] }}</p>
-        </div>
-    {% else %}
-        <div class="text-center py-10 bg-white/30 dark:bg-[#2a2545]/30 rounded-2xl border-2 border-dotted border-gray-200 dark:border-[#40376E]">
-            <span class="text-4xl mb-3 block">💬</span>
-            <p class="text-gray-600 dark:text-purple-200 font-semibold">No reviews yet.</p>
-            <p class="text-sm text-gray-400 dark:text-purple-300/40">Be the first to share your experience!</p>
-        </div>
-    {% endfor %}
-</div>
-      </div>
-    </section>
-  </div>
-
-  <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
-      <div class="bg-white dark:bg-[#1b1730] p-6 md:p-8 rounded-t-3xl sm:rounded-3xl shadow-2xl border dark:border-[#403760] w-full max-w-md relative">
-        <button id="close-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl md:text-2xl">✕</button>
-        <h2 class="text-xl md:text-2xl font-bold text-green-800 dark:text-purple-100 mb-2">Share Your Feedback</h2>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
+        <h2 class="text-2xl md:text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
         
-        <form method="POST" action="/individfridge/{{ fridge['ID'] }}">       
-          <div class="star-rating flex flex-row-reverse justify-center gap-1 md:gap-2 mb-6 mt-4">
-            {% for i in range(5, 0, -1) %}
-            <input type="radio" id="star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
-            <label for="star{{i}}" class="cursor-pointer peer-hover:text-yellow-400 peer-checked:text-yellow-400 transition-colors">★</label>
-            {% endfor %}
-          </div>
-          
-          <textarea name="Comment" rows="4" required placeholder="Tell others about the stock..." class="w-full rounded-xl border border-green-200 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-4 py-3 mb-6 focus:ring-2 ring-green-500 outline-none text-sm"></textarea>
-          
-          <button type="submit" class="w-full py-3 md:py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold shadow-lg transform transition active:scale-95 text-sm md:text-base">Submit Review</button>
-        </form>
-      </div>
-  </div>
+        <div class="flex gap-2 w-full sm:w-auto"> 
+            {% if reviews|length > 3 %}
+                <button id="see-more-btn" class="flex-1 sm:flex-none bg-white dark:bg-[#2a2545] text-green-700 dark:text-purple-300 border border-green-600 dark:border-purple-500 px-4 py-2 rounded-xl font-bold hover:bg-green-50 transition text-xs md:text-sm">
+                    See All ({{ reviews|length }})
+                </button>
+            {% endif %}
 
+            {% if current_user.is_authenticated %}
+                <button id="open-review-btn" class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-bold transition shadow-lg text-xs md:text-sm">
+                    + Add Review
+                </button>
+            {% else %}
+                <a href="/login" class="flex-1 sm:flex-none bg-gray-200 hover:bg-gray-300 dark:bg-[#2a2545] dark:hover:bg-[#40376E] text-gray-700 dark:text-purple-300 px-4 py-2 rounded-xl font-bold transition shadow-md text-xs md:text-sm text-center flex items-center justify-center">
+                    Login to Add Review
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="reviews-container" class="grid gap-6">
+        {% for review in reviews %}
+            <div id="review-card-{{ review['ReviewID'] }}" 
+                 data-user-id="{{ review['UserID'] }}" 
+                 class="review-card {% if loop.index > 3 %}hidden{% endif %} bg-white dark:bg-[#2a2545] rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border dark:border-[#40376E] space-y-4">
+                
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-bold text-base md:text-lg text-green-700 dark:text-purple-300 mb-0.5">{{ review["user_name"] }}</p>
+                        
+                        {% if review["Formatted_Timestamp"] %}
+                        <p class="text-[11px] md:text-xs text-gray-400 dark:text-purple-300/60 font-medium mb-1">
+                            🕒 {{ review["Formatted_Timestamp"] }}
+                        </p>
+                        {% endif %}
+
+                        <div class="flex text-yellow-400 text-sm mt-1">
+                            {% for _ in range(review["Rating"] | int) %}★{% endfor %}
+                            <span class="ml-2 text-xs text-gray-400">({{ review["Rating"] }}/5)</span>
+                        </div>
+                    </div>
+
+                    {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
+                        <div class="flex items-center gap-3">
+                            <button onclick="openEditPopup('{{ review['ReviewID'] }}', '{{ review['Rating'] }}', `{{ review['Comment'] | escape }}`)" 
+                                    class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                                Edit
+                            </button>
+                            <span class="text-gray-300 dark:text-gray-600 text-xs">|</span>
+                            <form method="POST" action="/review/{{ review['ReviewID'] }}/delete" onsubmit="return confirm('Are you sure you want to delete this review and all its replies? This action cannot be undone.');" class="inline">
+                                <button type="submit" class="text-xs font-bold text-red-600 dark:text-red-400 hover:underline">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <p id="comment-text-{{ review['ReviewID'] }}" class="text-sm md:text-base text-gray-700 dark:text-gray-200 leading-relaxed">{{ review["Comment"] }}</p>
+
+                <div class="flex items-center gap-4 pt-2 border-t border-gray-100 dark:border-white/5">
+    {% if current_user.is_authenticated %}
+        {% if current_user.id != review['UserID'] or review['replies']|length > 0 %}
+            <button type="button" 
+                    onclick="toggleReplyForm('reply-form-{{ review['ReviewID'] }}')"
+                    class="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-green-600 dark:text-purple-400 hover:text-green-700 dark:hover:text-white transition-colors group">
+                <svg class="w-4 h-4 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+                Reply
+            </button>
+        {% endif %}
+    {% endif %}
+</div>
+
+                <div id="reply-form-{{ review['ReviewID'] }}" class="hidden mt-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700/80">
+                    <form method="POST" action="{{ url_for('reply_to_review', fridge_id=fridge['ID'], review_id=review['ReviewID']) }}" class="space-y-3">
+                        <div class="space-y-1">
+                            <label class="ml-1 block text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Your Reply</label>
+                            <textarea name="reply_content" rows="3" required
+                                placeholder="Write a public reply..." 
+                                class="w-full text-sm p-3.5 rounded-2xl border border-gray-200 dark:border-gray-700/80
+                                       bg-white/50 dark:bg-[#2a2545]/50 text-gray-950 dark:text-white font-medium
+                                       focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB] focus:border-transparent transition-all"></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end gap-2 text-xs">
+                            <button type="button" onclick="toggleReplyForm('reply-form-{{ review['ReviewID'] }}')"
+                                    class="px-4 py-2 rounded-xl font-black text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors uppercase tracking-wider">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="px-5 py-2 rounded-xl font-black text-white bg-gradient-to-r from-green-600 to-emerald-500 dark:from-purple-600 dark:to-indigo-600 hover:scale-[1.03] active:scale-95 shadow-md transition-all uppercase tracking-wider">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {% if review['replies'] %}
+                    <div class="pl-6 space-y-4 pt-2 border-l-2 border-gray-100 dark:border-white/5">
+                        {% for reply in review['replies'] %}
+                            <div class="flex gap-3 items-start text-xs">
+                                <div class="w-7 h-7 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-green-700 dark:text-green-400 font-black shrink-0">
+                                    {{ reply['user_name'][0] | upper }}
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-black text-gray-900 dark:text-white">{{ reply['user_name'] }}</span>
+                                        <span class="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{{ reply['Formatted_Timestamp'] or 'Just now' }}</span>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
+                                        {{ reply['ReplyContent'] }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+            </div>
+        {% else %}
+            <div class="text-center py-10 bg-white/30 dark:bg-[#2a2545]/30 rounded-2xl border-2 border-dotted border-gray-200 dark:border-[#40376E]">
+                <span class="text-4xl mb-3 block">💬</span>
+                <p class="text-gray-600 dark:text-purple-200 font-semibold">No reviews yet.</p>
+                <p class="text-sm text-gray-400 dark:text-purple-300/40">Be the first to share your experience!</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+  <div class="bg-white dark:bg-[#1b1730] p-6 md:p-8 rounded-t-3xl sm:rounded-3xl shadow-2xl border dark:border-[#403760] w-full max-w-md relative">
+    <button id="close-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl md:text-2xl">✕</button>
+    <h2 class="text-xl md:text-2xl font-bold text-green-800 dark:text-purple-100 mb-2">Share Your Feedback</h2>
+    
+    <form method="POST" action="{{ url_for('add_review', fridge_id=fridge['ID']) }}">
+      <div class="star-rating flex flex-row-reverse justify-center gap-1 md:gap-2 mb-6 mt-4">
+        {% for i in range(5, 0, -1) %}
+        <input type="radio" id="star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
+        <label for="star{{i}}" class="cursor-pointer text-gray-300 peer-hover:text-yellow-400 peer-checked:text-yellow-400 transition-colors text-2xl">★</label>
+        {% endfor %}
+      </div>
+      
+      <textarea name="Comment" rows="4" required placeholder="Tell others about the stock..." class="w-full rounded-xl border border-green-200 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-4 py-3 mb-6 focus:ring-2 ring-green-500 outline-none text-sm"></textarea>
+      
+      <button type="submit" class="w-full py-3 md:py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold shadow-lg transform transition active:scale-95 text-sm md:text-base">Submit Review</button>
+    </form>
+  </div>
+</div>
+
+<div id="edit-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+  <div class="bg-white dark:bg-[#1b1730] p-6 md:p-8 rounded-t-3xl sm:rounded-3xl shadow-2xl border dark:border-[#403760] w-full max-w-md relative">
+    <button id="close-edit-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl md:text-2xl">✕</button>
+    <h2 class="text-xl md:text-2xl font-bold text-blue-800 dark:text-blue-300 mb-2">Edit Your Feedback</h2>
+    
+    <form id="edit-form" method="POST" action="">       
+      <div class="star-rating flex flex-row-reverse justify-center gap-1 md:gap-2 mb-6 mt-4">
+        {% for i in range(5, 0, -1) %}
+        <input type="radio" id="edit-star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
+        <label for="edit-star{{i}}" class="cursor-pointer text-gray-300 peer-hover:text-yellow-400 peer-checked:text-yellow-400 transition-colors text-2xl">★</label>
+        {% endfor %}
+      </div>
+      
+      <textarea id="edit-comment" name="Comment" rows="4" required class="w-full rounded-xl border border-blue-200 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-4 py-3 mb-6 focus:ring-2 ring-blue-500 outline-none text-sm"></textarea>
+      
+      <button type="submit" class="w-full py-3 md:py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg transform transition active:scale-95 text-sm md:text-base">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Setup handling for the Add Review Window
+  const openBtn = document.getElementById('open-review-btn');
+  const closeBtn = document.getElementById('close-popup');
+  const popup = document.getElementById('review-popup');
+
+  if(openBtn) {
+    openBtn.addEventListener('click', () => {
+      popup.classList.remove('pointer-events-none', 'opacity-0');
+    });
+  }
+  if(closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      popup.classList.add('pointer-events-none', 'opacity-0');
+    });
+  }
+
+  // Setup handling for the Edit Review Popup Window
+  const editPopup = document.getElementById('edit-popup');
+  const closeEditBtn = document.getElementById('close-edit-popup');
+  const editForm = document.getElementById('edit-form');
+  const editComment = document.getElementById('edit-comment');
+
+  function openEditPopup(reviewId, currentRating, currentComment) {
+      editForm.action = `/review/${reviewId}/edit`;
+      editComment.value = currentComment;
+      
+      const targetStar = document.getElementById(`edit-star${currentRating}`);
+      if(targetStar) targetStar.checked = true;
+
+      editPopup.classList.remove('pointer-events-none', 'opacity-0');
+  }
+
+  if(closeEditBtn) {
+      closeEditBtn.addEventListener('click', () => {
+          editPopup.classList.add('pointer-events-none', 'opacity-0');
+      });
+  }
+
+  // Handle Visibility Toggles for nested components
+  function toggleReplyForm(formId) {
+      const targetForm = document.getElementById(formId);
+      if (targetForm) {
+          targetForm.classList.toggle('hidden');
+      }
+  }
+
+  // Handle general dynamic message fadeouts
+  document.addEventListener("DOMContentLoaded", () => {
+    const alerts = document.querySelectorAll(".flash-message");
+    alerts.forEach(alert => {
+      setTimeout(() => {
+        alert.classList.add("opacity-0", "translate-y-2");
+        setTimeout(() => alert.remove(), 700);
+      }, 3000);
+    });
+
+    // See More feature
+    const seeMoreBtn = document.getElementById('see-more-btn');
+    if(seeMoreBtn) {
+        seeMoreBtn.addEventListener('click', () => {
+            document.querySelectorAll('.review-card.hidden').forEach(card => card.classList.remove('hidden'));
+            seeMoreBtn.remove();
+        });
+    }
+  });
+</script>
     
 
   <script>
-    // Add logic for the new close button
     document.getElementById('close-popup')?.addEventListener('click', () => {
         document.getElementById('review-popup').classList.add('opacity-0', 'pointer-events-none');
     });
 
-    // Modified fireConfetti to be slightly more subtle for reviews
     function fireConfetti() {
-        const count = 200;
-        const defaults = { origin: { y: 0.7 } };
-
-        function fire(particleRatio, opts) {
-            confetti(Object.assign({}, defaults, opts, {
-                particleCount: Math.floor(count * particleRatio),
-                colors: ['#16a34a', '#fbbf24', '#f97316']
-            }));
-        }
-
-        fire(0.25, { spread: 26, startVelocity: 55 });
-        fire(0.2, { spread: 60 });
-        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+        confetti({ 
+            particleCount: 150, 
+            spread: 70, 
+            origin: { y: 0.6 }, 
+            colors: ['#16a34a', '#fbbf24', '#f97316'] 
+        });
     }
-  </script>
-<script>
-
-function fireConfetti() {
-    confetti({ 
-        particleCount: 150, 
-        spread: 70, 
-        origin: { y: 0.6 }, 
-        colors: ['#16a34a', '#fbbf24', '#f97316'] 
-    });
-}
 
 function hideMessage(element, delay) {
     setTimeout(() => {
@@ -356,14 +526,12 @@ if (favBtn && favIcon) {
             const data = await res.json();
             
             if (data.action === "added") {
-                // 1. FILL THE STAR
                 favIcon.classList.add("fill-yellow-400", "stroke-yellow-500", "scale-110");
                 favIcon.classList.remove("fill-none", "stroke-gray-400");
                 
                 fireConfetti();
                 Toast.show({ message: "Saved to favorites ⭐" });
             } else {
-                // 2. EMPTY THE STAR
                 favIcon.classList.remove("fill-yellow-400", "stroke-yellow-500", "scale-110");
                 favIcon.classList.add("fill-none", "stroke-gray-400");
                 
@@ -379,7 +547,7 @@ if (favBtn && favIcon) {
 
     /* --- INITIAL FLASH MESSAGES --- */
     document.querySelectorAll('.flash-msg').forEach(msg => {
-        const delay = msg.classList.contains('review-exists') ? 4000 : 6000;
+        const delay = (msg.classList.contains('review-exists') || msg.textContent.includes('not found') || msg.textContent.includes('Unauthorized')) ? 4000 : 6000;
         hideMessage(msg, delay);
         if (msg.textContent.includes('successfully') || msg.classList.contains('success')) {
             fireConfetti();

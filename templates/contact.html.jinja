@@ -1,27 +1,22 @@
 <!doctype html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/static/images/logo.png">
 
-
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- ✅ Enable dark mode -->
   <script>
     tailwind.config = {
       darkMode: 'class'
     }
   </script>
 
-  <!-- ✅ Load saved theme -->
   <script>
     (function () {
       const saved = localStorage.getItem("theme");
-
       if (saved === "dark") {
         document.documentElement.classList.add("dark");
       } else if (saved === "light") {
@@ -33,124 +28,137 @@
     })();
   </script>
 
-  <!-- ✅ Smooth transition (THIS is the animation) -->
   <style>
     html {
-      transition: background-color 0.3s ease, color 0.3s ease;
+      scroll-behavior: smooth;
     }
-
-    body, div, input, textarea {
-      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    body, div, input, textarea, h1, h2, label, a {
+      transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
     }
   </style>
-
-  <link rel="icon" type="image/png" href="/static/images/logo.png">
   <title>FridgeNet | Contact</title>
 </head>
 
-<body class="bg-gradient-to-r from-green-100 to-yellow-100 
-             dark:from-[#141225] dark:to-[#1b1730]
-             min-h-screen flex flex-col">
+<body class="bg-gradient-to-br from-green-50 via-white to-yellow-50 
+             dark:from-[#0b0a18] dark:via-[#121028] dark:to-[#1a1635]
+             text-gray-800 dark:text-gray-100 min-h-screen flex flex-col">
 
   {% include "components/navbar.html.jinja" %}
 
-  <h1 class="text-4xl font-extrabold text-center text-green-800 dark:text-[#b9a6ff] mt-12">
-    Contact Us
-  </h1>
-
-  <p class="text-center text-gray-600 dark:text-gray-300 mt-3 mb-12 max-w-2xl mx-auto px-4 text-lg">
-    Have questions, feedback, or want to get involved? Reach out to us!
-  </p>
-
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-  <div class="mb-6 space-y-3">
+  <div class="fixed top-24 right-6 z-[6000] space-y-3 pointer-events-none">
     {% for category, message in messages %}
-      <div class="
-            px-4 py-3 rounded-xl text-center font-medium
-            {% if category == 'error' %}
-              bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
-            {% elif category == 'success' %}
-              bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-            {% else %}
-              bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200
-            {% endif %}
-          "
-          data-flash
-      >
-        {{ message }}
-        
+      <div class="pointer-events-auto bg-white dark:bg-gray-800 border-l-4 
+            {% if category == 'error' %} border-red-500 {% else %} border-green-500 {% endif %} 
+            shadow-2xl rounded-r-2xl p-4 max-w-sm transition transform translate-x-0"
+          data-flash>
+        <p class="text-sm font-black {% if category == 'error' %} text-red-600 dark:text-red-400 {% elif category == 'success' %} text-green-600 dark:text-purple-400 {% endif %}">
+  {{ 'Error' if category == 'error' else 'Success' }}
+</p>
+        <p class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{{ message }}</p>
       </div>
     {% endfor %}
   </div>
   {% endif %}
   <script>
-  setTimeout(() => {
-    const alerts = document.querySelectorAll('[data-flash]');
-    alerts.forEach(alert => {
-      alert.style.transition = "opacity 0.5s ease, transform 0.5s ease";
-      alert.style.opacity = "0";
-alert.style.transform = "scale(0.95)";
-      setTimeout(() => alert.remove(), 500);
-    });
-  }, 3000);
-</script>
+    setTimeout(() => {
+      const alerts = document.querySelectorAll('[data-flash]');
+      alerts.forEach(alert => {
+        alert.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+        alert.style.opacity = "0";
+        alert.style.transform = "scale(0.95)";
+        setTimeout(() => alert.remove(), 500);
+      });
+    }, 4000);
+  </script>
   {% endwith %}
-<!-- ✅ CENTER WRAPPER -->
-<div class="flex justify-center px-4">
-  
-  <div class="w-full max-w-3xl bg-white dark:bg-[#1f1a35] rounded-2xl shadow-xl p-10">
 
-    <form method="post" action="/contact" class="space-y-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-16 flex flex-col justify-center relative">
+    
+    <div class="absolute top-1/4 left-10 w-96 h-96 bg-green-300/10 dark:bg-purple-900/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-10 w-96 h-96 bg-yellow-300/10 dark:bg-indigo-900/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div>
-        <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Name *</label>
-        <input type="text" name="name" required
-          class="w-full border border-gray-300 dark:border-gray-600
-                 bg-white dark:bg-[#2a2545]
-                 text-gray-900 dark:text-gray-100
-                 rounded-xl px-4 py-2 
-                 focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB]" />
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10 items-center">
+      
+      <div class="lg:col-span-5 space-y-6 lg:pr-6">
+        <span class="text-xs font-black uppercase tracking-widest text-green-600 dark:text-purple-400 bg-green-100 dark:bg-purple-900/30 px-3 py-1 rounded-full">
+          Get in Touch
+        </span>
+        <h1 class="text-4xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
+          Let's start a <br><span class="bg-gradient-to-r from-green-600 to-emerald-500 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">conversation.</span>
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
+          Have questions about operating rules, logistical mapping metrics, or need help registering your commercial food business? Send a message directly to our coordination desk.
+        </p>
+        
+        <div class="pt-6 border-t border-gray-200 dark:border-white/10 space-y-4">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-purple-900/30 flex items-center justify-center text-green-600 dark:text-purple-400 font-bold">✉</div>
+            <div>
+              <p class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-black">Direct Mailbox</p>
+              <a href="mailto:fridge.net5@gmail.com" class="text-sm font-bold text-gray-900 dark:text-white hover:text-green-600 dark:hover:text-purple-400 transition-colors">
+                fridge.net5@gmail.com
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Email *</label>
-        <input type="email" name="email" required
-          class="w-full border border-gray-300 dark:border-gray-600
-                 bg-white dark:bg-[#2a2545]
-                 text-gray-900 dark:text-gray-100
-                 rounded-xl px-4 py-2 
-                 focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB]" />
+      <div class="lg:col-span-7">
+        <div class="bg-white/80 dark:bg-[#1f1a35]/60 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl p-8 md:p-10">
+          
+          <form method="post" action="/contact" class="space-y-6">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label class="block font-black text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Name *</label>
+                <input type="text" name="name" required
+                  class="w-full border border-gray-200 dark:border-gray-700
+                         bg-white/50 dark:bg-[#2a2545]/50
+                         text-gray-900 dark:text-gray-100
+                         rounded-2xl px-4 py-3.5 
+                         focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB] focus:border-transparent" />
+              </div>
+
+              <div>
+                <label class="block font-black text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Email *</label>
+                <input type="email" name="email" required
+                  class="w-full border border-gray-200 dark:border-gray-700
+                         bg-white/50 dark:bg-[#2a2545]/50
+                         text-gray-900 dark:text-gray-100
+                         rounded-2xl px-4 py-3.5 
+                         focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB] focus:border-transparent" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-black text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Message *</label>
+              <textarea name="message" rows="5" required
+                class="w-full border border-gray-200 dark:border-gray-700
+                       bg-white/50 dark:bg-[#2a2545]/50
+                       text-gray-900 dark:text-gray-100
+                       rounded-2xl px-4 py-3.5 
+                       focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB] focus:border-transparent"></textarea>
+            </div>
+
+            <button type="submit"
+              class="w-full bg-gradient-to-r from-green-600 to-emerald-500 dark:from-purple-600 dark:to-indigo-600
+                     text-white font-black py-4 rounded-2xl shadow-lg
+                     hover:scale-[1.02] active:scale-95
+                     transition-all duration-200">
+              Send Message
+            </button>
+
+          </form>
+
+        </div>
       </div>
 
-      <div>
-        <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Message *</label>
-        <textarea name="message" rows="5" required
-          class="w-full border border-gray-300 dark:border-gray-600
-                 bg-white dark:bg-[#2a2545]
-                 text-gray-900 dark:text-gray-100
-                 rounded-xl px-4 py-2 
-                 focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB]"></textarea>
-      </div>
-
-      <button type="submit"
-        class="w-full bg-green-500 dark:bg-[#8C65DB]
-               text-white font-semibold py-3 rounded-xl
-               hover:bg-green-600 dark:hover:bg-[#6f52c9]
-               transition">
-        Send Message
-      </button>
-
-    </form>
-
-  </div>
-
-</div>
-
-  <br>
+    </div>
+  </main>
 
   {% include "components/footer.html.jinja" %}
 
 </body>
-
-</html>
+</html> 
