@@ -1,19 +1,24 @@
 from flask import Flask, render_template, request, flash, abort, jsonify, redirect, url_for, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, timedelta
 import pymysql
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import secrets
 import random
 from dynaconf import Dynaconf
 import json
 from flask_mail import Mail, Message
-import smtplib
+import smtplib, hashlib
 from email.mime.text import MIMEText
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf import CSRFProtect
 
 
 app = Flask(__name__)      
 config = Dynaconf(settings_file=["settings.toml"])
 app.secret_key = config.secret_key
-
+csrf = CSRFProtect(app)
 
 DB_HOST = "db.steamcenter.tech"
 DB_USER = "smack"
@@ -30,6 +35,12 @@ app.config['MAIL_USERNAME'] = 'fridge.net5@gmail.com'
 app.config['MAIL_PASSWORD'] = 'wfrj pqqt xlgh okpk'
 app.config['MAIL_DEFAULT_SENDER'] = 'fridge.net5@gmail.com' # Must match Username
 app.config['MAIL_DEBUG'] = True
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 
 mail = Mail(app)
@@ -70,6 +81,8 @@ def connect_db():
        cursorclass=pymysql.cursors.DictCursor
    )
 
+def hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
 
 # -----------------------
 # ERROR HANDLER
@@ -97,29 +110,20 @@ def load_user(user_id):
 # -----------------------
 # EMAIL FUNCTION
 # -----------------------
-def send_email(subject, recipients, name, confirm_url, extra_data=None):
-    """
-    Sends a multipart email (Text and HTML).
-    extra_data: a dictionary of any extra variables needed for the HTML template.
-    """
+def send_email(subject, recipients, template_txt, template_html, context=None):
     msg = Message(
         subject=subject,
         recipients=recipients,
         sender=app.config.get('MAIL_DEFAULT_SENDER')
     )
-    
-    # Prepare data for the template
-    data = extra_data if extra_data else {}
-    data.update({'name': name, 'confirm_url': confirm_url})
 
-    # Render bodies
-    msg.body = render_template('/templates/email/welcome.txt', name=name, confirm_url=confirm_url)
-    msg.html = render_template('/templates/email/emaildropoff.html.jinja', **data)
+    context = context or {}
 
-    # Use app_context to ensure the mailer can access config
+    msg.body = render_template(template_txt, **context)
+    msg.html = render_template(template_html, **context)
+
     with app.app_context():
         mail.send(msg)
-
 
 # -----------------------
 # HOME
@@ -202,33 +206,47 @@ def route_to_fridge(fridge_id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
-   if request.method == "POST":
-       email = request.form.get("email")
-       password = request.form.get("password")
+    if request.method == "POST":
 
-       connection = connect_db()
-       cursor = connection.cursor()
+        email = (request.form.get("email") or "").strip().lower()
+        password = request.form.get("password")
 
-       cursor.execute("SELECT * FROM `User` WHERE `Email`=%s", (email,))
-       result = cursor.fetchone()
+        connection = connect_db()
+        cursor = connection.cursor()
 
-       connection.close()
-      
-       if not result or result["Password"] != password:
-               flash("Invalid email or password", "login_error")
-               return redirect(url_for("login"))
+        try:
+            cursor.execute(
+                "SELECT * FROM `User` WHERE `Email`=%s",
+                (email,)
+            )
+            result = cursor.fetchone()
 
-       user = User(result)
-       login_user(user)
+        finally:
+            cursor.close()
+            connection.close()
 
-       flash("Logged in successfully!", "login_success")
+        # 1. Validate user exists
+        if not result:
+            flash("Invalid email or password", "login_error")
+            return redirect(url_for("login"))
 
-       if user.role == "restaurant":
-           return redirect(url_for("restaurant_dashboard"))
-       else:
-           return redirect(url_for("index"))
-  
-   return render_template("login.html.jinja")
+        # 2. Validate password (ONLY ONCE, hashed)
+        if not check_password_hash(result["Password"], password):
+            flash("Invalid email or password", "login_error")
+            return redirect(url_for("login"))
+
+        # 3. Login user
+        user = User(result)
+        login_user(user)
+
+        flash("Logged in successfully!", "login_success")
+
+        if user.role == "restaurant":
+            return redirect(url_for("restaurant_dashboard"))
+
+        return redirect(url_for("index"))
+
+    return render_template("login.html.jinja")
 
 # --------------------
 # LOGOUT FUNCTION 
@@ -245,68 +263,82 @@ def logout():
 # --------------------
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+
+    # 1. Block already logged-in users
     if current_user.is_authenticated:
         flash("You are already logged in.", "signup_info")
-        return redirect("/")
-   
+        return redirect(url_for("index"))
+
     if request.method == "POST":
+
+        # 2. Collect form data
         name = request.form["name"]
         email = request.form["email"]
         password = request.form["password"]
         password_repeat = request.form["repeat_password"]
         address = request.form["address"]
-        birthdate = request.form.get("birthdate")  # ✅ get birthdate
-
+        birthdate = request.form.get("birthdate")
         role = request.form.get("role") or "user"
 
-        if 'user_id' in session: 
-            flash("You already have an account and are currently logged in!", "info")
-            return redirect(url_for('index'))
-    
-        # ✅ PASSWORD CHECK
+        default_pic = "/static/images/default-profile.png"
+
+        # 3. Basic validation (NO DB)
         if password != password_repeat:
             flash("Passwords do not match.", "signup_error")
-            return redirect("/signup")
+            return redirect(url_for("signup"))
 
+        if len(password) < 8:
+            flash("Password must be at least 8 characters long", "signup_error")
+            return redirect(url_for("signup"))
 
-        # ✅ AGE CHECK (THIS IS WHAT YOU WANT)
+        # 4. Age check
         if birthdate:
             birthdate_obj = datetime.strptime(birthdate, "%Y-%m-%d")
             today = datetime.today()
+
             age = today.year - birthdate_obj.year - (
                 (today.month, today.day) < (birthdate_obj.month, birthdate_obj.day)
             )
 
             if age < 18:
-                flash("You must be 18 years or older to create an account.", "signup_error")
-                return redirect("/signup")
+                flash("You must be 18 or older to create an account.", "signup_error")
+                return redirect(url_for("signup"))
+
         connection = connect_db()
         cursor = connection.cursor()
 
-        cursor.execute("SELECT * FROM User WHERE Email = %s", (email,))
-        if cursor.fetchone():
+        try:
+            # 5. Check duplicate email FIRST
+            cursor.execute("SELECT 1 FROM User WHERE Email = %s", (email,))
+            if cursor.fetchone():
+                flash("Email already registered.", "signup_error")
+                return redirect(url_for("signup"))
+
+            # 6. Hash password
+            hashed_password = generate_password_hash(password)
+
+            # 7. Insert user
+            cursor.execute("""
+                INSERT INTO User (Name, Email, Password, Address, Role, ProfilePicture)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (name, email, hashed_password, address, role, default_pic))
+
+            connection.commit()
+
+        except pymysql.err.IntegrityError:
+            flash("Email is already in use.", "signup_error")
+            return redirect(url_for("signup"))
+
+        finally:
+            cursor.close()
             connection.close()
-            flash("Email already registered.", "signup_error")
-            return redirect("/signup")
-
-        default_pic = "/static/images/default-profile.png" 
-
-        cursor.execute("""
-            INSERT INTO User (Name, Email, Password, Address, Role, ProfilePicture)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (name, email, password, address, role, default_pic))
-
-        connection.commit()
-        connection.close()
 
         flash("Account created successfully! Please log in.", "signup_success")
-        
-        return redirect("/login")
+        return redirect(url_for("login"))
 
-    # ✅ THIS MUST ALWAYS EXIST
+    # 8. GET request
     max_birthdate = f"{datetime.utcnow().year - 18}-12-31"
     return render_template("signup.html.jinja", max_birthdate=max_birthdate)
-
 # -----------------------
 # DONATE PAGES
 # -----------------------
@@ -1723,6 +1755,171 @@ def reply_to_review(fridge_id, review_id):
         connection.close()
 
     return redirect(url_for('personal_fridges', fridge_id=fridge_id))
+  
+@app.route("/forgot_password", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
+def forgot_password():
+
+    if request.method == "POST":
+
+        email = request.form["email"].strip().lower()
+
+        connection = None
+        cursor = None
+
+        try:
+            connection = connect_db()
+            cursor = connection.cursor()
+
+            cursor.execute(
+                "SELECT * FROM User WHERE Email = %s",
+                (email,)
+            )
+
+            user = cursor.fetchone()
+
+            # ONLY if account exists
+            if user:
+
+                token = secrets.token_urlsafe(32)
+                token_hash = hash_token(token)
+
+                expiry = datetime.now() + timedelta(hours=1)
+
+                cursor.execute("""
+                    UPDATE User
+                    SET ResetToken = %s,
+                        ResetTokenExpiry = %s
+                    WHERE Email = %s
+                """, (token_hash, expiry, email))
+
+                connection.commit()
+
+                reset_link = url_for(
+                    "reset_password",
+                    token=token,
+                    _external=True
+                )
+
+                send_email(
+                    subject="Reset Your Password",
+                    recipients=[email],
+                    template_txt="email/reset.txt",
+                    template_html="email/reset.html.jinja",
+                    context={
+                        "name": user["Name"],
+                        "reset_link": reset_link
+                    }
+                )
+
+        finally:
+            if cursor:
+                cursor.close()
+
+            if connection:
+                connection.close()
+
+        flash(
+            "If an account exists, a reset link has been sent.",
+            "success"
+        )
+
+        return redirect("/login")
+
+    return render_template("forgot_password.html.jinja")
+
+
+@app.route("/reset_password/<token>", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
+def reset_password(token):
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = connect_db()
+
+        # IMPORTANT:
+        # Use dictionary=True if you're using user["ColumnName"]
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+        # Hash incoming token from URL
+        hashed_token = hash_token(token)
+
+        # Find matching token
+        cursor.execute("""
+            SELECT *
+            FROM User
+            WHERE ResetToken = %s
+        """, (hashed_token,))
+
+        user = cursor.fetchone()
+
+        # Invalid token
+        if not user:
+            flash("Invalid or expired reset link.", "error")
+            return redirect("/forgot_password")
+
+        # Expired token
+        if datetime.now() > user["ResetTokenExpiry"]:
+            flash("Reset link has expired.", "error")
+            return redirect("/forgot_password")
+
+        # FORM SUBMIT
+        if request.method == "POST":
+
+            password = request.form["password"]
+            confirm_password = request.form["confirm_password"]
+
+            # Password mismatch
+            if password != confirm_password:
+                flash("Passwords do not match.", "error")
+                return render_template(
+                    "password_reset.html.jinja"
+                )
+
+            # Password too short
+            if len(password) < 8:
+                flash(
+                    "Password must be at least 8 characters.",
+                    "error"
+                )
+                return render_template(
+                    "password_reset.html.jinja"
+                )
+
+            # Hash new password
+            hashed_password = generate_password_hash(password)
+
+            # Update password + clear token
+            cursor.execute("""
+                UPDATE User
+                SET Password = %s,
+                    ResetToken = NULL,
+                    ResetTokenExpiry = NULL
+                WHERE ID = %s
+            """, (hashed_password, user["ID"]))
+
+            connection.commit()
+
+            flash(
+                "Password reset successfully. Please log in.",
+                "success"
+            )
+
+            return redirect("/login")
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+    return render_template("password_reset.html.jinja")
+
+
+
 # --------------------
 # NAME IF STATEMENT 
 # --------------------

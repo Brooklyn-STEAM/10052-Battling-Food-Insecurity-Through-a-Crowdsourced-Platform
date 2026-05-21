@@ -1,5 +1,4 @@
-
-<!doctype html>
+<!Doctype html>
 <html lang="en" id="htmlRoot">
 
 <head>
@@ -7,9 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/static/images/logo.png">
 
+
   <title>FridgeNet</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.css"/>
+
+<script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.js.iife.js"></script>
 
   <script>
     tailwind.config = {
@@ -46,13 +51,10 @@
   </script>
 
   <style>
-    html {
-      scroll-behavior: smooth;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
 
     body {
       transition: background-color 0.3s ease, color 0.3s ease;
+        overscroll-behavior-y: none;
     }
 
     .reveal {
@@ -85,12 +87,436 @@
   display: grid; /* Ensures it stays a grid when visible */
   animation: tabFadeIn 0.5s ease-out forwards;
 }
-.glow-blob {
-  filter: blur(80px);
-  z-index: 0;
-  pointer-events: none;
+.driver-highlighted-element {
+  border-radius: 18px;
+  outline: 2px solid rgba(255,255,255,0.6);
+
+  box-shadow:
+    0 0 0 6px rgba(34,197,94,0.12),
+    0 18px 60px rgba(0,0,0,0.35),
+    0 0 40px rgba(34,197,94,0.25);
+
+  transform: scale(1.03);
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s ease,
+    outline-color 0.3s ease;
 }
-  
+.driver-stage::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle at center,
+    rgba(255,255,255,0) 0%,
+    rgba(0,0,0,0.35) 70%,
+    rgba(0,0,0,0.6) 100%
+  );
+
+  opacity: 0.8;
+}
+.driver-stage {
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.4s ease !important;
+}
+@keyframes fridgenet-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0.08);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+.driver-overlay {
+  background: rgba(0, 0, 0, 0) !important;
+  backdrop-filter: none !important;
+}
+.driver-active-element {
+  animation:
+    fridgenet-pulse 2s infinite,
+    spotlightFloat 3s ease-in-out infinite;
+}
+
+@keyframes spotlightFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes fridgenet-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+.navbar-focus {
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+.driver-active-element {
+  transition: all 0.3s ease;
+}
+</style>
+<style>
+/* ========================= */
+/* Premium Tour Transitions */
+/* ========================= */
+
+
+/* Fade OUT */
+
+
+/* IN */
+@keyframes fridgenetFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+/* OUT */
+@keyframes fridgenetFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.965);
+  }
+}
+/* ============================= */
+/* Driver.js FridgeNet Theme */
+/* ============================= */
+
+.fridgenet-tour {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+  box-shadow:
+    0 20px 40px rgba(0,0,0,0.15),
+    0 0 0 1px rgba(255,255,255,0.05) inset !important;
+
+  padding: 10px !important;
+}
+
+/* Dark mode popup */
+.dark .fridgenet-tour {
+  background: linear-gradient(
+    135deg,
+    #2a2545 0%,
+    #1b1730 100%
+  ) !important;
+
+  color: #f3f4f6 !important;
+
+  border: 1px solid rgba(139, 92, 246, 0.25) !important;
+
+  box-shadow:
+  0 10px 25px rgba(0,0,0,0.25),
+  0 0 10px rgba(139,92,246,0.08) !important;
+}
+
+/* Title */
+.fridgenet-tour .driver-popover-title {
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  color: #166534 !important;
+  margin-bottom: 8px !important;
+}
+
+.dark .fridgenet-tour .driver-popover-title {
+  color: #c4b5fd !important;
+}
+
+/* Description */
+.fridgenet-tour .driver-popover-description {
+  color: #4b5563 !important;
+  line-height: 1.6 !important;
+  font-size: 0.95rem !important;
+}
+
+.dark .fridgenet-tour .driver-popover-description {
+  color: rgba(243,244,246,0.82) !important;
+}
+
+/* Buttons */
+.fridgenet-tour .driver-popover-next-btn,
+.fridgenet-tour .driver-popover-prev-btn {
+  background: linear-gradient(
+    135deg,
+    #16a34a,
+    #22c55e
+  ) !important;
+
+  color: white !important;
+
+  border: none !important;
+  border-radius: 12px !important;
+
+  padding: 10px 18px !important;
+
+  font-weight: 700 !important;
+
+  text-shadow: none !important;
+
+  transition: all 0.25s ease !important;
+}
+
+.dark .fridgenet-tour .driver-popover-next-btn,
+.dark .fridgenet-tour .driver-popover-prev-btn {
+  background: linear-gradient(
+    135deg,
+    #7b2cbf,
+    #9d4edd
+  ) !important;
+}
+
+.fridgenet-tour .driver-popover-next-btn:hover,
+.fridgenet-tour .driver-popover-prev-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+/* Close button */
+.fridgenet-tour .driver-popover-close-btn {
+  color: #6b7280 !important;
+  transition: all 0.2s ease;
+}
+
+.dark .fridgenet-tour .driver-popover-close-btn {
+  color: #d1d5db !important;
+}
+
+.fridgenet-tour .driver-popover-close-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.85;
+}
+
+/* Progress text */
+.fridgenet-tour .driver-popover-progress-text {
+  color: #6b7280 !important;
+  font-weight: 600 !important;
+}
+
+.dark .fridgenet-tour .driver-popover-progress-text {
+  color: rgba(255,255,255,0.7) !important;
+}
+
+/* Arrow styling */
+.dark .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: #2a2545 !important;
+}
+
+.dark .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: #2a2545 !important;
+}
+
+.dark .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: #2a2545 !important;
+}
+
+.dark .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: #2a2545 !important;
+}
+
+
+
+.fridgenet-tour .driver-popover-footer {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.fridgenet-tour .driver-popover-next-btn,
+.fridgenet-tour .driver-popover-prev-btn {
+  padding: 8px 14px !important;
+  font-size: 0.9rem !important;
+  min-width: unset !important;
+
+  flex-shrink: 1;
+  max-width: 120px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.driver-popover:not(.driver-fading-out) {
+  animation:
+    fridgenetFadeIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    popupFloat 3s ease-in-out infinite 0.45s;
+}
+
+@keyframes popupFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+/* ========================= */
+/* Tour Tab Transition FX */
+/* ========================= */
+
+.tour-tab-animate {
+  animation: tourTabFadeSlide 0.45s ease-out;
+}
+
+.tour-tab-left {
+  animation: tourTabFadeSlide 0.45s ease-out;
+}
+
+.tour-tab-right {
+  animation: tourTabFadeSlide 0.45s ease-out;
+}
+html {
+  scroll-behavior: auto;
+}
+.fridgenet-tour .driver-popover-close-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+
+  font-size: 0 !important;
+}
+
+/* Add visible text */
+.fridgenet-tour .driver-popover-close-btn::after {
+  content: "Skip";
+
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  color: #6b7280;
+}
+.driver-stage {
+  transition:
+    all 0.42s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+/* Dark mode */
+.dark .fridgenet-tour .driver-popover-close-btn::after {
+  color: rgba(255,255,255,0.75);
+}
+
+/* Hover */
+.fridgenet-tour .driver-popover-close-btn:hover::after {
+  color: #ef4444;
+}
+@keyframes tourTabFadeSlide {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(18px)
+      scale(0.985);
+  }
+
+  60% {
+    opacity: 1;
+    transform:
+      translateY(-2px)
+      scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+img {
+  content-visibility: auto;
+  contain: paint;
+}
+/* Small screens */
+@media (max-width: 640px) {
+/* Only for first-time users */
+.first-time-tour .fridgenet-tour .driver-popover-next-btn,
+.first-time-tour .fridgenet-tour .driver-popover-prev-btn {
+
+  padding: 6px 12px !important;
+  font-size: 0.82rem !important;
+
+  max-width: 110px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+}
+/* ========================= */
+/* Mobile Tutorial Fixes */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .fridgenet-tour {
+    width: calc(100vw - 32px) !important;
+    max-width: 340px !important;
+
+    padding: 14px !important;
+
+    border-radius: 18px !important;
+  }
+
+  .fridgenet-tour .driver-popover-title {
+    font-size: 1rem !important;
+  }
+
+  .fridgenet-tour .driver-popover-description {
+    font-size: 0.88rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .fridgenet-tour .driver-popover-footer {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .fridgenet-tour .driver-popover-next-btn,
+  .fridgenet-tour .driver-popover-prev-btn {
+
+    flex: 1;
+
+    font-size: 0.82rem !important;
+
+    padding: 8px 10px !important;
+
+    min-height: 42px;
+  }
+
+  /* Prevent weird horizontal overflow */
+  .driver-popover {
+    max-width: calc(100vw - 24px) !important;
+  }
+
+}
 </style>
 </head>
 
@@ -106,9 +532,10 @@
                     bg-gradient-to-r from-green-100 to-emerald-50
                     dark:from-[#2a2545] dark:to-[#1b1730]">
 
-      <h1 class="text-5xl md:text-6xl font-extrabold text-green-800 dark:text-white mb-6">
-        Share Food. Support Community. Reduce Waste.
-      </h1>
+      <h1 id="hero-title"
+    class="text-5xl md:text-6xl font-extrabold text-green-800 dark:text-white mb-6">
+  Share Food. Support Community. Reduce Waste.
+</h1>
 
       <p class="max-w-2xl mx-auto text-lg text-gray-700 dark:text-purple-100/80 mb-8">
         FridgeNet connects neighbors, restaurants, and community fridges
@@ -117,15 +544,17 @@
 
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
 
-        <a href="{{ url_for('map_page') }}"
-           class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
-          Find a Fridge
-        </a>
+        <a id="find-fridge-btn"
+   href="{{ url_for('map_page') }}"
+   class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
+  Find a Fridge
+</a>
 
-        <a href="{{ url_for('donations') }}"
-           class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow-md font-semibold dark:bg-[#6f52c9] dark:hover:bg-[#40376E] transition">
-          Donate Food
-        </a>
+        <a id="donate-food-btn"
+   href="{{ url_for('donations') }}"
+   class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl shadow-md font-semibold dark:bg-[#6f52c9] dark:hover:bg-[#40376E] transition">
+  Donate Food
+</a>
 
       </div>
     </section>
@@ -158,39 +587,49 @@
         <h2 class="text-4xl font-black mb-12 text-green-800 dark:text-white">How do you want to help?</h2>
 
         <div class="flex p-1 bg-gray-200/50 dark:bg-[#2a2545] rounded-2xl mb-12 max-w-md mx-auto border dark:border-white/5">
-            <button onclick="switchTab('neighbor')" id="btn-neighbor" class="tab-btn flex-1 py-3 rounded-xl font-bold text-sm transition-all">
+            <button onclick="switchTab('neighbor')" id="neighbor-tab" class="tab-btn flex-1 py-3 rounded-xl font-bold text-sm transition-all">
                 Neighbors
             </button>
-            <button onclick="switchTab('restaurant')" id="btn-restaurant" class="tab-btn flex-1 py-3 rounded-xl font-bold text-sm transition-all">
+            <button onclick="switchTab('restaurant')" id="restaurant-tab" class="tab-btn flex-1 py-3 rounded-xl font-bold text-sm transition-all">
                 Restaurants
             </button>
         </div>
 
-<div class="relative min-h-[400px]">
-        
-   <div id="panel-neighbor" class="tab-panel hidden grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center md:text-left p-6 md:p-10 bg-white dark:bg-[#2a2545] rounded-3xl md:rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-white/5">
-    
-    <div class="order-1 md:order-none">
-        <span class="text-4xl mb-3 md:mb-4 block">🏠</span>
-        <h3 class="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-gray-900 dark:text-purple-300">
-            Feed Your Block
-        </h3>
-        <p class="text-sm md:text-base text-gray-700 dark:text-purple-100/70 mb-6 max-w-md mx-auto md:mx-0">
-            FridgeNet is powered by people like you. Use the map to find a meal, drop off extra groceries, or simply update a fridge's status to help others. No commitment, just community.
-        </p>
-        <ul class="space-y-2 mb-8 text-sm font-medium text-gray-500 dark:text-gray-400 flex flex-col items-center md:items-start">
-            <li class="flex items-center gap-2">📍 Find or share food near you</li>
-            <li class="flex items-center gap-2">🔄 Update fridge stock levels</li>
-        </ul>
-        <a href="{{ url_for('map_page') }}" class="inline-block w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition transform active:scale-95 hover:scale-105">
-            Open the Map
-        </a>
-    </div>
-    <div class="order-2 md:order-none bg-green-100 dark:bg-green-900/20 rounded-2xl md:rounded-3xl h-52 sm:h-64 md:h-72 overflow-hidden shadow-inner">
-        <img src="/static/images/peopledonate.webp" alt="People Donating Food" class="w-full h-full object-cover">
-    </div>
-</div>
+        <div class="relative min-h-[400px]">
+            
+            <div id="panel-neighbor" class="tab-panel hidden grid md:grid-cols-2 gap-8 items-center text-left p-8 bg-white dark:bg-[#2a2545] rounded-[2.5rem] shadow-xl border dark:border-white/5">
+                <div>
+                    <span class="text-4xl mb-4 block">🏠</span>
+                    <h3 class="text-2xl font-bold mb-4 dark:text-purple-300">Feed Your Block</h3>
+                    <p class="text-gray-700 dark:text-purple-100/70 mb-6">FridgeNet is powered by people like you. Use the map to find a meal, drop off extra groceries, or simply update a fridge's status to help others. No commitment, just community.</p>
+                    <ul class="space-y-2 mb-8 text-sm font-medium text-gray-500 dark:text-gray-400">
+                        <li class="flex items-center gap-2">📍 Find or share food near you</li>
+                        <li class="flex items-center gap-2">🔄 Update fridge stock levels</li>
+                    </ul>
+<a id="open-map-btn"
+   href="{{ url_for('map_page') }}"
+   class="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
+  Open the Map
+</a>                </div>
+                <div class="bg-green-100 dark:bg-green-900/20 rounded-3xl h-72 overflow-hidden shadow-inner">
+                    <img src="/static/images/peopledonate.webp" class="w-full h-full object-cover">
+                </div>
+            </div>
 
+            <div id="panel-restaurant" class="tab-panel hidden grid md:grid-cols-2 gap-8 items-center text-left p-8 bg-white dark:bg-[#2a2545] rounded-[2.5rem] shadow-xl border dark:border-white/5">
+                <div>
+                    <span class="text-4xl mb-4 block">🍳</span>
+                    <h3 class="text-2xl font-bold mb-4 dark:text-purple-300">Restaurant Partners</h3>
+                    <p class="text-gray-700 dark:text-purple-100/70 mb-6">Don’t let your surplus go to waste. Register your business to track your social impact, reduce waste costs, and ensure your extra food reaches those who need it most.</p>
+<a id="register-business-btn"
+   href="{{ url_for('signup') }}"
+   class="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
+  Register Business
+</a>                </div>
+                <div class="bg-orange-100 dark:bg-orange-900/20 rounded-3xl h-72 overflow-hidden shadow-inner">
+                    <img src="/static/images/donatefood.jpg" class="w-full h-full object-cover">
+                </div>
+            </div>
 
 <div id="panel-restaurant" class="tab-panel hidden grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center md:text-left p-6 md:p-10 bg-white dark:bg-[#2a2545] rounded-3xl md:rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-white/5">
     
@@ -239,47 +678,405 @@
 </div>
 
   {% include "components/footer.html.jinja" %}
+  <!-- Mobile Signup Prompt Modal -->
+<div id="mobile-auth-modal"
+     class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+
+  <div class="w-full max-w-sm bg-white dark:bg-[#2a2545] rounded-2xl shadow-2xl p-6 text-center">
+
+    <h2 class="text-xl font-bold mb-2 text-green-700 dark:text-purple-300">
+      Join FridgeNet
+    </h2>
+
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">
+      Sign up to donate food, find fridges, and track your impact.
+    </p>
+
+    <div class="flex flex-col gap-3">
+
+      <a href="/signup"
+         class="bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-semibold transition">
+        Sign Up
+      </a>
+
+      <a href="/login"
+         class="bg-gray-200 hover:bg-gray-300 dark:bg-[#40376E] dark:hover:bg-[#5a4fd6] text-gray-800 dark:text-white py-2 rounded-xl font-semibold transition">
+        Log In
+      </a>
+
+      <button onclick="closeMobileAuthModal()"
+              class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 mt-2">
+        Maybe later
+      </button>
+
+    </div>
+  </div>
+</div>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const messages = document.querySelectorAll(".flash-message");
+function focusNavbarElement(el) {
+  if (!el) return;
 
-  messages.forEach((msg) => {
-    // wait before fading out
-    setTimeout(() => {
-      msg.classList.add("flash-hide");
+  const y =
+    el.getBoundingClientRect().top +
+    window.pageYOffset -
+    100;
 
-      // remove from DOM after animation
-      setTimeout(() => {
-        msg.remove();
-      }, 600);
-    }, 3000); // visible for 3 seconds
+  window.scrollTo({
+    top: y,
+    behavior: "auto"
   });
-});
 
-function switchTab(role) {
-  // Hide all panels
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('grid'));
-  
-  // Show active panel
+  el.classList.add("navbar-focus");
+
+  setTimeout(() => {
+    el.classList.remove("navbar-focus");
+  }, 1200);
+}
+
+function scrollToStep(selector) {
+  const el = document.querySelector(selector);
+  if (!el) return;
+
+  el.scrollIntoView({
+    behavior: "auto",
+    block: "center"
+  });
+}
+
+/* =========================
+   TAB SWITCHING (OPTIMIZED)
+========================= */
+function switchTab(role, animate = false) {
+
+  const panels = document.querySelectorAll('.tab-panel');
+
+  panels.forEach(panel => {
+    panel.classList.add('hidden');
+    panel.classList.remove('grid', 'tour-tab-left', 'tour-tab-right');
+  });
+
   const active = document.getElementById('panel-' + role);
+  if (!active) return;
+
   active.classList.remove('hidden');
   active.classList.add('grid');
-  
-  // Update button styles
+
+  if (animate && window.isTourActive) {
+    active.classList.add(
+      role === "restaurant" ? "tour-tab-right" : "tour-tab-left"
+    );
+  }
+
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('bg-white', 'dark:bg-[#40376E]', 'shadow-sm', 'text-green-600', 'dark:text-purple-300');
+    btn.classList.remove(
+      'bg-white',
+      'dark:bg-[#40376E]',
+      'shadow-sm',
+      'text-green-600',
+      'dark:text-purple-300'
+    );
     btn.classList.add('text-gray-500', 'dark:text-gray-400');
   });
-  
-  // Highlight active button
-  const activeBtn = document.getElementById('btn-' + role);
-  activeBtn.classList.add('bg-white', 'dark:bg-[#40376E]', 'shadow-sm', 'text-green-600', 'dark:text-purple-300');
-  activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+
+  const activeBtn = document.getElementById(role + '-tab');
+
+  if (activeBtn) {
+    activeBtn.classList.add(
+      'bg-white',
+      'dark:bg-[#40376E]',
+      'shadow-sm',
+      'text-green-600',
+      'dark:text-purple-300'
+    );
+
+    activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+  }
 }
+
+/* =========================
+   TOUR SYNC ENGINE
+========================= */
+function syncTourState(step) {
+  if (!step?.element) return;
+
+  const el = document.querySelector(step.element);
+  if (!el) return;
+
+  if (step.element.includes("panel-restaurant")) switchTab("restaurant", false);
+  if (step.element.includes("panel-neighbor")) switchTab("neighbor", false);
+  if (step.element.includes("restaurant-tab")) switchTab("restaurant", false);
+  if (step.element.includes("neighbor-tab")) switchTab("neighbor", false);
+
+  requestAnimationFrame(() => {
+    scrollToStep(step.element);
+  });
+}
+
+/* =========================
+   MOBILE STEPS (DIFFERENT FLOW)
+========================= */
+function getMobileSteps() {
+  return [
+    {
+      element: '#hero-title',
+      popover: {
+        title: "Welcome 👋",
+        description: "Find and share food in your community.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#find-fridge-btn',
+      popover: {
+        title: "Find Food",
+        description: "Open the map to locate nearby fridges.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#donate-food-btn',
+      popover: {
+        title: "Donate",
+        description: "Share extra food easily.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#panel-neighbor',
+      popover: {
+        title: "Community",
+        description: "Help your neighborhood directly.",
+        side: 'top'
+      }
+    },
+    {
+      element: '#open-map-btn',
+      popover: {
+        title: "Map View",
+        description: "See all active fridges nearby.",
+        side: 'top'
+      }
+    },
+    {
+      element: '#mobile-menu-button',
+      popover: {
+        title: "Menu",
+        description: "Everything is here: map, donate, partners.",
+        side: 'bottom'
+      }
+    }
+  ];
+}
+
+/* =========================
+   DESKTOP STEPS (FULL FLOW)
+========================= */
+function getDesktopSteps() {
+  return [
+    {
+      element: '#hero-title',
+      popover: {
+        title: "Welcome to FridgeNet",
+        description: "Find free food, reduce waste, and help your community.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#find-fridge-btn',
+      popover: {
+        title: "Start Exploring",
+        description: "Open the map.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#donate-food-btn',
+      popover: {
+        title: "Donate Food",
+        description: "Share extra groceries.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#panel-neighbor',
+      popover: {
+        title: "Community Help",
+        description: "Pick up or donate food nearby.",
+        side: 'top'
+      }
+    },
+    {
+      element: '#open-map-btn',
+      popover: {
+        title: "Open Map",
+        description: "Find fridges near you.",
+        side: 'top'
+      }
+    },
+    {
+      element: '#neighbor-tab',
+      popover: {
+        title: "Neighbors",
+        description: "Community sharing section.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#restaurant-tab',
+      popover: {
+        title: "Restaurants",
+        description: "Business partners.",
+        side: 'bottom'
+      }
+    },
+    {
+      element: '#panel-restaurant',
+      popover: {
+        title: "Restaurant Partners",
+        description: "Reduce food waste at scale.",
+        side: 'top'
+      }
+    },
+    {
+      element: '#register-business-btn',
+      popover: {
+        title: "Register Business",
+        description: "Join FridgeNet.",
+        side: 'top'
+      }
+    },
+
+    /* NAVBAR (DESKTOP ONLY) */
+    {
+      element: '#nav-map',
+      popover: {
+        title: 'Map',
+        description: 'Find fridges.',
+        side: 'bottom'
+      },
+      onHighlightStarted: (el) => focusNavbarElement(el)
+    },
+    {
+      element: '#nav-donate',
+      popover: {
+        title: 'Donate',
+        description: 'Share food.',
+        side: 'bottom'
+      },
+      onHighlightStarted: (el) => focusNavbarElement(el)
+    },
+    {
+      element: '#nav-partner',
+      popover: {
+        title: 'Partners',
+        description: 'Restaurant tools.',
+        side: 'bottom'
+      },
+      onHighlightStarted: (el) => focusNavbarElement(el)
+    },
+    {
+      element: '#nav-about',
+      popover: {
+        title: 'About',
+        description: 'Learn more.',
+        side: 'bottom'
+      },
+      onHighlightStarted: (el) => focusNavbarElement(el)
+    }
+  ];
+}
+
+/* =========================
+   INIT
+========================= */
 document.addEventListener("DOMContentLoaded", () => {
-    // This makes sure the Neighbor tab is active and styled correctly on load
-    switchTab('neighbor'); 
+
+  switchTab("neighbor");
+
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  const isLoggedIn = {{ 'true' if current_user.is_authenticated else 'false' }};
+
+  const driver = window.driver.js.driver;
+  window.isTourActive = false;
+
+  const steps = isMobile ? getMobileSteps() : getDesktopSteps();
+
+  const tour = driver({
+    animate: true,
+    smoothScroll: false,
+    allowClose: true,
+
+    showProgress: true,
+    showButtons: ["next", "previous", "close"],
+
+    nextBtnText: "Next",
+    prevBtnText: "Back",
+    doneBtnText: "Done",
+
+    popoverClass: "fridgenet-tour",
+
+    stagePadding: isMobile ? 3 : 6,
+    stageRadius: 14,
+
+    onStart: () => {
+      window.isTourActive = true;
+      document.body.style.overflow = "hidden";
+    },
+
+    onDestroy: () => {
+      window.isTourActive = false;
+      document.body.style.overflow = "";
+    },
+
+    overlayClickBehavior: "close",
+
+    onNextClick: (_, __, { driver }) => {
+      driver.moveNext();
+      syncTourState(driver.getActiveStep());
+    },
+
+    onPrevClick: (_, __, { driver }) => {
+      driver.movePrevious();
+      syncTourState(driver.getActiveStep());
+    },
+
+    steps
+  });
+
+  /* FIRST TIME USERS */
+  if (!localStorage.getItem("fridgenet_tutorial_seen")) {
+    document.body.classList.add("first-time-tour");
+
+    setTimeout(() => tour.drive(), 800);
+
+    localStorage.setItem("fridgenet_tutorial_seen", "true");
+  }
+
+  /* RESTART */
+  window.restartTutorial = () => {
+    switchTab("neighbor", false);
+    window.scrollTo(0, 0);
+    tour.drive();
+  };
+
+  /* MOBILE MODAL */
+  window.openMobileAuthModal = function () {
+    const modal = document.getElementById("mobile-auth-modal");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+  };
+
+  window.closeMobileAuthModal = function () {
+    const modal = document.getElementById("mobile-auth-modal");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+    localStorage.setItem("fridgenet_mobile_auth_dismissed", "true");
+  };
+
 });
 </script>
 </body>
