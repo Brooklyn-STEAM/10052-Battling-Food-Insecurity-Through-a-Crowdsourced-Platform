@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -33,14 +33,16 @@
              min-h-screen flex flex-col text-gray-900 dark:text-gray-100 transition-colors duration-300">
     {% include "components/navbar.html.jinja" %}
 
-   <main class="flex-grow pt-6"> <div class="max-w-6xl mx-auto px-6 mb-4">
-        <a href="/donate" class="inline-flex items-center gap-2 text-orange-600 dark:text-[#b9a6ff] hover:text-green-700 dark:hover:text-white font-bold text-sm uppercase tracking-wider transition-all group">
-            <span class="transform group-hover:-translate-x-1 transition-transform">←</span> 
-            Back to Donate
-        </a>
-    </div>
+    <main class="flex-grow pt-6"> 
+        <div class="max-w-6xl mx-auto px-6 mb-4">
+            <a href="/donate" class="inline-flex items-center gap-2 text-orange-600 dark:text-[#b9a6ff] hover:text-green-700 dark:hover:text-white font-black text-sm uppercase tracking-wider transition-all group">
+                <span class="transform group-hover:-translate-x-1 transition-transform">←</span> 
+                Back to Donate
+            </a>
+        </div>
+        
         <section class="max-w-6xl mx-auto py-16 px-6 text-center">
-            <h1 class="font-extrabold text-5xl md:text-6xl mb-6 text-[#166534] dark:text-[#b9a6ff] tracking-tight">
+            <h1 class="font-black text-5xl md:text-6xl mb-6 text-[#166534] dark:text-[#b9a6ff] tracking-tight®">
                 DONATE FOOD <span class="text-[#f97316]">NEAR YOU</span>
             </h1>
    
@@ -59,8 +61,8 @@
                     <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mb-6">
                         <svg class="text-green-600" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
-                    <h2 class="font-bold text-2xl mb-4 text-[#166534] dark:text-white">WE ACCEPT</h2>
-                    <ul class="space-y-3 text-gray-700 dark:text-gray-300">
+                    <h2 class="font-black text-2xl mb-4 text-[#166534] dark:text-white">WE ACCEPT</h2>
+                    <ul class="space-y-3 text-gray-700 dark:text-gray-300 font-medium">
                         <li>✅ Packaged Foods</li>
                         <li>✅ Fresh Produce</li>
                         <li>✅ Sealed Drinks</li>
@@ -72,8 +74,8 @@
                     <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center mb-6">
                         <svg class="text-red-600" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </div>
-                    <h2 class="font-bold text-2xl mb-4 text-[#991b1b] dark:text-white">NOT ACCEPTING</h2>
-                    <ul class="space-y-3 text-gray-700 dark:text-gray-300">
+                    <h2 class="font-black text-2xl mb-4 text-[#991b1b] dark:text-white">NOT ACCEPTING</h2>
+                    <ul class="space-y-3 text-gray-700 dark:text-gray-300 font-medium">
                         <li>❌ Open Containers</li>
                         <li>❌ Expired Food</li>
                         <li>❌ Alcohol</li>
@@ -82,10 +84,8 @@
                 </div>
             </div>
         </section>
-
-        
     </main>
 
-    
+  {% include "components/footer.html.jinja" %}
 </body>
 </html>

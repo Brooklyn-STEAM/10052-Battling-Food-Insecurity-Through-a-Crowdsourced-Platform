@@ -13,11 +13,9 @@
     tailwind.config = { darkMode: 'class' }
   </script>
 
-  <!-- Theme loader -->
   <script>
     (function () {
       const saved = localStorage.getItem("theme");
-
       if (saved === "dark") {
         document.documentElement.classList.add("dark");
       } else if (saved === "light") {
@@ -31,121 +29,158 @@
 
   <style>
     html {
-      transition: background-color 0.3s ease, color 0.3s ease;
+      scroll-behavior: smooth;
     }
     body, div, h1, h2, h3, p, a {
-      transition: background-color 0.3s ease, color 0.3s ease;
+      transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s ease, color 0.4s ease;
     }
   </style>
 </head>
+
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
+    <div class="fixed top-24 right-6 z-[6000] space-y-3 pointer-events-none">
     {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">
-        {{ message }}
+      <div class="pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-green-500 shadow-xl rounded-r-xl p-4 max-w-sm transition transform translate-x-0 animate-bounce">
+        <p class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ message }}</p>
       </div>
     {% endfor %}
+    </div>
   {% endif %}
 {% endwith %}
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col">
+
+<body class="bg-gradient-to-br from-green-50 via-white to-yellow-50 
+             dark:from-[#0b0a18] dark:via-[#121028] dark:to-[#1a1635] 
+             text-gray-800 dark:text-gray-100 min-h-screen flex flex-col">
 
   {% include "components/navbar.html.jinja" %}
 
-  <!-- HERO SECTION -->
-  <section class="bg-gradient-to-r from-green-100 to-emerald-50 
-                  dark:from-gray-800 dark:to-gray-900 
-                  py-24 px-6 text-center flex flex-col items-center relative">
-    <h1 class="text-5xl md:text-6xl font-extrabold text-green-800 dark:text-green-400 mb-6 animate-fade-in">
-      Thank You!
-    </h1>
+  <main class="flex-1 relative overflow-hidden py-16 px-6">
+    <div class="absolute top-1/4 -left-20 w-72 h-72 bg-green-300/20 dark:bg-purple-900/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 -right-20 w-82 h-82 bg-yellow-300/20 dark:bg-indigo-900/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <p class="max-w-3xl mx-auto text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-12 leading-relaxed">
-      You save lives and reduce waste by donating to a community fridge. We deeply appreciate your generosity and
-      commitment to building a stronger, more connected community. Your contribution helps ensure that fresh food is
-      available to those in need while minimizing food waste. Thank you for being a part of the FridgeNet movement!
-    </p>
-  <div class="flex gap-4 justify-center">
-      <a href="{{ url_for('index') }}"
-        class="inline-block bg-green-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition">
-        Return Home
-      </a>
-
-      <a href="/restaurant-dashboard"
-        class="inline-block bg-green-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition">
-        My Donations
-      </a>
-  </div>
-  </section>
-
-  <!-- FEATURE HIGHLIGHTS -->
-  <section class="py-20 px-6 bg-white dark:bg-gray-900 text-center">
-    <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-10">Your Impact</h2>
-    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
-
-      <div class="p-6 bg-green-50 dark:bg-green-900/20 rounded-xl shadow hover:shadow-lg transition">
-        <h3 class="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-100">Reduce Waste</h3>
-        <p class="text-gray-700 dark:text-gray-300">
-          Every donation prevents food from going to landfill and supports families in need.
-        </p>
+    <section class="max-w-4xl mx-auto text-center relative z-10 mb-20">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-purple-900/30 text-green-600 dark:text-purple-300 rounded-full shadow-inner mb-8 transform hover:scale-110 transition-transform duration-300">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
       </div>
 
-      <div class="p-6 bg-green-50 dark:bg-green-900/20 rounded-xl shadow hover:shadow-lg transition">
-        <h3 class="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-100">Help Your Community</h3>
-        <p class="text-gray-700 dark:text-gray-300">
-          Your contribution ensures fresh food is available locally for those who need it most.
-        </p>
+      <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tight
+                 bg-gradient-to-r from-green-700 to-emerald-500 
+                 dark:from-purple-300 dark:to-indigo-400 
+                 bg-clip-text text-transparent">
+        Thank You!
+      </h1>
+
+      <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed font-medium">
+        You save lives and reduce waste by donating to a community fridge. We deeply appreciate your generosity and
+        commitment to building a stronger, more connected community. Your contribution helps ensure fresh food is 
+        always localized.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a href="{{ url_for('index') }}"
+          class="w-full sm:w-auto inline-flex items-center justify-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black py-4 px-8 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
+          Return Home
+        </a>
+
+        <a href="/restaurant-dashboard"
+          class="w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-green-600 to-emerald-500 dark:from-purple-600 dark:to-indigo-600 text-white font-black py-4 px-8 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
+          My Donations
+        </a>
+      </div>
+    </section>
+
+    <section class="max-w-5xl mx-auto relative z-10">
+      <div class="text-center mb-12">
+        <span class="text-xs font-black uppercase tracking-widest text-green-600 dark:text-purple-400 bg-green-100 dark:bg-purple-900/30 px-3 py-1 rounded-full">
+          Real Impact
+        </span>
+        <h2 class="text-3xl font-black text-gray-900 dark:text-white mt-3">What Your Action Means</h2>
       </div>
 
-      <div class="p-6 bg-green-50 dark:bg-green-900/20 rounded-xl shadow hover:shadow-lg transition">
-        <h3 class="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-100">Join a Movement</h3>
-        <p class="text-gray-700 dark:text-gray-300">
-          Be part of FridgeNet’s growing network of donors, volunteers, and community leaders.
-        </p>
-      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="group p-8 rounded-3xl backdrop-blur-md bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+          <div>
+            <div class="text-3xl mb-4 bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-2xl flex items-center justify-center text-green-600 dark:text-green-400">🍂</div>
+            <h3 class="text-xl font-black mb-3 text-gray-900 dark:text-white">Reduce Waste</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+              Every item uploaded prevents food from going directly to local landfills while completely balancing local production excess.
+            </p>
+          </div>
+        </div>
 
-    </div>
-  </section>
+        <div class="group p-8 rounded-3xl backdrop-blur-md bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+          <div>
+            <div class="text-3xl mb-4 bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-2xl flex items-center justify-center text-green-600 dark:text-green-400">🤝</div>
+            <h3 class="text-xl font-black mb-3 text-gray-900 dark:text-white">Support Neighbors</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+              Your contribution guarantees healthy resources stay open and transparent for anyone looking to optimize family distributions.
+            </p>
+          </div>
+        </div>
+
+        <div class="group p-8 rounded-3xl backdrop-blur-md bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+          <div>
+            <div class="text-3xl mb-4 bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-2xl flex items-center justify-center text-green-600 dark:text-green-400">⚡</div>
+            <h3 class="text-xl font-black mb-3 text-gray-900 dark:text-white">Expand the Network</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+              Active lines prove the system works. Your data maps out strong points that help volunteers handle logistic routines.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
   {% include "components/footer.html.jinja" %}
 
-  <!-- CONFETTI SCRIPT -->
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const duration = 3000;
-    const end = Date.now() + duration;
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const duration = 3500; // Slightly longer duration for the multi-color festival feel
+      const end = Date.now() + duration;
+      const isDark = document.documentElement.classList.contains("dark");
 
-    // Detect dark mode
-    const isDark = document.documentElement.classList.contains("dark");
+      // Enhanced rich, multi-tonal color configurations
+      const colors = isDark
+        ? [
+            '#c084fc', '#a855f7', '#7e22ce', // Purples & Amethysts
+            '#38bdf8', '#0284c7',             // Electric Blues
+            '#f59e0b', '#fbbf24'              // Warm Amber Highlights
+          ]
+        : [
+            '#10B981', '#059669', '#a7f3d0', // Emeralds & Mint Greens
+            '#fbbf24', '#f59e0b',             // Festive Marigold & Golds
+            '#f43f5e', '#fda4af'              // Coral Rose pops
+          ];
 
-    // Choose colors based on theme
-    const colors = isDark
-      ? ['#a78bfa', '#8b5cf6', '#7c3aed', '#6d28d9', '#c4b5fd'] // purple (dark mode)
-      : ['#10B981', '#059669', '#34D399', '#6EE7B7', '#A7F3D0']; // green (light mode
+      (function frame() {
+        // Left side cannon
+        confetti({
+          particleCount: 5,
+          angle: 50,
+          spread: 70,
+          origin: { x: 0, y: 0.75 },
+          colors: colors,
+          ticks: 200
+        });
 
-    (function frame() {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: colors
-      });
+        // Right side cannon
+        confetti({
+          particleCount: 5,
+          angle: 130,
+          spread: 70,
+          origin: { x: 1, y: 0.75 },
+          colors: colors,
+          ticks: 200
+        });
 
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: colors
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    })();
-  });
-</script>
-
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
+    });
+  </script>
 </body>
-
 </html>

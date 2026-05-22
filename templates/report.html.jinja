@@ -39,8 +39,9 @@
     {% include "components/navbar.html.jinja" %}
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+    <a href="/individfridge/{{ fridge['ID'] }}" class="text-orange-500 hover:underline font-bold text-sm uppercase tracking-wider">← Back</a>
         <div class="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
-
+    
             <div class="w-full lg:w-2/5 space-y-6 order-first lg:order-last">
                 <div class="relative group">
                     <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-[2rem] md:rounded-[2.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
@@ -139,24 +140,24 @@
 
         </div>
     </main> 
-    <script>
-const radios = document.querySelectorAll('input[name="fridgeStatus"]');
-const statusText = document.getElementById("statusText");
+<script>
+        const radios = document.querySelectorAll('input[name="fridgeStatus"]');
+        const statusText = document.getElementById("statusText");
 
-radios.forEach(radio => {
-  radio.addEventListener("change", (e) => {
-    const selectedStatus = e.target.value;
+        radios.forEach(radio => {
+        radio.addEventListener("change", (e) => {
+            const selectedStatus = e.target.value;
 
-    statusText.textContent = selectedStatus;
+            statusText.textContent = selectedStatus;
 
-    fetch("/api/fridge/status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: selectedStatus })
-    });
-  });
-});
-</script>
-</body>
+            fetch("/api/fridge/status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: selectedStatus })
+            });
+        });
+        });
+        </script>
+    </body>
 </html>
 
