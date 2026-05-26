@@ -7,6 +7,7 @@
     <title>FridgeNet - Community Support</title>
     <link rel="icon" type="image/png" href="/static/images/logo.png">
 
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -15,16 +16,19 @@
     </script>
 
     <script>
-        (function() {
-            const saved = localStorage.getItem("theme");
-            if (saved === "dark") document.documentElement.classList.add("dark");
-            else if (saved === "light") document.documentElement.classList.remove("dark");
-            else {
-                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                document.documentElement.classList.toggle("dark", prefersDark);
-            }
-        })();
+            (function () {
+                const saved = localStorage.getItem("theme");
+                if (saved === "dark") document.documentElement.classList.add("dark");
+                else if (saved === "light") document.documentElement.classList.remove("dark");
+                else {
+                    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    document.documentElement.classList.toggle("dark", prefersDark);
+                }
+            })();
     </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.js.iife.js"></script>
 
     <style>
         .input {
@@ -73,6 +77,455 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
     </style>
+<style>
+/* ========================= */
+/* Premium Tour Transitions */
+/* ========================= */
+
+
+/* Fade OUT */
+
+
+/* IN */
+@keyframes fridgenetFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+/* OUT */
+@keyframes fridgenetFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.965);
+  }
+}
+/* ============================= */
+/* Driver.js FridgeNet Theme */
+/* ============================= */
+
+.fridgenet-tour {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+  box-shadow:
+    0 20px 40px rgba(0,0,0,0.15),
+    0 0 0 1px rgba(255,255,255,0.05) inset !important;
+
+  padding: 10px !important;
+}
+
+/* Dark mode popup */
+.dark .fridgenet-tour {
+  background: linear-gradient(
+    135deg,
+    #2a2545 0%,
+    #1b1730 100%
+  ) !important;
+
+  color: #f3f4f6 !important;
+
+  border: 1px solid rgba(139, 92, 246, 0.25) !important;
+
+  box-shadow:
+  0 10px 25px rgba(0,0,0,0.25),
+  0 0 10px rgba(139,92,246,0.08) !important;
+}
+
+/* Title */
+.fridgenet-tour .driver-popover-title {
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  color: #166534 !important;
+  margin-bottom: 8px !important;
+}
+
+.dark .fridgenet-tour .driver-popover-title {
+  color: #c4b5fd !important;
+}
+
+/* Description */
+.fridgenet-tour .driver-popover-description {
+  color: #4b5563 !important;
+  line-height: 1.6 !important;
+  font-size: 0.95rem !important;
+}
+
+.dark .fridgenet-tour .driver-popover-description {
+  color: rgba(243,244,246,0.82) !important;
+}
+
+/* Buttons */
+.fridgenet-tour .driver-popover-next-btn,
+.fridgenet-tour .driver-popover-prev-btn {
+  background: linear-gradient(
+    135deg,
+    #16a34a,
+    #22c55e
+  ) !important;
+
+  color: white !important;
+
+  border: none !important;
+  border-radius: 12px !important;
+
+  padding: 10px 18px !important;
+
+  font-weight: 700 !important;
+
+  text-shadow: none !important;
+
+  transition: all 0.25s ease !important;
+}
+
+.dark .fridgenet-tour .driver-popover-next-btn,
+.dark .fridgenet-tour .driver-popover-prev-btn {
+  background: linear-gradient(
+    135deg,
+    #7b2cbf,
+    #9d4edd
+  ) !important;
+}
+
+.fridgenet-tour .driver-popover-next-btn:hover,
+.fridgenet-tour .driver-popover-prev-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+/* Close button */
+.fridgenet-tour .driver-popover-close-btn {
+  color: #6b7280 !important;
+  transition: all 0.2s ease;
+}
+
+.dark .fridgenet-tour .driver-popover-close-btn {
+  color: #d1d5db !important;
+}
+
+.fridgenet-tour .driver-popover-close-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.85;
+}
+
+/* Progress text */
+.fridgenet-tour .driver-popover-progress-text {
+  color: #6b7280 !important;
+  font-weight: 600 !important;
+}
+
+.dark .fridgenet-tour .driver-popover-progress-text {
+  color: rgba(255,255,255,0.7) !important;
+}
+
+/* Arrow styling */
+.dark .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: #2a2545 !important;
+}
+
+.dark .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: #2a2545 !important;
+}
+
+.dark .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: #2a2545 !important;
+}
+
+.dark .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: #2a2545 !important;
+}
+
+
+
+.fridgenet-tour .driver-popover-footer {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.fridgenet-tour .driver-popover-next-btn,
+.fridgenet-tour .driver-popover-prev-btn {
+  padding: 8px 14px !important;
+  font-size: 0.9rem !important;
+  min-width: unset !important;
+
+  flex-shrink: 1;
+  max-width: 120px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+@keyframes popupFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+/* ========================= */
+/* Tour Tab Transition FX */
+/* ========================= */
+
+.tour-tab-animate {
+  animation: tourTabFadeSlide 0.45s ease-out;
+}
+
+.tour-tab-left {
+  animation: tourTabFadeSlide 0.45s ease-out;
+}
+
+.tour-tab-right {
+  animation: tourTabFadeSlide 0.45s ease-out;
+}
+html {
+  scroll-behavior: auto;
+}
+.fridgenet-tour .driver-popover-close-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+
+  font-size: 0 !important;
+}
+
+/* Add visible text */
+.fridgenet-tour .driver-popover-close-btn::after {
+  content: "Skip";
+
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  color: #6b7280;
+}
+.driver-stage {
+  transition:
+    all 0.42s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+/* Dark mode */
+.dark .fridgenet-tour .driver-popover-close-btn::after {
+  color: rgba(255,255,255,0.75);
+}
+
+/* Hover */
+.fridgenet-tour .driver-popover-close-btn:hover::after {
+  color: #ef4444;
+}
+@keyframes tourTabFadeSlide {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(18px)
+      scale(0.985);
+  }
+
+  60% {
+    opacity: 1;
+    transform:
+      translateY(-2px)
+      scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+img {
+  content-visibility: auto;
+  contain: paint;
+}
+/* Small screens */
+@media (max-width: 640px) {
+/* Only for first-time users */
+.first-time-tour .fridgenet-tour .driver-popover-next-btn,
+.first-time-tour .fridgenet-tour .driver-popover-prev-btn {
+
+  padding: 6px 12px !important;
+  font-size: 0.82rem !important;
+
+  max-width: 110px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+}
+/* ========================= */
+/* Mobile Tutorial Fixes */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .fridgenet-tour {
+    width: calc(100vw - 32px) !important;
+    max-width: 340px !important;
+
+    padding: 14px !important;
+
+    border-radius: 18px !important;
+  }
+
+  .fridgenet-tour .driver-popover-title {
+    font-size: 1rem !important;
+  }
+
+  .fridgenet-tour .driver-popover-description {
+    font-size: 0.88rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .fridgenet-tour .driver-popover-footer {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .fridgenet-tour .driver-popover-next-btn,
+  .fridgenet-tour .driver-popover-prev-btn {
+
+    flex: 1;
+
+    font-size: 0.82rem !important;
+
+    padding: 8px 10px !important;
+
+    min-height: 42px;
+  }
+
+  /* Prevent weird horizontal overflow */
+  .driver-popover {
+    max-width: calc(100vw - 24px) !important;
+  }
+
+}
+.tutorial-active {
+
+    position: relative;
+    z-index: 60 !important;
+
+    animation:
+    tutorialPulse 2s ease-in-out infinite;
+
+}
+
+@keyframes tutorialPulse {
+
+    0%, 100% {
+
+        box-shadow:
+        0 0 0 0 rgba(34,197,94,0.35);
+
+    }
+
+    50% {
+
+        box-shadow:
+        0 0 0 14px rgba(34,197,94,0);
+
+    }
+
+}
+
+.dark .tutorial-active {
+
+    animation:
+    tutorialPulseDark 2s ease-in-out infinite;
+
+}
+
+@keyframes tutorialPulseDark {
+
+    0%, 100% {
+
+        box-shadow:
+        0 0 0 0 rgba(168,85,247,0.35);
+
+    }
+
+    50% {
+
+        box-shadow:
+        0 0 0 14px rgba(168,85,247,0);
+
+    }
+
+}
+/* ========================= */
+/* DRIVER.JS LAYER FIXES */
+/* ========================= */
+
+/* Keep overlay BELOW navbar */
+.driver-overlay {
+  z-index: 40 !important;
+}
+
+/* Highlight stage */
+.driver-stage {
+  z-index: 41 !important;
+
+  transition:
+    transform 0.28s ease,
+    width 0.28s ease,
+    height 0.28s ease,
+    top 0.28s ease,
+    left 0.28s ease !important;
+}
+
+/* Popover always above everything */
+.driver-popover {
+  z-index: 9999 !important;
+}
+
+/* Navbar should stay above fading overlay */
+nav,
+.navbar,
+header {
+  position: relative;
+  z-index: 50 !important;
+}
+
+/* Prevent laggy overlay repainting */
+.driver-overlay,
+.driver-stage {
+  will-change:
+    transform,
+    width,
+    height,
+    top,
+    left,
+    opacity;
+
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Prevent floating animation from affecting layout */
+.driver-popover:not(.driver-fading-out) {
+  animation:
+    fridgenetFadeIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+</style>
 </head>
 
 <body class="bg-white text-gray-800 dark:bg-[#1b1730] dark:text-gray-100 transition-colors duration-300">
@@ -80,43 +533,46 @@
     {% include "components/navbar.html.jinja" %}
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %} 
-            {% if messages %} 
-                {% for category, message in messages %} 
-                    {% if category.startswith("donation_") %}
-                        <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md {% if category == 'donation_error' %} bg-red-500 dark:bg-red-700 {% else %} bg-green-600 dark:bg-[#6f52c9] {% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endif %} 
-                {% endfor %} 
-            {% endif %} 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        {% if category.startswith("donation_") %}
+        <div
+            class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md {% if category == 'donation_error' %} bg-red-500 dark:bg-red-700 {% else %} bg-green-600 dark:bg-[#6f52c9] {% endif %}">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
         {% endwith %}
     </div>
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 lg:py-12">
-        
-        <div class="form-card rounded-3xl p-6 mb-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
+
+        <div id="donation-hero"
+            class="form-card rounded-3xl p-6 mb-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
             <div class="space-y-2">
                 <h2 class="text-2xl font-bold text-orange-600 dark:text-purple-400">Your Support Matters</h2>
                 <p class="text-gray-600 dark:text-gray-300 max-w-xl">
-                    100% of your donations go directly to restocking community fridges. Whether you give food or funds, you're helping feed a neighbor today.
+                    100% of your donations go directly to restocking community fridges. Whether you give food or funds,
+                    you're helping feed a neighbor today.
                 </p>
             </div>
-            <a href="/donations" 
-   class="whitespace-nowrap rounded-xl px-6 py-3 font-bold transition-all duration-300
+            <a href="/donations" id="learn-more-btn" class="whitespace-nowrap rounded-xl px-6 py-3 font-bold transition-all duration-300
           /* Light Mode */
           bg-white text-gray-900 border border-gray-200 shadow-sm
           hover:shadow-orange-500/20 hover:border-orange-500 hover:-translate-y-0.5 hover:text-orange-600
           /* Dark Mode */
           dark:bg-[#2a2545] dark:text-white dark:border-[#40376E]
           dark:hover:border-purple-500 dark:hover:shadow-purple-500/20 dark:hover:text-purple-400">
-    Learn How it Works ↓
-</a>
+                Learn How it Works ↓
+            </a>
         </div>
 
-        <div class="mb-8 lg:mb-12 text-center lg:text-left">
+        <div id="money-card" class="mb-8 lg:mb-12 text-center lg:text-left">
             <h1 class="text-3xl sam:text-4xl lg:text-5xl font-extrabold tracking-tight">Help People In Need</h1>
-            <p class="text-gray-600 dark:text-gray-300 mt-3 text-base sm:text-lg">Donate money or food to support local communities.</p>
+            <p class="text-gray-600 dark:text-gray-300 mt-3 text-base sm:text-lg">Donate money or food to support local
+                communities.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
@@ -124,16 +580,14 @@
             <div class="form-card flex flex-col justify-between rounded-3xl p-5 shadow-xl sm:p-8">
                 <div>
                     <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">Donate Money</h2>
-                    <form method="POST" action="{{ url_for('donate_money') }}" id="moneyForm">
+                    <form id="moneyDonationForm" method="POST" action="{{ url_for('donate_money') }}">
                         <input type="hidden" name="final_amount" id="finalAmountValue">
-                        <input type="hidden"
-                       name="csrf_token"
-                       value="{{ csrf_token() }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="grid grid-cols-3 gap-3 sm:gap-4 font-semibold">
                             {% for amount in [10, 25, 50] %}
                             <label class="cursor-pointer group">
                                 <input type="radio" name="amount" value="{{ amount }}" class="hidden peer preset-radio">
-                                <div class="py-3 sm:py-4 text-center rounded-2xl border border-gray-200 dark:border-gray-700 peer-checked:bg-green-600 peer-checked:border-green-600 hover:bg-green-50 peer-checked:text-white dark:peer-checked:bg-purple-600 dark:peer-checked:border-purple-600 transition-all duration-200">
+                                <div class="preset-amounts py-3 sm:py-4 text-center rounded-2xl border border-gray-200 dark:border-gray-700 peer-checked:bg-green-600 peer-checked:border-green-600 hover:bg-green-50 peer-checked:text-white dark:peer-checked:bg-purple-600 dark:peer-checked:border-purple-600 transition-all duration-200">
                                     ${{ amount }}
                                 </div>
                             </label>
@@ -141,88 +595,110 @@
                         </div>
 
                         <div class="mt-4">
-                            <input type="number" name="custom_amount" id="customAmount" placeholder="$ Custom amount" class="input" min="1" max="10000">
+                            <input type="number" name="custom_amount" id="customAmount" placeholder="$ Custom amount"
+                                class="input" min="1" max="10000">
                         </div>
 
                         <div class="mt-6 relative space-y-1.5">
-                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ml-1">Target Fridge</label>
+                            <label
+                                class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ml-1">Target
+                                Fridge</label>
                             <input type="hidden" name="money_fridge_id" id="moneyFridgeValue" required>
-                            <button type="button" id="moneyFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition dark:bg-[#2a2545] dark:text-white">
+                            <button type="button" id="moneyFridgeBtn"
+                                class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition dark:bg-[#2a2545] dark:text-white">
                                 <span id="moneyFridgeText">Choose a fridge</span>
                                 <span class="text-xs opacity-50">▼</span>
                             </button>
-                            <div id="moneyFridgeMenu" class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
+                            <div id="moneyFridgeMenu"
+                                class="dropdown absolute z-30 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
                                 {% for fridge in fridges %}
-                                <div class="money-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]" data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
-                                    <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover" alt="{{ fridge['Name'] }}">
+                                <div class="money-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
+                                    data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                                    <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover"
+                                        alt="{{ fridge['Name'] }}">
                                     <span class="text-sm font-bold">{{ fridge['Name'] }}</span>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
 
-                        <button type="submit" class="mt-8 w-full transform rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] hover:bg-orange-600 dark:bg-purple-600 dark:hover:bg-purple-700">
+                        <button type="submit" id="money-submit-btn"
+                            class="mt-8 w-full transform rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] hover:bg-orange-600 dark:bg-purple-600 dark:hover:bg-purple-700">
                             Donate Now
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div class="form-card rounded-3xl p-5 shadow-xl sm:p-8">
+            <div id="food-card" class="form-card rounded-3xl p-5 shadow-xl sm:p-8">
                 <h2 class="mb-6 flex items-center gap-2 text-2xl font-bold">Schedule Drop-Off</h2>
-                <form method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="{{ csrf_token() }}">
+                <form id="foodDonationForm" method="POST" action="{{ url_for('donate_food') }}" class="space-y-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div class="space-y-1">
-                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Name</label>
-                            <input type="text" name="full_name" placeholder="Full Name" class="input" required>
+                            <label
+                                class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Name</label>
+                            <input type="text" id="fullNameInput" name="full_name" placeholder="Full Name" class="input" required>
                         </div>
                         <div class="space-y-1">
-                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Email</label>
+                            <label
+                                class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Email</label>
                             <input type="email" name="food_email" placeholder="Email" class="input" required>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div class="space-y-1">
-                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Dropoff Date</label>
+                            <label
+                                class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Dropoff
+                                Date</label>
                             <input type="date" name="dropoff_date" id="dropoffDate" class="input" required>
                         </div>
                         <div class="space-y-1">
-                            <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quantity</label>
-                            <input type="number" name="quantity" min="1" placeholder="No. of items" class="input" required>
+                            <label
+                                class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quantity</label>
+                           <input type="number" id="quantityInput" name="quantity" min="1" placeholder="No. of items" class="input" required>
                         </div>
                     </div>
 
                     <div class="relative space-y-1">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Type of Food</label>
+                        <label
+                            class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Type
+                            of Food</label>
                         <input type="hidden" name="food_type" id="foodTypeValue" required>
-                        <button type="button" id="foodTypeBtn" class="border-gray-200 flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition-colors dark:border-gray-700 dark:bg-[#2a2545] dark:text-white">
+                        <button type="button" id="food-type-btn"
+                            class="border-gray-200 flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm transition-colors dark:border-gray-700 dark:bg-[#2a2545] dark:text-white">
                             <span id="foodTypeText">Select category</span>
                             <span class="text-xs opacity-50">▼</span>
                         </button>
-                        <div id="foodTypeMenu" class="absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border bg-white shadow-2xl dark:border-gray-700 dark:bg-[#2a2545]">
+                        <div id="foodTypeMenu"
+                            class="absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border bg-white shadow-2xl dark:border-gray-700 dark:bg-[#2a2545]">
                             {% for item in food_types %}
-                            <div class="food-type-item border-gray-100 dark:border-gray-700/50 cursor-pointer border-b p-4 transition-colors last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]" data-id="{{ item['ID'] }}" data-name="{{ item['Name'] }}">
+                            <div class="food-type-item border-gray-100 dark:border-gray-700/50 cursor-pointer border-b p-4 transition-colors last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
+                                data-id="{{ item['ID'] }}" data-name="{{ item['Name'] }}">
                                 <span class="text-sm font-bold">{{ item['Name'] }}</span>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <div class="relative space-y-1">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Target Fridge</label>
+                    <div  class="relative space-y-1">
+                        <label
+                            class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Target
+                            Fridge</label>
                         <input type="hidden" name="FridgeID" id="foodFridgeValue" required>
-                        <button type="button" id="foodFridgeBtn" class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm dark:bg-[#2a2545] dark:text-white">
+                        <button type="button" id="food-fridge-btn"
+                            class="flex w-full items-center justify-between rounded-xl border bg-white p-4 text-sm shadow-sm dark:bg-[#2a2545] dark:text-white">
                             <span id="foodFridgeText">Choose a location</span>
                             <span class="text-xs opacity-50">▼</span>
                         </button>
-                        <div id="foodFridgeMenu" class="dropdown absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
+                        <div id="foodFridgeMenu"
+                            class="dropdown absolute z-20 mt-2 hidden max-h-60 w-full overflow-y-auto rounded-xl border shadow-2xl bg-white dark:bg-[#2a2545]">
                             {% for fridge in fridges %}
-                            <div class="food-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]" data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
-                                <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover" alt="{{ fridge['Name'] }}">
+                            <div class="food-item border-gray-100 dark:border-gray-700/50 flex cursor-pointer items-center gap-3 border-b p-4 last:border-0 hover:bg-orange-50 dark:hover:bg-[#40376E]"
+                                data-id="{{ fridge['ID'] }}" data-name="{{ fridge['Name'] }}">
+                                <img src="{{ fridge['Image'] }}" class="h-10 w-10 rounded-lg object-cover"
+                                    alt="{{ fridge['Name'] }}">
                                 <span class="text-sm font-bold">{{ fridge['Name'] }}</span>
                             </div>
                             {% endfor %}
@@ -230,11 +706,14 @@
                     </div>
 
                     <div class="space-y-1">
-                        <label class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Notes</label>
-                        <textarea name="notes" rows="2" class="input" placeholder="Any dietary info or specifics?"></textarea>
+                        <label
+                            class="ml-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Notes</label>
+                        <textarea id="notesInput" name="notes" rows="2" class="input"
+                            placeholder="Any dietary info or specifics?"></textarea>
                     </div>
 
-                    <button type="submit" class="mt-4 w-full hover:bg-green-600 transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg transition active:scale-[0.98] dark:bg-purple-600 dark:hover:bg-purple-700">
+                    <button type="submit" id="food-submit-btn"
+                        class="mt-4 w-full hover:bg-green-600 transform rounded-2xl bg-orange-600 py-4 font-bold text-white shadow-lg transition active:scale-[0.98] dark:bg-purple-600 dark:hover:bg-purple-700">
                         Complete Donation
                     </button>
                 </form>
@@ -244,107 +723,745 @@
 
 
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Dropdown Logic
-            function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
-                const btn = document.getElementById(btnId);
-                const menu = document.getElementById(menuId);
-                const hiddenInput = document.getElementById(hiddenInputId);
-                const btnText = document.getElementById(textId);
+<script>
 
-                if (!btn || !menu) return;
+document.addEventListener('DOMContentLoaded', function () {
 
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => {
-                        if (m !== menu) m.classList.add('hidden');
-                    });
-                    menu.classList.toggle('hidden');
-                });
+    /* =========================
+       Dropdown Logic
+    ========================= */
 
-                menu.querySelectorAll(itemClass).forEach(item => {
-                    item.addEventListener('click', function() {
-                        hiddenInput.value = this.getAttribute('data-id');
-                        btnText.innerText = this.getAttribute('data-name');
-                        menu.classList.add('hidden');
-                        btn.classList.add('border-orange-500', 'dark:border-purple-500');
-                    });
-                });
-            }
+    function setupDropdown(btnId, menuId, hiddenInputId, textId, itemClass) {
 
-            setupDropdown('moneyFridgeBtn', 'moneyFridgeMenu', 'moneyFridgeValue', 'moneyFridgeText', '.money-item');
-            setupDropdown('foodFridgeBtn', 'foodFridgeMenu', 'foodFridgeValue', 'foodFridgeText', '.food-item');
-            setupDropdown('foodTypeBtn', 'foodTypeMenu', 'foodTypeValue', 'foodTypeText', '.food-type-item');
+        const btn = document.getElementById(btnId);
+        const menu = document.getElementById(menuId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+        const btnText = document.getElementById(textId);
 
-            // Close on outside click
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => m.classList.add('hidden'));
+        if (!btn || !menu) return;
+
+        btn.addEventListener('click', (e) => {
+
+            e.stopPropagation();
+
+            document.querySelectorAll('.dropdown, #foodTypeMenu').forEach(m => {
+                if (m !== menu) m.classList.add('hidden');
             });
 
-            // Money Form Amount Logic
-            const moneyForm = document.getElementById("moneyForm");
-            const customInput = document.getElementById("customAmount");
-            const presetRadios = document.querySelectorAll('.preset-radio');
-            const finalAmountInput = document.getElementById("finalAmountValue");
+            menu.classList.toggle('hidden');
 
-            customInput?.addEventListener("input", () => {
-                if (customInput.value !== "") {
-                    presetRadios.forEach(r => r.checked = false);
-                }
-            });
-
-            presetRadios.forEach(radio => {
-                radio.addEventListener("change", () => {
-                    if (radio.checked) customInput.value = "";
-                });
-            });
-
-            moneyForm?.addEventListener("submit", function(e) {
-                const selectedRadio = document.querySelector('.preset-radio:checked');
-                const fridgeSelected = document.getElementById("moneyFridgeValue").value;
-
-                let total = selectedRadio ? selectedRadio.value : customInput.value;
-
-                if (!total || total <= 0) {
-                    e.preventDefault();
-                    alert("Please select or enter a donation amount.");
-                    return;
-                }
-
-                if (!fridgeSelected) {
-                    e.preventDefault();
-                    alert("Please select a target fridge.");
-                    return;
-                }
-
-                finalAmountInput.value = total;
-
-                const btn = this.querySelector("button[type='submit']");
-                btn.innerHTML = `<span class="flex items-center justify-center gap-2">
-            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            Processing...
-        </span>`;
-                btn.disabled = true;
-            });
-
-            // Date Restriction
-            const dateInput = document.getElementById("dropoffDate");
-            if (dateInput) {
-                dateInput.min = new Date().toISOString().split("T")[0];
-            }
-
-            // Auto-hide flash messages
-            const flashes = document.querySelectorAll(".flash-message");
-            flashes.forEach(flash => {
-                setTimeout(() => {
-                    flash.style.opacity = "0";
-                    flash.style.transition = "opacity 0.5s ease";
-                    setTimeout(() => flash.remove(), 500);
-                }, 3000);
-            });
         });
-    </script>
+
+        menu.querySelectorAll(itemClass).forEach(item => {
+
+            item.addEventListener('click', function () {
+
+                hiddenInput.value = this.getAttribute('data-id');
+                btnText.innerText = this.getAttribute('data-name');
+
+                menu.classList.add('hidden');
+
+                btn.classList.add(
+                    'border-orange-500',
+                    'dark:border-purple-500'
+                );
+
+            });
+
+        });
+
+    }
+
+    setupDropdown(
+        'moneyFridgeBtn',
+        'moneyFridgeMenu',
+        'moneyFridgeValue',
+        'moneyFridgeText',
+        '.money-item'
+    );
+
+    setupDropdown(
+        'food-fridge-btn',
+        'foodFridgeMenu',
+        'foodFridgeValue',
+        'foodFridgeText',
+        '.food-item'
+    );
+
+    setupDropdown(
+        'food-type-btn',
+        'foodTypeMenu',
+        'foodTypeValue',
+        'foodTypeText',
+        '.food-type-item'
+    );
+
+    /* =========================
+       Close Dropdowns
+    ========================= */
+
+    document.addEventListener('click', () => {
+
+        document.querySelectorAll(
+            '.dropdown, #foodTypeMenu'
+        ).forEach(m => m.classList.add('hidden'));
+
+    });
+
+    /* =========================
+       Money Form Logic
+    ========================= */
+
+    const moneyForm = document.getElementById("moneyDonationForm");
+
+    const customInput =
+        document.getElementById("customAmount");
+
+    const presetRadios =
+        document.querySelectorAll('.preset-radio');
+
+    const finalAmountInput =
+        document.getElementById("finalAmountValue");
+
+    customInput?.addEventListener("input", () => {
+
+        if (customInput.value !== "") {
+
+            presetRadios.forEach(r => r.checked = false);
+
+        }
+
+    });
+
+    presetRadios.forEach(radio => {
+
+        radio.addEventListener("change", () => {
+
+            if (radio.checked) {
+                customInput.value = "";
+            }
+
+        });
+
+    });
+
+    moneyForm?.addEventListener("submit", function (e) {
+
+        const selectedRadio =
+            document.querySelector('.preset-radio:checked');
+
+        const fridgeSelected =
+            document.getElementById("moneyFridgeValue").value;
+
+        let total =
+            selectedRadio ? selectedRadio.value : customInput.value;
+
+        if (!total || total <= 0) {
+
+            e.preventDefault();
+
+            alert("Please select or enter a donation amount.");
+
+            return;
+
+        }
+
+        if (!fridgeSelected) {
+
+            e.preventDefault();
+
+            alert("Please select a target fridge.");
+
+            return;
+
+        }
+
+        finalAmountInput.value = total;
+
+        const btn =
+            this.querySelector("button[type='submit']");
+
+        btn.innerHTML = `
+        <span class="flex items-center justify-center gap-2">
+            <svg class="animate-spin h-5 w-5 text-white"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24">
+                <circle class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"></circle>
+
+                <path class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0
+                         C5.373 0 0 5.373 0 12h4
+                         zm2 5.291A7.962 7.962 0 014 12H0
+                         c0 3.042 1.135 5.824 3 7.938
+                         l3-2.647z"></path>
+            </svg>
+
+            Processing...
+        </span>
+        `;
+
+        btn.disabled = true;
+
+    });
+
+    /* =========================
+       Date Restriction
+    ========================= */
+
+    const dateInput =
+        document.getElementById("dropoffDate");
+
+    if (dateInput) {
+
+        dateInput.min =
+            new Date().toISOString().split("T")[0];
+
+    }
+
+    /* =========================
+       Flash Messages
+    ========================= */
+
+    const flashes =
+        document.querySelectorAll(".flash-message");
+
+    flashes.forEach(flash => {
+
+        setTimeout(() => {
+
+            flash.style.opacity = "0";
+
+            flash.style.transition =
+                "opacity 0.5s ease";
+
+            setTimeout(() => flash.remove(), 500);
+
+        }, 3000);
+
+    });
+
+    /* =========================
+       Reveal Animations
+    ========================= */
+
+    const observer = new IntersectionObserver((entries) => {
+
+        entries.forEach((entry) => {
+
+            if (entry.isIntersecting) {
+
+                entry.target.classList.add("active");
+
+            }
+
+        });
+
+    }, {
+        threshold: 0.1
+    });
+
+    document.querySelectorAll(
+        ".reveal"
+    ).forEach(el => observer.observe(el));
+
+    /* =========================
+       Donate Tutorial
+    ========================= */
+
+    const driver = window.driver.js.driver;
+
+    const isMobile =
+        window.matchMedia("(max-width: 768px)").matches;
+
+    function openMenu(id) {
+    document.getElementById(id)
+    ?.classList.remove("hidden");
+}
+
+function closeMenu(id) {
+    document.getElementById(id)
+    ?.classList.add("hidden");
+}
+
+const desktopSteps = [
+
+/* =========================
+   INTRO
+========================= */
+
+{
+    element: "#donation-hero",
+    popover: {
+        title: "Welcome to FridgeNet 💚",
+        description:
+            "This page lets you support community fridges through financial donations or food drop-offs.",
+        side: "bottom",
+        align: "center"
+    }
+},
+
+{
+    element: "#learn-more-btn",
+    popover: {
+        title: "Learn How Donations Work",
+        description:
+            "Open this page anytime to learn how FridgeNet distributes donations and supports local communities.",
+        side: "bottom"
+    }
+},
+
+/* =========================
+   MONEY SECTION INTRO
+========================= */
+
+{
+    element: "#money-card",
+    popover: {
+        title: "Two Ways to Help",
+        description:
+            "You can donate money instantly or schedule a food donation for a nearby community fridge.",
+        side: isMobile ? "top" : "left"
+    }
+},
+
+{
+    element: "#moneyDonationForm",
+    popover: {
+        title: "Money Donation Form",
+        description:
+            "This form helps fund fridge restocking, emergency food supplies, and community support efforts.",
+        side: "left"
+    }
+},
+
+/* =========================
+   PRESET AMOUNTS
+========================= */
+
+{
+    element: ".preset-amounts",
+    popover: {
+        title: "Quick Donation Amounts",
+        description:
+            "Choose a fast preset amount for a quick donation experience.",
+        side: "bottom"
+    },
+
+    onHighlightStarted: () => {
+
+        const first =
+            document.querySelector(".preset-radio");
+
+        if (first) first.checked = true;
+
+    }
+},
+
+/* =========================
+   CUSTOM AMOUNT
+========================= */
+
+{
+    element: "#customAmount",
+    popover: {
+        title: "Custom Donation Amount",
+        description:
+            "Prefer a different amount? Enter any value between $1 and $10,000.",
+        side: "top"
+    },
+
+    onHighlightStarted: () => {
+
+        document.getElementById("customAmount")
+        ?.focus();
+
+    }
+},
+
+/* =========================
+   TARGET FRIDGE
+========================= */
+
+{
+    element: "#moneyFridgeBtn",
+    popover: {
+        title: "Choose a Community Fridge",
+        description:
+            "Select which fridge will receive support from your donation.",
+        side: "top"
+    },
+
+    onHighlightStarted: () => {
+
+        openMenu("moneyFridgeMenu");
+
+    },
+
+    onDeselected: () => {
+
+        closeMenu("moneyFridgeMenu");
+
+    }
+},
+
+/* =========================
+   SUBMIT MONEY
+========================= */
+
+{
+    element: "#money-submit-btn",
+    popover: {
+        title: "Complete Your Donation 💸",
+        description:
+            "Once submitted, your donation is securely processed and used to help stock community fridges.",
+        side: "top"
+    }
+},
+
+/* =========================
+   FOOD DONATION INTRO
+========================= */
+
+{
+    element: "#food-card",
+    popover: {
+        title: "Food Donation Scheduling 🥫",
+        description:
+            "Use this form to schedule a future food drop-off for a local fridge.",
+        side: isMobile ? "top" : "right"
+    }
+},
+
+{
+    element: "#foodDonationForm",
+    popover: {
+        title: "Donation Details",
+        description:
+            "Fill out your contact information so organizers can verify and prepare for your delivery.",
+        side: "right"
+    }
+},
+
+/* =========================
+   NAME
+========================= */
+
+{
+    element: "#fullNameInput",
+    popover: {
+        title: "Your Name",
+        description:
+            "Enter your full name so volunteers know who scheduled the donation.",
+        side: "bottom"
+    },
+
+    onHighlightStarted: () => {
+
+        document.getElementById("fullNameInput")
+        ?.focus();
+
+    }
+},
+
+/* =========================
+   EMAIL
+========================= */
+
+{
+    element: "input[name='food_email']",
+    popover: {
+        title: "Contact Email",
+        description:
+            "Use a valid email address in case organizers need to contact you about your drop-off.",
+        side: "bottom"
+    }
+},
+
+/* =========================
+   DATE
+========================= */
+
+{
+    element: "#dropoffDate",
+    popover: {
+        title: "Choose a Drop-Off Date",
+        description:
+            "Only current or future dates are allowed for scheduling food deliveries.",
+        side: "top"
+    },
+
+    onHighlightStarted: () => {
+
+        document.getElementById("dropoffDate")
+        ?.showPicker?.();
+
+    }
+},
+
+/* =========================
+   QUANTITY
+========================= */
+
+{
+    element: "#quantityInput",
+    popover: {
+        title: "Donation Quantity",
+        description:
+            "Enter approximately how many food items you plan to donate.",
+        side: "top"
+    }
+},
+
+/* =========================
+   FOOD CATEGORY
+========================= */
+
+{
+    element: "#food-type-btn",
+    popover: {
+        title: "Food Category",
+        description:
+            "Select the type of food you're donating so volunteers can organize storage properly.",
+        side: "top"
+    },
+
+    onHighlightStarted: () => {
+
+        openMenu("foodTypeMenu");
+
+    },
+
+    onDeselected: () => {
+
+        closeMenu("foodTypeMenu");
+
+    }
+},
+
+
+/* =========================
+   FOOD FRIDGE
+========================= */
+
+{
+    element: "#food-fridge-btn",
+    popover: {
+        title: "Choose a Delivery Location",
+        description:
+            "Select which community fridge you plan to deliver food to.",
+        side: "top"
+    },
+
+    onHighlightStarted: () => {
+
+        openMenu("foodFridgeMenu");
+
+    },
+
+    onDeselected: () => {
+
+        closeMenu("foodFridgeMenu");
+
+    }
+},
+
+/* =========================
+   NOTES
+========================= */
+
+{
+    element: "#notesInput",
+    popover: {
+        title: "Optional Notes",
+        description:
+            "Add allergy information, expiration details, dietary notes, or anything volunteers should know.",
+        side: "top"
+    }
+},
+
+/* =========================
+   FINAL SUBMIT
+========================= */
+
+{
+    element: "#food-submit-btn",
+    popover: {
+        title: "Schedule Donation ✅",
+        description:
+            "Submit your request to finalize your scheduled food donation.",
+        side: "top"
+    }
+}
+
+];
+
+/* =========================
+   MOBILE VERSION
+========================= */
+
+const mobileSteps = [
+
+desktopSteps[0],
+desktopSteps[2],
+desktopSteps[4],
+desktopSteps[6],
+desktopSteps[7],
+desktopSteps[9],
+desktopSteps[17]
+];
+
+const steps =
+    isMobile ? mobileSteps : desktopSteps;    
+    const tour = driver({
+
+    animate: true,
+
+    smoothScroll: false,
+
+    allowClose: true,
+
+    overlayOpacity: 0.55,
+
+    showProgress: true,
+
+    stagePadding: isMobile ? 8 : 12,
+
+    stageRadius: 20,
+
+    nextBtnText: "Next",
+
+    prevBtnText: "Back",
+
+    doneBtnText: "Finish",
+
+    popoverClass: "fridgenet-tour",
+
+    steps,
+
+    onHighlightStarted: (element) => {
+
+        if (!element) return;
+
+        element.classList.add(
+            "tutorial-active"
+        );
+
+    },
+
+    onDeselected: (element) => {
+
+        if (!element) return;
+
+        element.classList.remove(
+            "tutorial-active"
+        );
+
+    },
+
+    onDestroyed: () => {
+
+        document.querySelectorAll(
+            ".tutorial-active"
+        ).forEach(el => {
+
+            el.classList.remove(
+                "tutorial-active"
+            );
+
+        });
+
+        closeMenu("moneyFridgeMenu");
+        closeMenu("foodTypeMenu");
+        closeMenu("foodFridgeMenu");
+
+        showTutorialCompleteToast();
+
+    }
+
+});
+
+function showTutorialCompleteToast() {
+
+    const toast =
+        document.createElement("div");
+
+    toast.className = `
+    fixed bottom-6 left-1/2
+    -translate-x-1/2 z-[9999]
+    rounded-2xl px-6 py-4
+    bg-green-600 dark:bg-purple-600
+    text-white font-bold shadow-2xl`;
+
+    toast.innerHTML =
+        "🎉 You're ready to support your community!";
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+
+        toast.style.opacity = "0";
+        toast.style.transition =
+            "opacity 0.4s ease";
+
+        setTimeout(() => {
+
+            toast.remove();
+
+        }, 400);
+
+    }, 3200);
+
+}
+
+    /* =========================
+       Auto Start Tutorial
+    ========================= */
+
+    if (!localStorage.getItem(
+        "fridgenet_donate_tutorial_seen"
+    )) {
+
+        setTimeout(() => {
+
+            tour.drive();
+
+        }, 700);
+
+        localStorage.setItem(
+            "fridgenet_donate_tutorial_seen",
+            "true"
+        );
+
+    }
+
+    /* =========================
+       Restart Tutorial
+    ========================= */
+
+    window.restartDonateTutorial = () => {
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+        setTimeout(() => {
+
+            tour.drive();
+
+        }, 450);
+
+    };
+
+});
+</script>
 </body>
 
 </html>
