@@ -106,7 +106,7 @@
           </svg>
         </div>
       </button>
-
+      <!-- Desktop Profile -->
       <div class="relative group hidden md:block">
         <button class="flex items-center gap-2 hover:text-gray-200 dark:hover:text-gray-300 focus:outline-none py-2">
 
@@ -284,4 +284,27 @@
       localStorage.setItem("theme", isDark ? "dark" : "light");
     });
   }
+window.restartTutorial = window.restartTutorial || function () {
+
+    window.dispatchEvent(
+        new CustomEvent("start-tutorial")
+    );
+};
+/* =========================================================
+   GLOBAL TUTORIAL EVENT
+
+document.querySelectorAll("[data-tutorial-trigger]")
+.forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+        // emit global tutorial event
+        window.dispatchEvent(
+            new CustomEvent("start-tutorial")
+        );
+
+    });
+
+});
+  
 </script>
