@@ -712,6 +712,40 @@
 
   backdrop-filter: none !important;
 }
+#tutorial-tooltip::before {
+    content: "";
+
+    position: absolute;
+
+    width: 12px;
+    height: 12px;
+
+    background: inherit;
+
+    transform: rotate(45deg);
+
+    left: 32px;
+
+    border-left: 1px solid rgba(0,0,0,0.08);
+    border-top: 1px solid rgba(0,0,0,0.08);
+}
+
+/* tooltip BELOW target */
+#tutorial-tooltip[data-position="bottom"]::before {
+    top: -6px;
+}
+
+/* tooltip ABOVE target */
+#tutorial-tooltip[data-position="top"]::before {
+    bottom: -6px;
+    top: auto;
+
+    transform: rotate(225deg);
+}
+
+.dark #tutorial-tooltip::before {
+    border-color: rgba(168,85,247,0.25);
+}
     </style>
     <script>
         tailwind.config = {
@@ -965,7 +999,7 @@ md:hidden">
 
 
                 <!-- FAVORITES -->
-                <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
+                <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400" >
                     Favorites
                 </h3>
                 <!-- FAVORITES -->
@@ -2065,7 +2099,7 @@ async function waitForUI() {
     <div class="flex gap-2 mt-4">
 
         <button
-            onclick="window.location.href='/individfridge/${f.id}'"
+            onclick="event.stopPropagation(); window.location.href='/individfridge/${f.id}'"
             class="flex-1 py-2.5 rounded-xl text-xs font-bold
                    bg-gray-100 hover:bg-gray-200
                    dark:bg-[#2a2545] dark:hover:bg-[#3a3160]
@@ -3085,31 +3119,106 @@ function moveSpotlight(rect) {
 
 function moveTooltip(rect) {
 
-    const tooltipWidth = 320;
+    const NAVBAR_HEIGHT = 90;
+    const PADDING = 16;
+    const GAP = 18;
 
-    let left = rect.left;
+    const tooltipRect = tooltip.getBoundingClientRect();
 
-    // prevent overflow right
-    if (left + tooltipWidth > window.innerWidth - 20) {
-        left = window.innerWidth - tooltipWidth - 20;
+    const tooltipWidth = tooltipRect.width || 320;
+    const tooltipHeight = tooltipRect.height || 180;
+
+    /* =========================
+       DEFAULT POSITION
+       BELOW + CENTERED
+    ========================= */
+
+    let left =
+        rect.left +
+        (rect.width / 2) -
+        (tooltipWidth / 2);
+
+    let top =
+        rect.bottom + GAP;
+
+    let position = "bottom";
+
+    /* =========================
+       IF TOO LOW -> PLACE ABOVE
+    ========================= */
+
+    if (
+        top + tooltipHeight >
+        window.innerHeight - PADDING
+    ) {
+
+        top =
+            rect.top -
+            tooltipHeight -
+            GAP;
+
+        position = "top";
     }
 
-    // prevent overflow left
-    if (left < 20) {
-        left = 20;
+    /* =========================
+       NAVBAR COLLISION
+    ========================= */
+
+    if (top < NAVBAR_HEIGHT) {
+
+        top = NAVBAR_HEIGHT + 12;
+
+        position = "bottom";
     }
 
-    let top = rect.bottom + 14;
+    /* =========================
+       LEFT EDGE
+    ========================= */
 
-    // flip above if near bottom
-    if (top > window.innerHeight - 220) {
-        top = rect.top - 180;
+    if (left < PADDING) {
+        left = PADDING;
     }
 
-    tooltip.style.left = left + "px";
-    tooltip.style.top = top + "px";
+    /* =========================
+       RIGHT EDGE
+    ========================= */
+
+    if (
+        left + tooltipWidth >
+        window.innerWidth - PADDING
+    ) {
+
+        left =
+            window.innerWidth -
+            tooltipWidth -
+            PADDING;
+    }
+
+    /* =========================
+       MOBILE MODE
+    ========================= */
+
+    if (window.innerWidth < 768) {
+
+        left = 16;
+        top = window.innerHeight - tooltipHeight - 28;
+
+        tooltip.style.width =
+            "calc(100vw - 32px)";
+    } else {
+
+        tooltip.style.width = "";
+    }
+
+    /* =========================
+       APPLY
+    ========================= */
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+
+    tooltip.dataset.position = position;
 }
-
 function showStep(index) {
     const step = tutorialSteps[index];
     const el = getVisibleElement(step.el);
@@ -3297,5 +3406,5 @@ window.addEventListener("load", () => {
 });
 
 });
-    </script>
+</script>
 </html>

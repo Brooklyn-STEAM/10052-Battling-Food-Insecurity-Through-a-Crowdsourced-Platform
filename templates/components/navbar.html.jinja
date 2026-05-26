@@ -279,47 +279,81 @@
   
   function updateRouteTheme() {
     if (!window.currentRouteLayer) return;
+
     const isDark = document.documentElement.classList.contains("dark");
+
     window.currentRouteLayer.setStyle({
       color: isDark ? '#a855f7' : '#16a34a'
     });
   }
 
   if (themeToggle) {
+
     themeToggle.addEventListener("click", () => {
+
       const isDark = document.documentElement.classList.toggle("dark");
-      window.applyMapTheme();
-      window.updateRouteTheme();
-      localStorage.setItem("theme", isDark ? "dark" : "light");
+
+      localStorage.setItem(
+        "theme",
+        isDark ? "dark" : "light"
+      );
 
       if (window.applyMapTheme) {
         window.applyMapTheme();
       }
+
       updateRouteTheme();
+
     });
+
   }
-window.restartTutorial = window.restartTutorial || function () {
 
+  /* =========================================================
+     GLOBAL TUTORIAL EVENT
+  ========================================================= */
+
+  window.restartTutorial = window.restartTutorial || function () {
+
+    // Donate Page Tutorial
+    if (
+      window.location.pathname === "/donate" &&
+      typeof window.restartDonateTutorial === "function"
+    ) {
+
+      window.restartDonateTutorial();
+      return;
+
+    }
+
+    // Homepage Tutorial
+    if (typeof window.startHomepageTutorial === "function") {
+
+      window.startHomepageTutorial();
+      return;
+
+    }
+
+    // Generic fallback
     window.dispatchEvent(
-        new CustomEvent("start-tutorial")
+      new CustomEvent("start-tutorial")
     );
-};
-/* =========================================================
-   GLOBAL TUTORIAL EVENT
-========================================================= */
 
-document.querySelectorAll("[data-tutorial-trigger]")
-.forEach(btn => {
+  };
 
-    btn.addEventListener("click", () => {
+  /* =========================================================
+     NAVBAR TUTORIAL BUTTONS
+  ========================================================= */
 
-        // emit global tutorial event
-        window.dispatchEvent(
-            new CustomEvent("start-tutorial")
-        );
+  document
+    .querySelectorAll("[data-tutorial-trigger]")
+    .forEach(btn => {
+
+      btn.addEventListener("click", () => {
+
+        window.restartTutorial();
+
+      });
 
     });
 
-});
-  
 </script>
