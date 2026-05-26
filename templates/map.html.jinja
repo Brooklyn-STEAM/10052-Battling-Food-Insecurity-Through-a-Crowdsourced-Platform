@@ -576,8 +576,42 @@ body.dragging-sheet {
         padding: 7px 9px;
     }
 }
-</style>
-        <script>
+#tutorial-tooltip::before {
+    content: "";
+
+    position: absolute;
+
+    width: 12px;
+    height: 12px;
+
+    background: inherit;
+
+    transform: rotate(45deg);
+
+    left: 32px;
+
+    border-left: 1px solid rgba(0,0,0,0.08);
+    border-top: 1px solid rgba(0,0,0,0.08);
+}
+
+/* tooltip BELOW target */
+#tutorial-tooltip[data-position="bottom"]::before {
+    top: -6px;
+}
+
+/* tooltip ABOVE target */
+#tutorial-tooltip[data-position="top"]::before {
+    bottom: -6px;
+    top: auto;
+
+    transform: rotate(225deg);
+}
+
+.dark #tutorial-tooltip::before {
+    border-color: rgba(168,85,247,0.25);
+}
+    </style>
+    <script>
         tailwind.config = {
             darkMode: 'class'
         }
@@ -825,11 +859,35 @@ md:hidden">
         outline-none focus:ring-2 focus:ring-green-500" />
 
 
-    <!-- FAVORITES -->
-    <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
-        Favorites
-    </h3>
-    <ul id="favorites-list" class="space-y-2 mb-5"></ul>
+                <!-- FAVORITES -->
+                <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400" >
+                    Favorites
+                </h3>
+                <!-- FAVORITES -->
+<ul id="favorites-list"
+    data-tutorial="favorites"
+    class="space-y-2 mb-5">
+</ul>
+
+
+                <!-- RECENTS -->
+                <div class="flex justify-between items-center mb-2 hidden md:flex">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400">
+                        Recently Viewed
+                    </h3>
+
+                    <div class="flex gap-2">
+                        <button id="undo-recents"
+                            class="text-[10px] font-bold uppercase text-blue-500 hover:underline hidden">
+                            Undo
+                        </button>
+
+                        <button id="clear-recents"
+                            class="text-[10px] font-bold uppercase text-gray-400 hover:text-red-500">
+                            Clear
+                        </button>
+                    </div>
+                </div>
 
 
     <!-- RECENTS -->
@@ -1835,7 +1893,7 @@ function createFridgePopup(f) {
     <div class="flex gap-2 mt-4">
 
         <button
-            onclick="window.location.href='/individfridge/${f.id}'"
+            onclick="event.stopPropagation(); window.location.href='/individfridge/${f.id}'"
             class="flex-1 py-2.5 rounded-xl text-xs font-bold
                    bg-gray-100 hover:bg-gray-200
                    dark:bg-[#2a2545] dark:hover:bg-[#3a3160]
@@ -2610,33 +2668,131 @@ DOM.setStart.onclick = async () => {
 
         console.error(err);
 
+        const style = window.getComputedStyle(el);
+
+        const hidden =
+            style.display === "none" ||
+            style.visibility === "hidden";
+
+        if (!hidden) return el;
+    }
+
+    return null;
+}
+
+function moveSpotlight(rect) {
+    spotlight.style.width = rect.width + "px";
+    spotlight.style.height = rect.height + "px";
+    spotlight.style.transform =
+    `translate(${rect.left + window.scrollX}px, ${rect.top + window.scrollY}px)`;
+}
+
+function moveTooltip(rect) {
+
+    const NAVBAR_HEIGHT = 90;
+    const PADDING = 16;
+    const GAP = 18;
+
+    const tooltipRect = tooltip.getBoundingClientRect();
+
+    const tooltipWidth = tooltipRect.width || 320;
+    const tooltipHeight = tooltipRect.height || 180;
+
+    /* =========================
+       DEFAULT POSITION
+       BELOW + CENTERED
+    ========================= */
+
+    let left =
+        rect.left +
+        (rect.width / 2) -
+        (tooltipWidth / 2);
+
+    let top =
+        rect.bottom + GAP;
+
+    let position = "bottom";
+
+    /* =========================
+       IF TOO LOW -> PLACE ABOVE
+    ========================= */
+
+    if (
+        top + tooltipHeight >
+        window.innerHeight - PADDING
+    ) {
+
+        top =
+            rect.top -
+            tooltipHeight -
+            GAP;
+
+        position = "top";
+    }
+
+    /* =========================
+       NAVBAR COLLISION
+    ========================= */
+
+    if (top < NAVBAR_HEIGHT) {
+
+        top = NAVBAR_HEIGHT + 12;
+
+        position = "bottom";
     }
 };
 
+    /* =========================
+       LEFT EDGE
+    ========================= */
 
-/* =========================================================
-   WINDOW RESIZE
-========================================================= */
-window.addEventListener("resize", () => {
+    if (left < PADDING) {
+        left = PADDING;
+    }
 
-    setTimeout(() => {
-        map.invalidateSize(false);
-    }, 250);
+    /* =========================
+       RIGHT EDGE
+    ========================= */
 
-});
+    if (
+        left + tooltipWidth >
+        window.innerWidth - PADDING
+    ) {
 
-/* =========================================================
-   FLASH MESSAGES
-========================================================= */
-function showFlashMessage(
-    message,
-    type = "error"
-) {
+        left =
+            window.innerWidth -
+            tooltipWidth -
+            PADDING;
+    }
 
-    const existing =
-        document.getElementById(
-            "flash-message"
-        );
+    /* =========================
+       MOBILE MODE
+    ========================= */
+
+    if (window.innerWidth < 768) {
+
+        left = 16;
+        top = window.innerHeight - tooltipHeight - 28;
+
+        tooltip.style.width =
+            "calc(100vw - 32px)";
+    } else {
+
+        tooltip.style.width = "";
+    }
+
+    /* =========================
+       APPLY
+    ========================= */
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+
+    tooltip.dataset.position = position;
+}
+function showStep(index) {
+    const step = tutorialSteps[index];
+    const el = getVisibleElement(step.el);
 
     if (existing) {
         existing.remove();
@@ -2729,6 +2885,5 @@ window.closeDirectionsModal = function () {
 
 
 </script>
-
 </body>
 </html>
