@@ -101,17 +101,48 @@
            </div>
        </div>
 
-       <div class="mt-8 bg-white dark:bg-[#2a2545] text-orange-500 dark:text-orange-400 p-6 rounded-xl shadow border dark:border-[#40376E]">
-           <h2 class="text-xl font-semibold">🎉 Amazing Work!</h2>
-           <p class="mt-2 text-gray-700 dark:text-purple-100">
-               You've helped save <strong>{{ total_meals }}</strong> meals from going to waste.
-           </p>
-       </div>
+       <div class="mt-8 overflow-hidden rounded-[28px] border border-green-100 dark:border-[#40376E] bg-gradient-to-r from-[#eefaf0] to-white dark:from-[#2a2545] dark:to-[#1b1730] shadow-sm">
+    <div class="flex flex-col md:flex-row items-center justify-between">
+        
+        <div class="relative w-full md:w-[38%] h-[220px] overflow-hidden">
+            <img 
+                src="/static/images/dashbaord.png" 
+                alt="Dashboard Illustration"
+                class="w-full h-full object-cover"
+            >
+        </div>
+
+        <div class="flex-1 px-8 py-10">
+            <div class="flex items-start gap-5">
+                
+                
+
+                <div>
+                    <h2 class="text-3xl font-black text-gray-900 dark:text-white">
+                        Amazing Work!
+                    </h2>
+
+                    <p class="mt-3 text-xl text-gray-700 dark:text-purple-100 leading-relaxed">
+                        You've helped save
+                        <span class="font-black text-green-600 dark:text-green-400">
+                            {{ total_meals }} meals
+                        </span>
+                        from going to waste.
+                    </p>
+
+                    <p class="mt-2 text-gray-500 dark:text-purple-300/70 text-lg">
+                        Thank you for making a difference in your community!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
        <div class="mt-8 bg-white dark:bg-[#1b1730] p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-[#40376E]">
            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                <h2 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                   <span class="text-orange-500">📅</span> Upcoming Pickups
+                   <span class="text-orange-500 text-3xl">📅</span> Upcoming Pickups
                </h2>
                <a href="/donate" class="inline-flex justify-center items-center px-4 py-2.5 bg-green-600 dark:bg-[#7b2cbf] hover:bg-green-700 dark:hover:bg-[#5a189a] text-white text-sm font-semibold rounded-lg transition-transform active:scale-95 shadow-md">
                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,34 +183,72 @@
            </ul>
        </div>
 
-       <div class="mt-12 bg-gray-50/50 dark:bg-transparent p-4 md:p-6 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#40376E]">
-           <h2 class="text-lg font-bold text-gray-500 dark:text-purple-300/60 mb-6 flex items-center gap-2">
-               <span class="grayscale text-xl">✅</span> Previous Dropoffs
-           </h2>
-           <ul class="space-y-3">
-               {% for donation in previous_list %}
-               <li onclick="showDonationDetails({{ donation.ID }})"
-                   class="p-4 rounded-xl flex justify-between items-center bg-white dark:bg-[#1b1730] border border-transparent hover:shadow-md transition-all cursor-pointer">
-                   <div class="flex items-center gap-3">
-                       <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                       </svg>
-                       <div>
-                           <span class="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                               {{ donation.Dropoff.strftime('%b %d, %Y') }}
-                           </span>
-                           <span class="text-xs text-gray-400">
-                               {{ donation.Quantity }} meals delivered
-                           </span>
-                       </div>
-                   </div>
-                   <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 dark:bg-[#2a2545] px-2 py-1 rounded">Done</span>
-               </li>
-               {% else %}
-               <p class="text-gray-400 text-sm italic py-4 text-center">Your donation history will appear here.</p>
-               {% endfor %}
-           </ul>
-       </div>
+       <div class="mt-12 bg-white dark:bg-[#1b1730] rounded-[28px] border border-gray-200 dark:border-[#40376E] shadow-sm overflow-hidden">
+
+    <div class="flex items-center justify-between px-8 pt-8 pb-6">
+        <h2 class="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+            <span class="text-green-600 text-3xl">☑️</span>
+            Previous Dropoffs
+        </h2>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-100 dark:border-[#40376E]">
+                    <th class="text-left px-8 py-4 text-gray-500 dark:text-purple-300/60 font-bold">Date</th>
+                    <th class="text-left px-8 py-4 text-gray-500 dark:text-purple-300/60 font-bold">Type</th>
+                    <th class="text-left px-8 py-4 text-gray-500 dark:text-purple-300/60 font-bold">Items/Meals</th>
+                    <th class="text-left px-8 py-4 text-gray-500 dark:text-purple-300/60 font-bold">Location</th>
+                    <th class="text-left px-8 py-4 text-gray-500 dark:text-purple-300/60 font-bold">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for donation in previous_list %}
+                <tr onclick="showDonationDetails({{ donation.ID }})"
+                    class="cursor-pointer border-b border-gray-100 dark:border-[#2a2545] hover:bg-gray-50 dark:hover:bg-[#2a2545]/40 transition">
+
+                    <td class="px-8 py-6 text-gray-700 dark:text-gray-200 font-medium">
+                        {{ donation.Dropoff.strftime('%B %d, %Y') }}
+                    </td>
+
+                    <td class="px-8 py-6 text-gray-500 dark:text-purple-300/70">
+                        Food Donation
+                    </td>
+
+                    <td class="px-8 py-6 text-gray-700 dark:text-gray-200">
+                        {{ donation.Quantity }} meals
+                    </td>
+
+                    <td class="px-8 py-6 text-gray-500 dark:text-purple-300/70">
+                        Community Fridge
+                    </td>
+
+                    <td class="px-8 py-6">
+                        <span class="bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 font-bold px-4 py-2 rounded-full text-sm">
+                            Completed
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-16 text-gray-400 italic">
+                        Your donation history will appear here.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex justify-end px-8 py-6">
+        <a href="#"
+           class="flex items-center gap-2 text-green-600 dark:text-green-400 font-bold hover:gap-3 transition-all">
+            View all history →
+        </a>
+    </div>
+</div>
    </main>
 </div>
 

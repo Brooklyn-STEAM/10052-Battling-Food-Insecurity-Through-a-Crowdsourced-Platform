@@ -207,6 +207,9 @@ def route_to_fridge(fridge_id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
+    if current_user.is_authenticated:
+        return redirect("/map") 
+    
     if request.method == "POST":
 
         email = (request.form.get("email") or "").strip().lower()
@@ -267,7 +270,7 @@ def signup():
 
     # 1. Block already logged-in users
     if current_user.is_authenticated:
-        flash("You are already logged in.", "signup_info")
+        flash("You are already logged in so you cant sign up.", "signup_info")
         return redirect(url_for("index"))
 
     if request.method == "POST":
@@ -1787,9 +1790,12 @@ def reply_to_review(fridge_id, review_id):
 @app.route("/forgot_password", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
 def forgot_password():
-
+    
+    if current_user.is_authenticated:
+        flash("You are already logged in.", "info")
+        return redirect("/") 
+    
     if request.method == "POST":
-
         email = request.form["email"].strip().lower()
 
         connection = None
@@ -1808,7 +1814,6 @@ def forgot_password():
 
             # ONLY if account exists
             if user:
-
                 token = secrets.token_urlsafe(32)
                 token_hash = hash_token(token)
 
