@@ -1725,7 +1725,6 @@ DOM.itinerary.innerHTML = stepsHtml;
         }
     }
 
-
 if (isMobile()) {
     show(DOM.directionsModal);
 
@@ -2014,9 +2013,6 @@ let lastRenderKey = "";
 
 
 
-
-
-
 /* =========================
    RENDER SIDEBAR ONLY
 ========================= */
@@ -2200,124 +2196,171 @@ if (mobileSearch) {
 }
 
 /* =========================================================
-   FAVORITES
+   FAVORITES ENGINE (PATCHED)
 ========================================================= */
-async function loadFavoritesFromServer() {
 
-    try {
-
-        const favorites =
-            await apiGet(CONFIG.API.FAVORITES);
-
-        renderFavoritesList(favorites);
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
-}
-
-window.toggleFavorite = async function(fridge) {
-
-    try {
-
-        await apiPost(
-            CONFIG.API.TOGGLE_FAVORITE,
-            {
-                fridge_id:
-                    fridge.id || fridge.ID
-            }
-        );
-
-        loadFavoritesFromServer();
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
+// 1. Fallback Fetch Client Handlers (Ensures code doesn't crash if imported standalone)
+const safeApiGet = async (url) => {
+    if (typeof apiGet === 'function') return await apiGet(url);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    return res.json();
 };
 
+const safeApiPost = async (url, body = {}) => {
+    if (typeof apiPost === 'function') return await apiPost(url, body);
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    return res.json();
+};
+
+/* =========================================================
+   RENDER FAVORITES CONTAINER
+========================================================= */
 function renderFavoritesList(favorites) {
-
     if (!DOM.favoritesList) return;
-
     clearHTML(DOM.favoritesList);
 
-    if (!favorites?.length) {
-
-        DOM.favoritesList.innerHTML =
-            `<li class="p-2 text-xs text-gray-400 italic text-center">
-                No favorites yet.
-            </li>`;
-
+    if (favorites.length === 0) {
+        DOM.favoritesList.innerHTML = `
+            <li class="text-xs text-gray-400 dark:text-purple-300/40 py-2 text-center border-2 border-dashed border-gray-100 dark:border-[#40376E] rounded-xl">
+                No favorites added yet.
+            </li>
+        `;
         return;
     }
 
+    const fragment = document.createDocumentFragment();
     favorites.forEach(f => {
+        const id = f.ID || f.id;
+        const name = f.Name || f.name;
+        const address = f.Address || f.address || "Community Fridge";
+        const lat = f.Lat || f.lat;
+        const lng = f.Lng || f.lng;
 
-        const li =
-            document.createElement("li");
-
-        const fID = f.ID || f.id;
-        const fName = f.Name || f.name;
-        const fLat = f.Latitude || f.lat;
-        const fLng = f.Longitude || f.lng;
-
-        li.className =
-            "p-2 bg-yellow-50 dark:bg-[#2a2545] border border-yellow-200 dark:border-[#40376E] rounded-xl flex justify-between items-center gap-2";
-
+        const li = document.createElement("li");
+        li.id = `fav-item-${id}`;
+        li.className = "flex justify-between items-center p-2.5 rounded-xl bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] text-sm shadow-sm transition hover:shadow";
+        
         li.innerHTML = `
-<span class="font-semibold text-sm cursor-pointer hover:text-yellow-700 flex-grow py-1">
-    ⭐ ${fName}
-</span>
+            <div class="cursor-pointer flex-grow truncate mr-2" onclick="window.routeToFridge(${lat}, ${lng})">
+                <p class="font-bold text-gray-900 dark:text-white text-xs truncate">${name}</p>
+                <p class="text-[10px] text-gray-400 truncate max-w-[180px]">${address}</p>
+            </div>
+            <button class="text-yellow-500 hover:text-gray-400 text-lg p-1 active:scale-75 transition-transform" aria-label="Remove Favorite">
+                ★
+            </button>
+        `;
 
-<button class="go-to-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded-lg font-bold uppercase hover:bg-yellow-600 transition-colors">
-    Go to →
-</button>
-`;
-
-        li.querySelector("span").onclick = () => {
-
-            if (fLat && fLng) {
-
-                map.setView(
-                    [fLat, fLng],
-                    15
-                );
-
-            } else {
-
-                window.location.href =
-                    `/individfridge/${fID}`;
-            }
+        // Direct explicit action hook binding targeting the star selector element inside the node
+        li.querySelector("button").onclick = async (e) => {
+            e.stopPropagation();
+            await window.toggleFavorite({ id, lat, lng, name, address });
         };
 
-        li.querySelector(".go-to-btn")
-            .onclick = (e) => {
-
-                e.stopPropagation();
-
-                map.setView(
-                    [fLat, fLng],
-                    CONFIG.FRIDGE_ZOOM
-                );
-
-                window.routeToFridge(
-                    fLat,
-                    fLng
-                );
-
-                if (isMobile()) {
-                    hideSidebar();
-                }
-            };
-
-        DOM.favoritesList.appendChild(li);
+        fragment.appendChild(li);
     });
+
+    DOM.favoritesList.appendChild(fragment);
 }
 
+async function loadFavoritesFromServer() {
+    try {
+        const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.FAVORITES) ? CONFIG.API.FAVORITES : "/get-favorites";
+        const favorites = await safeApiGet(endpoint);
+        renderFavoritesList(favorites);
+    } catch (err) {
+        console.error("Failed to load favorites list:", err);
+    }
+}
+
+/* =========================================================
+   GLOBAL MUTATION STAR ACTIONS
+========================================================= */
+window.toggleFavorite = async function(fridge) {
+    try {
+        const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.TOGGLE_FAVORITE) ? CONFIG.API.TOGGLE_FAVORITE : "/toggle-favorite";
+        const id = fridge.id || fridge.ID;
+        
+        const data = await safeApiPost(endpoint, { fridge_id: id });
+        
+        if (data.success || data.action) {
+            // Update the baseline status element models held locally in map state arrays
+            const localMatch = state.allFridges.find(f => (f.id || f.ID) === id);
+            if (localMatch) {
+                localMatch.isFavorite = (data.action === "added");
+            }
+
+            // Sync visual button modifications on parent listings without rewriting layout nodes
+            document.querySelectorAll(".fav-btn").forEach(btn => {
+                const parentLi = btn.closest("li");
+                // Fallback check to scan structural elements during event handling passes
+                if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${id}'`)) {
+                    if (data.action === "added") {
+                        btn.classList.add("favorited");
+                    } else {
+                        btn.classList.remove("favorited");
+                    }
+                }
+            });
+
+            // Re-render the side list component container with fresh server sync data
+            await loadFavoritesFromServer();
+
+            // Broadcast structural data synchronization tokens to open background view windows
+            if (window.BroadcastChannel) {
+                new BroadcastChannel('favorites_sync').postMessage({
+                    action: data.action,
+                    fridge_id: id,
+                    fridge_name: fridge.name || fridge.Name,
+                    fridge_address: fridge.address || fridge.Address
+                });
+            }
+        }
+    } catch (err) {
+        console.error("Critical favorite toggle transaction failed:", err);
+    }
+};
+
+/* =========================================================
+   CROSS-WINDOW REALTIME POST-MESSAGE REGISTER
+========================================================= */
+if (window.BroadcastChannel) {
+    const syncChannel = new BroadcastChannel('favorites_sync');
+    syncChannel.onmessage = async (event) => {
+        const data = event.data;
+        
+        // Find local object references inside the global application registry arrays
+        const targetedFridge = state.allFridges.find(f => (f.id || f.ID) === data.fridge_id);
+        if (targetedFridge) {
+            targetedFridge.isFavorite = (data.action === "added");
+        }
+
+        // Apply synchronized state styling mutations directly onto UI buttons
+        document.querySelectorAll(".fav-btn").forEach(btn => {
+            const parentLi = btn.closest("li");
+            if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${data.fridge_id}'`)) {
+                if (data.action === "added") {
+                    btn.classList.add("favorited");
+                } else {
+                    btn.classList.remove("favorited");
+                }
+            }
+        });
+
+        // Pull down cleanly formed HTML items down to populate sidebar viewports
+        await loadFavoritesFromServer();
+    };
+}
+
+// Initial engine activation sequence pass on setup
+document.addEventListener("DOMContentLoaded", () => {
+    loadFavoritesFromServer();
+});
 
 /* =========================================================
    RECENTS
@@ -2684,9 +2727,6 @@ window.closeDirectionsModal = function () {
     }
 };
 
-/* =========================================================
-   INITIAL LOAD
-========================================================= */
 
 </script>
 

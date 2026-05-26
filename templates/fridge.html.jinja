@@ -34,8 +34,8 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="flash-msg {{ category }} {% if category == 'review-exists' %}bg-orange-500{% else %}bg-green-600{% endif %} text-white px-6 py-4 rounded-2xl shadow-xl mb-4 transition-all duration-500 flex items-center gap-3">
-            <span>{{ '⚠️' if category == 'review-exists' else '✅' }}</span>
+          <div class="flash-msg {{ category }} {% if category == 'review-exists' or 'error' in category %}bg-orange-500{% else %}bg-green-600{% endif %} text-white px-4 py-3 rounded-2xl shadow-xl mb-4 flex items-center gap-3 text-sm md:text-base">
+            <span>{{ '⚠️' if category == 'review-exists' or 'error' in category else '✅' }}</span>
             <p class="font-bold">{{ message }}</p>
           </div>
         {% endfor %}
@@ -51,11 +51,51 @@
      transition-all duration-300">
 </div>
   <div class="flex-grow">
-    <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-16 px-6">
-      <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h1 class="text-4xl md:text-5xl font-extrabold text-green-800 dark:text-purple-300 mb-3">{{ fridge["Name"] }}</h1>
-            <p class="text-gray-700 dark:text-purple-100/80 text-lg">📍 {{ fridge["Address"] }}</p>
+    <section class="bg-gradient-to-r from-green-100 to-emerald-50 dark:from-[#2a2545] dark:to-[#1b1730] py-10 md:py-16 px-4 md:px-6">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+      
+      <div class="text-center md:text-left">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-green-800 dark:text-purple-300 mb-2 md:mb-3 leading-tight">
+          {{ fridge["Name"] }}
+        </h1>
+        <p class="text-gray-700 dark:text-purple-100/80 text-base md:text-lg">
+          📍 {{ fridge["Address"] }}
+        </p>
+        <div class="text-yellow-400 text-2xl mt-2">
+    {% set full_stars = avg_rating|int %}
+    {% set empty_stars = 5 - full_stars %}
+
+    {% for i in range(full_stars) %}
+        ★
+    {% endfor %}
+
+    {% for i in range(empty_stars) %}
+        ☆
+    {% endfor %}
+</div>
+
+<div class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+    {{ avg_rating }} / 5 ({{ total_reviews }} reviews)
+</div>
+      </div>
+
+      <div class="flex flex-col w-full md:w-72 lg:w-96 gap-3">
+          
+          {% set status = (fridge_status['Status'] | default('Unknown')) | lower | trim %}
+          <div class="w-full">
+            {% if status in ["full", "many", "half"] %}
+              <div class="w-full bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow-md text-center text-sm md:text-base border-b-4 border-green-800">
+                🟢 Open & Stocked
+              </div>
+            {% elif status in ["low", "few"] %}
+              <div class="w-full bg-yellow-500 text-white px-6 py-3 rounded-xl font-bold shadow-md text-center text-sm md:text-base border-b-4 border-yellow-700">
+                🟡 Low Stock
+              </div>
+            {% else %}
+              <div class="w-full bg-red-600 text-white px-6 py-3 rounded-xl font-bold shadow-md text-center text-sm md:text-base border-b-4 border-red-800">
+                🔴 Needs Attention
+              </div>
+            {% endif %}
           </div>
           <div class="flex flex-col sm:flex-row gap-4">
           {% set status = (fridge_status['Status'] | default('Unknown')) | lower | trim %}
@@ -154,149 +194,393 @@
         </div>
       </div>
 
-      <div class="mt-16 border-t border-gray-200 dark:border-[#40376E] pt-12">
-        <div class="flex justify-between items-center mb-10">
-    <h2 class="text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
-    
-    <div class="flex gap-3"> {% if reviews|length > 3 %}
-            <button id="see-more-btn" class="bg-white dark:bg-[#2a2545] text-green-700 dark:text-purple-300 border border-green-600 dark:border-purple-500 px-4 py-2 rounded-xl font-bold hover:bg-green-50 transition text-sm">
-                See All ({{ reviews|length }})
-            </button>
-        {% endif %}
+      <div class="mt-12 md:mt-20 border-t border-gray-200 dark:border-[#40376E] pt-8 md:pt-12">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
+        <h2 class="text-2xl md:text-3xl font-bold text-green-800 dark:text-purple-300">Community Reviews</h2>
+        
+        <div class="flex gap-2 w-full sm:w-auto"> 
+            {% if reviews|length > 3 %}
+                <button id="see-more-btn" class="flex-1 sm:flex-none bg-white dark:bg-[#2a2545] text-green-700 dark:text-purple-300 border border-green-600 dark:border-purple-500 px-4 py-2 rounded-xl font-bold hover:bg-green-50 transition text-xs md:text-sm">
+                    See All ({{ reviews|length }})
+                </button>
+            {% endif %}
 
-        {% if current_user.is_authenticated %}
-            <button id="open-review-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl font-bold transition transform hover:scale-105 text-sm">
-                Add Review
+            {% if current_user.is_authenticated %}
+                <button id="open-review-btn" class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-bold transition shadow-lg text-xs md:text-sm">
+                    + Add Review
+                </button>
+            {% else %}
+                <a href="/login" class="flex-1 sm:flex-none bg-gray-200 hover:bg-gray-300 dark:bg-[#2a2545] dark:hover:bg-[#40376E] text-gray-700 dark:text-purple-300 px-4 py-2 rounded-xl font-bold transition shadow-md text-xs md:text-sm text-center flex items-center justify-center">
+                    Login to Add Review
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="reviews-container" class="grid gap-6">
+        {% for review in reviews %}
+            <div id="review-card-{{ review['ReviewID'] }}" 
+                 data-user-id="{{ review['UserID'] }}" 
+                 class="review-card {% if loop.index > 3 %}hidden{% endif %} bg-white dark:bg-[#2a2545] rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border dark:border-[#40376E] space-y-4">
+                
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-bold text-base md:text-lg text-green-700 dark:text-purple-300 mb-0.5">{{ review["user_name"] }}</p>
+                        
+                        {% if review["Formatted_Timestamp"] %}
+                        <p class="text-[11px] md:text-xs text-gray-400 dark:text-purple-300/60 font-medium mb-1">
+                            🕒 {{ review["Formatted_Timestamp"] }}
+                        </p>
+                        {% endif %}
+
+                        <div class="flex text-yellow-400 text-sm mt-1">
+                            {% for _ in range(review["Rating"] | int) %}★{% endfor %}
+                            <span class="ml-2 text-xs text-gray-400">({{ review["Rating"] }}/5)</span>
+                        </div>
+                    </div>
+
+                    {% if current_user.is_authenticated and current_user.id == review['UserID'] %}
+                        <div class="flex items-center gap-3">
+                            <button onclick="openEditPopup('{{ review['ReviewID'] }}', '{{ review['Rating'] }}', `{{ review['Comment'] | escape }}`)" 
+                                    class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                                Edit
+                            </button>
+                            <span class="text-gray-300 dark:text-gray-600 text-xs">|</span>
+                            <form method="POST" action="/review/{{ review['ReviewID'] }}/delete" onsubmit="return confirm('Are you sure you want to delete this review and all its replies? This action cannot be undone.');" class="inline">
+                                <button type="submit" class="text-xs font-bold text-red-600 dark:text-red-400 hover:underline">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <p id="comment-text-{{ review['ReviewID'] }}" class="text-sm md:text-base text-gray-700 dark:text-gray-200 leading-relaxed">{{ review["Comment"] }}</p>
+
+                <div class="flex items-center gap-4 pt-2 border-t border-gray-100 dark:border-white/5">
+    {% if current_user.is_authenticated %}
+        {% if current_user.id != review['UserID'] or review['replies']|length > 0 %}
+            <button type="button" 
+                    onclick="toggleReplyForm('reply-form-{{ review['ReviewID'] }}')"
+                    class="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-green-600 dark:text-purple-400 hover:text-green-700 dark:hover:text-white transition-colors group">
+                <svg class="w-4 h-4 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+                Reply
             </button>
         {% endif %}
+    {% endif %}
+</div>
+
+                <div id="reply-form-{{ review['ReviewID'] }}" class="hidden mt-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700/80">
+                    <form method="POST" action="{{ url_for('reply_to_review', fridge_id=fridge['ID'], review_id=review['ReviewID']) }}" class="space-y-3">
+                        <div class="space-y-1">
+                            <label class="ml-1 block text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Your Reply</label>
+                            <textarea name="reply_content" rows="3" required
+                                placeholder="Write a public reply..." 
+                                class="w-full text-sm p-3.5 rounded-2xl border border-gray-200 dark:border-gray-700/80
+                                       bg-white/50 dark:bg-[#2a2545]/50 text-gray-950 dark:text-white font-medium
+                                       focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-[#8C65DB] focus:border-transparent transition-all"></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end gap-2 text-xs">
+                            <button type="button" onclick="toggleReplyForm('reply-form-{{ review['ReviewID'] }}')"
+                                    class="px-4 py-2 rounded-xl font-black text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors uppercase tracking-wider">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="px-5 py-2 rounded-xl font-black text-white bg-gradient-to-r from-green-600 to-emerald-500 dark:from-purple-600 dark:to-indigo-600 hover:scale-[1.03] active:scale-95 shadow-md transition-all uppercase tracking-wider">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {% if review['replies'] %}
+                    <div class="pl-6 space-y-4 pt-2 border-l-2 border-gray-100 dark:border-white/5">
+                        {% for reply in review['replies'] %}
+                            <div class="flex gap-3 items-start text-xs">
+                                <div class="w-7 h-7 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-green-700 dark:text-green-400 font-black shrink-0">
+                                    {{ reply['user_name'][0] | upper }}
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-black text-gray-900 dark:text-white">{{ reply['user_name'] }}</span>
+                                        <span class="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{{ reply['Formatted_Timestamp'] or 'Just now' }}</span>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
+                                        {{ reply['ReplyContent'] }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+            </div>
+        {% else %}
+            <div class="text-center py-10 bg-white/30 dark:bg-[#2a2545]/30 rounded-2xl border-2 border-dotted border-gray-200 dark:border-[#40376E]">
+                <span class="text-4xl mb-3 block">💬</span>
+                <p class="text-gray-600 dark:text-purple-200 font-semibold">No reviews yet.</p>
+                <p class="text-sm text-gray-400 dark:text-purple-300/40">Be the first to share your experience!</p>
+            </div>
+        {% endfor %}
     </div>
 </div>
 
-<div id="reviews-container" class="space-y-4">
-    {% for review in reviews %}
-        <div id="review-card-{{ review['ReviewID'] }}" 
-             data-user-id="{{ review['UserID'] }}" 
-             class="review-card {% if loop.index > 3 %}hidden{% endif %} bg-white dark:bg-[#2a2545] rounded-2xl shadow-md p-6 border dark:border-[#40376E]">
-            
-            <div class="flex justify-between items-center mb-2">
-                <div>
-                    <p class="font-semibold text-green-700 dark:text-purple-300">{{ review["user_name"] }}</p>
-                    <span id="display-rating-{{ review['ReviewID'] }}" class="text-sm text-gray-500 dark:text-purple-200/70">⭐ {{ review["Rating"] }}/5</span>
-                </div>
-                {% if current_user.id == review['UserID'] %}
-                    <button onclick="toggleEdit('{{ review['ReviewID'] }}')" class="text-xs text-blue-500 hover:underline">Edit</button>
-                {% endif %}
-            </div>
-            <p id="comment-text-{{ review['ReviewID'] }}" class="text-gray-700 dark:text-gray-200">{{ review["Comment"] }}</p>
-            
-            
-                {% if current_user.id == review['UserID'] %}
-                    <form id="edit-form-{{ review['ReviewID'] }}" method="POST" action="/edit-review/{{ review['ReviewID'] }}" class="hidden space-y-4 mt-2">
-                        <div class="star-rating flex flex-row-reverse justify-end gap-1">
-                            {% for i in range(5, 0, -1) %}
-                            <input type="radio" id="edit-star{{i}}-{{ review['ReviewID'] }}" name="Rating" value="{{i}}" 
-                                   class="hidden peer" {% if review['Rating'] == i %}checked {% endif %} required />
-                            <label for="edit-star{{i}}-{{ review['ReviewID'] }}" class="cursor-pointer text-2xl hover:scale-110 transition-transform">★</label>
-                            {% endfor %}
-                        </div>
-                        <textarea name="Comment" class="w-full p-3 rounded-xl border border-green-400 dark:border-[#40376E] dark:bg-[#1b1730] dark:text-white" required>{{ review["Comment"] }}</textarea>
-                        <div class="flex gap-2">
-                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-green-700">Save Changes</button>
-                            <button type="button" onclick="toggleEdit('{{ review['ReviewID'] }}')" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
-                        </div>
-                    </form>
-                {% endif %}
-            </div>
-          {% endfor %}
-        </div>
+<div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+  <div class="bg-white dark:bg-[#1b1730] p-6 md:p-8 rounded-t-3xl sm:rounded-3xl shadow-2xl border dark:border-[#403760] w-full max-w-md relative">
+    <button id="close-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl md:text-2xl">✕</button>
+    <h2 class="text-xl md:text-2xl font-bold text-green-800 dark:text-purple-100 mb-2">Share Your Feedback</h2>
+    
+    <form method="POST" action="{{ url_for('add_review', fridge_id=fridge['ID']) }}">
+      <div class="star-rating flex flex-row-reverse justify-center gap-1 md:gap-2 mb-6 mt-4">
+        {% for i in range(5, 0, -1) %}
+        <input type="radio" id="star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
+        <label for="star{{i}}" class="cursor-pointer text-gray-300 peer-hover:text-yellow-400 peer-checked:text-yellow-400 transition-colors text-2xl">★</label>
+        {% endfor %}
       </div>
-    </section>
+      
+      <textarea name="Comment" rows="4" required placeholder="Tell others about the stock..." class="w-full rounded-xl border border-green-200 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-4 py-3 mb-6 focus:ring-2 ring-green-500 outline-none text-sm"></textarea>
+      
+      <button type="submit" class="w-full py-3 md:py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold shadow-lg transform transition active:scale-95 text-sm md:text-base">Submit Review</button>
+    </form>
+  </div>
+</div>
+
+<div id="edit-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+  <div class="bg-white dark:bg-[#1b1730] p-6 md:p-8 rounded-t-3xl sm:rounded-3xl shadow-2xl border dark:border-[#403760] w-full max-w-md relative">
+    <button id="close-edit-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl md:text-2xl">✕</button>
+    <h2 class="text-xl md:text-2xl font-bold text-blue-800 dark:text-blue-300 mb-2">Edit Your Feedback</h2>
+    
+    <form id="edit-form" method="POST" action="">       
+      <div class="star-rating flex flex-row-reverse justify-center gap-1 md:gap-2 mb-6 mt-4">
+        {% for i in range(5, 0, -1) %}
+        <input type="radio" id="edit-star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
+        <label for="edit-star{{i}}" class="cursor-pointer text-gray-300 peer-hover:text-yellow-400 peer-checked:text-yellow-400 transition-colors text-2xl">★</label>
+        {% endfor %}
+      </div>
+      
+      <textarea id="edit-comment" name="Comment" rows="4" required class="w-full rounded-xl border border-blue-200 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-4 py-3 mb-6 focus:ring-2 ring-blue-500 outline-none text-sm"></textarea>
+      
+      <button type="submit" class="w-full py-3 md:py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg transform transition active:scale-95 text-sm md:text-base">Save Changes</button>
+    </form>
   </div>
 
-  <div id="review-popup" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
-      <div class="bg-white dark:bg-[#1b1730] p-8 rounded-xl shadow-lg border dark:border-[#403760] w-[420px]">
-        <h2 class="text-2xl font-bold text-green-800 dark:text-purple-100 mb-6" id="open-review-btn">Add Review</h2>
-        <form method="POST" action="/individfridge/{{ fridge['ID'] }}">       
-          <label class="block text-sm font-bold text-green-800 dark:text-purple-300 mb-2">Rating</label>
-          <div class="star-rating flex flex-row-reverse justify-end gap-2 mb-6">
-            {% for i in range(5, 0, -1) %}
-            <input type="radio" id="star{{i}}" name="Rating" value="{{i}}" class="hidden peer" required />
-            <label for="star{{i}}" class="cursor-pointer hover:scale-110 transition-transform">★</label>
-            {% endfor %}
-          </div>
-          <label class="block text-sm text-green-800 dark:text-purple-300 mb-1">Comment</label>
-          <textarea name="Comment" required class="w-full rounded-lg border border-green-400 dark:border-[#40376E] bg-white dark:bg-[#2a2545] text-gray-900 dark:text-gray-100 px-3 py-2 mb-4"></textarea>
-          <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold">Submit Review</button>
-        </form>
-      </div>
-  </div>
+</div>
 <script>
-/* =========================
-   GLOBAL UTILITIES
-========================= */
+
+// ==========================================
+
+// 1. GLOBAL HELPER UTILITIES & ANIMATIONS
+
+// ==========================================
+
 function fireConfetti() {
-    confetti({ 
-        particleCount: 150, 
-        spread: 70, 
-        origin: { y: 0.6 }, 
-        colors: ['#16a34a', '#fbbf24', '#f97316'] 
-    });
+
+if (typeof confetti === 'function') {
+
+confetti({
+
+particleCount: 150,
+
+spread: 70,
+
+origin: { y: 0.6 },
+
+colors: ['#16a34a', '#fbbf24', '#f97316']
+
+});
+
 }
+
+}
+
+
 
 function hideMessage(element, delay) {
-    setTimeout(() => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(-20px)';
-        setTimeout(() => element.remove(), 500);
-    }, delay);
+
+setTimeout(() => {
+
+element.style.opacity = '0';
+
+element.style.transform = 'translateY(-20px)';
+
+setTimeout(() => element.remove(), 500);
+
+}, delay);
+
 }
+
+
 
 function showManualFlash(message, category) {
-    const container = document.getElementById('flash-container');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `flash-msg ${category} bg-orange-500 text-white px-6 py-4 rounded-2xl shadow-xl mb-4 flex items-center gap-3`;
-    msgDiv.innerHTML = `<span>⚠️</span><p class="font-bold">${message}</p>`;
-    container.appendChild(msgDiv);
-    hideMessage(msgDiv, 4000);
+
+const container = document.getElementById('flash-container') || document.body;
+
+const msgDiv = document.createElement('div');
+
+msgDiv.className = `flash-msg ${category} bg-orange-500 text-white px-6 py-4 rounded-2xl shadow-xl mb-4 flex items-center gap-3 transition-all duration-500`;
+
+msgDiv.innerHTML = `<span>⚠️</span><p class="font-bold">${message}</p>`;
+
+container.appendChild(msgDiv);
+
+hideMessage(msgDiv, 4000);
+
 }
+
+
+
+// ==========================================
+
+// 2. MODAL & INLINE INTERACTION HANDLERS
+
+// ==========================================
+
+function openEditPopup(reviewId, currentRating, currentComment) {
+
+const editPopup = document.getElementById('edit-popup');
+
+const editForm = document.getElementById('edit-form');
+
+const editComment = document.getElementById('edit-comment');
+
+
+
+if (!editPopup || !editForm) return;
+
+
+
+editForm.action = `/review/${reviewId}/edit`;
+
+if (editComment) editComment.value = currentComment;
+
+
+// Explicitly uncheck all stars first, then check the target rating node
+
+for (let i = 1; i <= 5; i++) {
+
+const star = document.getElementById(`edit-star${i}`);
+
+if (star) star.checked = false;
+
+}
+
+
+const targetStar = document.getElementById(`edit-star${currentRating}`);
+
+if (targetStar) targetStar.checked = true;
+
+
+
+editPopup.classList.remove('pointer-events-none', 'opacity-0');
+
+}
+
+
 
 function toggleEdit(reviewId) {
-    const text = document.getElementById(`comment-text-${reviewId}`);
-    const form = document.getElementById(`edit-form-${reviewId}`);
-    const card = document.getElementById(`review-card-${reviewId}`);
-    if (!text || !form) return;
-    
-    const isOpening = form.classList.contains('hidden');
-    text.classList.toggle('hidden');
-    form.classList.toggle('hidden');
-    
-    if (isOpening) {
-        form.classList.add('edit-mode-active');
-        card.classList.add('shadow-2xl', 'scale-[1.02]');
-    } else {
-        form.classList.remove('edit-mode-active');
-        card.classList.remove('shadow-2xl', 'scale-[1.02]');
-    }
+
+const text = document.getElementById(`comment-text-${reviewId}`);
+
+const form = document.getElementById(`edit-form-${reviewId}`);
+
+const card = document.getElementById(`review-card-${reviewId}`);
+
+if (!text || !form) return;
+
+
+const isOpening = form.classList.contains('hidden');
+
+text.classList.toggle('hidden');
+
+form.classList.toggle('hidden');
+
+
+if (isOpening) {
+
+form.classList.add('edit-mode-active');
+
+if (card) card.classList.add('shadow-2xl', 'scale-[1.02]');
+
+} else {
+
+form.classList.remove('edit-mode-active');
+
+if (card) card.classList.remove('shadow-2xl', 'scale-[1.02]');
+
 }
 
-const Toast = (() => {
-    const toast = document.getElementById("fav-toast");
-    let hideTimeout = null;
+}
 
-    return {
-        show({ message, type = "success", duration = 2000 }) {
-            clearTimeout(hideTimeout);
-            toast.textContent = message;
-            toast.className = `fixed top-24 left-1/2 -translate-x-1/2 z-[99999] px-4 py-2 rounded-xl text-white font-bold text-sm shadow-lg transition-all duration-300 ${type === "success" ? "bg-green-600" : "bg-red-600"}`;
-            toast.style.opacity = "1";
-            hideTimeout = setTimeout(() => toast.style.opacity = "0", duration);
-        }
-    };
+
+
+function toggleReplyForm(formId) {
+
+const targetForm = document.getElementById(formId);
+
+if (targetForm) {
+
+targetForm.classList.toggle('hidden');
+
+}
+
+}
+
+
+
+// ==========================================
+
+// 3. TOAST NOTIFICATION MODULE
+
+// ==========================================
+
+const Toast = (() => {
+
+return {
+
+show({ message, type = "success", duration = 2000 }) {
+
+let toast = document.getElementById("fav-toast");
+
+
+// Auto-generate toast node container if missing in the HTML tree
+
+if (!toast) {
+
+toast = document.createElement("div");
+
+toast.id = "fav-toast";
+
+document.body.appendChild(toast);
+
+}
+
+
+toast.textContent = message;
+
+toast.className = `fixed top-24 left-1/2 -translate-x-1/2 z-[99999] px-4 py-2 rounded-xl text-white font-bold text-sm shadow-lg transition-all duration-300 ${
+
+type === "success" ? "bg-green-600" : "bg-red-600"
+
+}`;
+
+toast.style.opacity = "1";
+
+
+setTimeout(() => {
+
+toast.style.opacity = "0";
+
+}, duration);
+
+}
+
+};
+
 })();
 
-/* =========================
-   DOM CONTENT LOADED
-========================= */
 document.addEventListener("DOMContentLoaded", () => {
     const openBtn = document.getElementById('open-review-btn');
     const popup = document.getElementById('review-popup');
@@ -344,61 +628,248 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
 
-            if (isShowingAll) {
-                seeMoreBtn.innerText = `See All (${allReviewCards.length})`;
-                seeMoreBtn.setAttribute('data-state', 'closed');
-                document.querySelector('h2.text-3xl').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                seeMoreBtn.innerText = 'Show Less';
-                seeMoreBtn.setAttribute('data-state', 'open');
-            }
-        });
-    }
 
-    /* --- FAVORITES SYNC --- */
-    /* --- FAVORITES SYNC --- */
+// ==========================================
+
+// 4. CORE INITIALIZATION ENGINE
+
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+const openReviewBtn = document.getElementById('open-review-btn');
+
+const closeReviewBtn = document.getElementById('close-popup');
+
+const reviewPopup = document.getElementById('review-popup');
+
+
+const closeEditBtn = document.getElementById('close-edit-popup');
+
+const editPopup = document.getElementById('edit-popup');
+
+
+const seeMoreBtn = document.getElementById('see-more-btn');
+
+const allReviewCards = document.querySelectorAll('.review-card');
+
+
+const favBtn = document.getElementById("fav-btn");
+
+const favIcon = document.getElementById("star-icon");
+
+const currentUserId = "{{ current_user.id if current_user.is_authenticated else 'null' }}";
+
+
+
+/* --- ADD REVIEW MODAL CONTROLS --- */
+
+if (openReviewBtn && reviewPopup) {
+
+openReviewBtn.addEventListener('click', () => {
+
+if (currentUserId !== 'null') {
+
+const existingReview = document.querySelector(`[data-user-id="${currentUserId}"]`);
+
+if (existingReview) {
+
+showManualFlash("You've already reviewed this fridge!", "review-exists");
+
+existingReview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+existingReview.classList.add('ring-4', 'ring-orange-500');
+
+setTimeout(() => existingReview.classList.remove('ring-4', 'ring-orange-500'), 2000);
+
+return;
+
+}
+
+}
+
+reviewPopup.classList.remove('opacity-0', 'pointer-events-none');
+
+});
+
+}
+
+
+
+if (closeReviewBtn && reviewPopup) {
+
+closeReviewBtn.addEventListener('click', () => {
+
+reviewPopup.classList.add('opacity-0', 'pointer-events-none');
+
+});
+
+}
+
+
+
+if (reviewPopup) {
+
+reviewPopup.addEventListener('click', (e) => {
+
+if (e.target === reviewPopup) reviewPopup.classList.add('opacity-0', 'pointer-events-none');
+
+});
+
+}
+
+
+
+/* --- EDIT REVIEW MODAL CONTROLS --- */
+
+if (closeEditBtn && editPopup) {
+
+closeEditBtn.addEventListener('click', () => {
+
+editPopup.classList.add('opacity-0', 'pointer-events-none');
+
+});
+
+}
+
+
+
+/* --- PAGINATION & VIEW LIMITATION CONTROLS --- */
+
+if (seeMoreBtn) {
+
+seeMoreBtn.addEventListener('click', () => {
+
+const isShowingAll = seeMoreBtn.getAttribute('data-state') === 'open';
+
+
+allReviewCards.forEach((card, index) => {
+
+if (index >= 3) {
+
+if (isShowingAll) {
+
+card.classList.add('hidden');
+
+} else {
+
+card.classList.remove('hidden');
+
+card.animate([
+
+{ opacity: 0, transform: 'translateY(10px)' },
+
+{ opacity: 1, transform: 'translateY(0)' }
+
+], { duration: 300 });
+
+}
+
+}
+
+});
+
+
+
+if (isShowingAll) {
+
+seeMoreBtn.innerText = `See All (${allReviewCards.length})`;
+
+seeMoreBtn.setAttribute('data-state', 'closed');
+
+const heading = document.querySelector('h2.text-3xl');
+
+if (heading) heading.scrollIntoView({ behavior: 'smooth' });
+
+} else {
+
+seeMoreBtn.innerText = 'Show Less';
+
+seeMoreBtn.setAttribute('data-state', 'open');
+
+}
+
+});
+
+}
+
+
+
+/* --- FAVORITES ASYNC DATA SYNC --- */
+const favBtn = document.getElementById("fav-btn");
+const favIcon = document.getElementById("star-icon");
+
 if (favBtn && favIcon) {
     favBtn.addEventListener("click", async () => {
         favBtn.disabled = true;
+        const currentFridgeId = favBtn.dataset.fridgeId;
         try {
             const res = await fetch("/toggle-favorite", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fridge_id: favBtn.dataset.fridgeId })
+                body: JSON.stringify({ fridge_id: currentFridgeId })
             });
             const data = await res.json();
-            
-            if (data.action === "added") {
-                // 1. FILL THE STAR
-                favIcon.classList.add("fill-yellow-400", "stroke-yellow-500", "scale-110");
-                favIcon.classList.remove("fill-none", "stroke-gray-400");
-                
-                fireConfetti();
-                Toast.show({ message: "Saved to favorites ⭐" });
-            } else {
-                // 2. EMPTY THE STAR
-                favIcon.classList.remove("fill-yellow-400", "stroke-yellow-500", "scale-110");
-                favIcon.classList.add("fill-none", "stroke-gray-400");
-                
-                Toast.show({ message: "Removed from favorites", type: "error" });
+
+            if (data.success) {
+                if (data.action === "added") {
+                    // Turn bright gold/yellow instantly
+                    favIcon.classList.add("fill-yellow-400", "stroke-yellow-500", "scale-110");
+                    favIcon.classList.remove("fill-none", "stroke-gray-400");
+                    if (typeof fireConfetti === 'function') fireConfetti();
+                    if (typeof Toast !== 'undefined') Toast.show({ message: "Saved to favorites ⭐" });
+                } else {
+                    // Revert cleanly back to empty slate gray look
+                    favIcon.classList.remove("fill-yellow-400", "stroke-yellow-500", "scale-110");
+                    favIcon.classList.add("fill-none", "stroke-gray-400");
+                    if (typeof Toast !== 'undefined') Toast.show({ message: "Removed from favorites", type: "error" });
+                }
+
+                // Send the broadcast packet instantly to the map background window tab
+                if (window.BroadcastChannel) {
+                    new BroadcastChannel('favorites_sync').postMessage({
+                        action: data.action,
+                        fridge_id: parseInt(currentFridgeId)
+                    });
+                }
             }
-        } catch (err) { 
-            console.error(err); 
-        } finally { 
-            favBtn.disabled = false; 
+        } catch (err) {
+            console.error("Individual view sync layer execution fault:", err);
+        } finally {
+            favBtn.disabled = false;
         }
     });
 }
 
-    /* --- INITIAL FLASH MESSAGES --- */
-    document.querySelectorAll('.flash-msg').forEach(msg => {
-        const delay = msg.classList.contains('review-exists') ? 4000 : 6000;
-        hideMessage(msg, delay);
-        if (msg.textContent.includes('successfully') || msg.classList.contains('success')) {
-            fireConfetti();
+// Receive incoming real-time dynamic sync actions initiated from the Map view panel
+if (window.BroadcastChannel) {
+    const syncChannel = new BroadcastChannel('favorites_sync');
+    syncChannel.onmessage = (event) => {
+        const data = event.data;
+        if (favBtn && parseInt(favBtn.dataset.fridgeId) === parseInt(data.fridge_id) && favIcon) {
+            if (data.action === "added") {
+                favIcon.classList.add("fill-yellow-400", "stroke-yellow-500", "scale-110");
+                favIcon.classList.remove("fill-none", "stroke-gray-400");
+            } else {
+                favIcon.classList.remove("fill-yellow-400", "stroke-yellow-500", "scale-110");
+                favIcon.classList.add("fill-none", "stroke-gray-400");
+            }
         }
-    });
+    };
+}
+
+/* --- NOTIFICATION LIFECYCLE MANAGEMENT --- */
+
+document.querySelectorAll('.flash-message, .flash-msg').forEach(msg => {
+
+const text = msg.textContent.toLowerCase();
+
+const delay = (text.includes('exists') || text.includes('not found') || text.includes('unauthorized')) ? 4000 : 6000;
+hideMessage(msg, delay);
+if (text.includes('successfully') || text.includes('updated') || msg.classList.contains('success')) {fireConfetti();}
 });
+});
+
 </script>
 </body>
 </html>
