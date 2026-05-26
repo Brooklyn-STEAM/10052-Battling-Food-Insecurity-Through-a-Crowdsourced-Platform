@@ -584,6 +584,38 @@ def personal_fridges(fridge_id):
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
+
+    # --- 1. HANDLE POST (Review Submission) ---
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            flash("You must be logged in to leave a review.", "error")
+            return redirect(url_for("login"))
+
+        rating = request.form.get("Rating")
+        comment = request.form.get("Comment")
+        
+        if rating and comment:
+            cursor.execute("SELECT ID FROM Reviews WHERE FridgeID = %s AND UserID = %s", (fridge_id, current_user.id))
+            existing_review = cursor.fetchone()
+
+            if existing_review:
+                flash("You've already reviewed this fridge! Please edit your existing message below.", "review-exists")
+            else:
+                try:
+                    cursor.execute("""
+                        INSERT INTO Reviews (FridgeID, rating, comment, UserID, Timestamp) 
+                        VALUES (%s, %s, %s, %s, NOW())
+                    """, (fridge_id, rating, comment, current_user.id))
+                    connection.commit()
+                    flash("Review submitted! Thank you for sharing.", "review-success")
+                except Exception as e:
+                    print(f"Database Error: {e}")
+                    flash("An error occurred. Please try again later.", "error")
+            
+            connection.close()
+            return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+
+    # --- 2. HANDLE GET (Page Display) ---
     # Fetch Fridge Info
     cursor.execute("SELECT * FROM Fridge WHERE ID=%s", (fridge_id,))
     fridge = cursor.fetchone()
@@ -727,11 +759,19 @@ def get_fridges():
 @login_required
 def report_fridge(fridge_id):
     if request.method == "POST":
+
         priority = request.form.get("priority")
         reproducibility = request.form.get("reproducibility")
         description = request.form.get("issue_description")
+        allowed_statuses = ["Needs Attention", "Out of Service"]
+
+        report_status = request.form.get("report_status")
+
+        if report_status not in allowed_statuses:
+            report_status = "Needs Attention"
         
         connection = connect_db()
+      
         try:
             cursor = connection.cursor(pymysql.cursors.DictCursor)
             
@@ -760,7 +800,7 @@ def report_fridge(fridge_id):
             cursor.execute("""
                 INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
                 VALUES (%s, %s, NOW())
-            """, (fridge_id, "Needs Attention"))
+            """, (fridge_id, report_status))
             
             # Commit all database changes
             connection.commit()
@@ -838,6 +878,20 @@ def update_fridge(fridge_id):
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
+    # ── LOCK CHECK (runs for both GET and POST) ──────────────────────────────
+    cursor.execute("""
+        SELECT Status FROM Fridge_status
+        WHERE FridgeID = %s
+        ORDER BY Last_updated DESC
+        LIMIT 1
+    """, (fridge_id,))
+    current_status = cursor.fetchone()
+
+    if current_status and current_status["Status"] in {"Needs Attention", "Out of Service"}:
+        connection.close()
+        flash(f"This fridge is '{current_status['Status']}' and cannot be modified.", "danger")
+        return redirect(url_for("personal_fridges", fridge_id=fridge_id))
+
     # -------- GET --------
     if request.method == "GET":
 
@@ -845,29 +899,28 @@ def update_fridge(fridge_id):
         fridge = cursor.fetchone()
 
         cursor.execute("""
-        SELECT
-            Items.ID AS ItemsID,
-            Items.Name,
-            Items.Image,
-            IFNULL(Fridge_items.Quantity, 0) AS Quantity
-        FROM Items
-        LEFT JOIN Fridge_items
-        ON Items.ID = Fridge_items.ItemsID
-        AND Fridge_items.FridgeID = %s
+            SELECT
+                Items.ID AS ItemsID,
+                Items.Name,
+                Items.Image,
+                IFNULL(Fridge_items.Quantity, 0) AS Quantity
+            FROM Items
+            LEFT JOIN Fridge_items
+                ON Items.ID = Fridge_items.ItemsID
+                AND Fridge_items.FridgeID = %s
         """, (fridge_id,))
         items = cursor.fetchall()
 
         cursor.execute("""
-        SELECT Status, Last_updated
-        FROM Fridge_status
-        WHERE FridgeID=%s
-        ORDER BY Last_updated DESC
-        LIMIT 1
+            SELECT Status, Last_updated
+            FROM Fridge_status
+            WHERE FridgeID = %s
+            ORDER BY Last_updated DESC
+            LIMIT 1
         """, (fridge_id,))
         status = cursor.fetchone()
 
         connection.close()
-
         return render_template(
             "update_fridge.html.jinja",
             fridge=fridge,
@@ -876,21 +929,17 @@ def update_fridge(fridge_id):
         )
 
     # -------- POST --------
-    # -------- POST --------
-    # 1. Define fullness mapping
     value = int(request.form.get("fullness", 2))
     mapping = ["empty", "few", "half", "many", "full"]
     status_value = mapping[value]
-    
-    # 2. Define is_broken from the form
-    # Make sure your HTML checkbox has name="is_broken"
-    is_broken = request.form.get("is_broken") == "on"
 
-    # 3. Process item quantities
+    is_broken = request.form.get("is_broken") == "on"
+    is_out_of_service = request.form.get("out_of_service") == "on"
+
     for key in request.form:
         if key.startswith("quantity_"):
             try:
-                item_id = int(key.split("_")[1])
+                item_id  = int(key.split("_")[1])
                 quantity = int(request.form[key])
 
                 if quantity <= 0:
@@ -904,20 +953,22 @@ def update_fridge(fridge_id):
                         VALUES (%s, %s, %s)
                         ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)
                     """, (fridge_id, item_id, quantity))
+
             except (ValueError, IndexError):
                 continue
 
-    # 4. Update Status (Only in Fridge_status table)
     current_time = datetime.now(timezone.utc)
 
-    if is_broken:
+    if is_out_of_service:
+        final_status = "Out of Service"
+        flash("Fridge marked as 'Out of Service'.", "fridge_error")
+    elif is_broken:
         final_status = "Needs Attention"
         flash("Quantities updated, but status marked as 'Needs Attention'.", "fridge_error")
     else:
         final_status = status_value
         flash("Fridge updated successfully!", "fridge_success")
 
-    # This table exists, so we insert here
     cursor.execute("""
         INSERT INTO Fridge_status (FridgeID, Status, Last_updated)
         VALUES (%s, %s, %s)
@@ -925,8 +976,6 @@ def update_fridge(fridge_id):
 
     connection.commit()
     connection.close()
-
-    # Ensure this route name is correct in your app
     return redirect(url_for("personal_fridges", fridge_id=fridge_id))
 
 # -----------------------
