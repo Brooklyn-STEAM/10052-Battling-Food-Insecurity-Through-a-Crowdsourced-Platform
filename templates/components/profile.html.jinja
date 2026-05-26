@@ -72,82 +72,64 @@
    </div>
 
    {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
+     {% if messages %}
+       {% for category, message in messages %}
+         {% if category.startswith("profile_") %}
+           <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md transition-all duration-300
+             {% if category == 'profile_error' %}
+               bg-red-500 dark:bg-red-700
+             {% else %}
+               bg-green-600 dark:bg-[#6f52c9]
+             {% endif %}
+           ">
+             {{ message }}
+           </div>
+         {% endif %}
+       {% endfor %}
+     {% endif %}
+   {% endwith %}
 
-      {% if category.startswith("profile_") %}
-
-        <div class="flash-message mb-4 px-4 py-3 rounded-xl text-white text-sm shadow-md
-          {% if category == 'profile_error' %}
-            bg-red-500 dark:bg-red-700
-          {% else %}
-            bg-green-600 dark:bg-[#6f52c9]
-          {% endif %}
-        ">
-          {{ message }}
-        </div>
-
-      {% endif %}
-
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
-
-   <!-- Username -->
    <form method="POST" action="/profile/update-username" class="mb-8">
-  
-   <input type="hidden"
-       name="csrf_token"
-       value="{{ csrf_token() }}">
- <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
-   Username
- </label>
-
-
- <div class="flex gap-2">
-   <input type="text" name="username" value="{{ current_user.name }}" required
-     class="flex-1 px-4 py-3 rounded-xl
-            bg-gray-50 dark:bg-[#2a2545]
-            border border-gray-300 dark:border-[#40376E]
-            text-gray-900 dark:text-white
-            focus:ring-2 focus:ring-green-600 dark:focus:ring-[#7b2cbf]
-            outline-none">
-
-
-   <button type="submit"
-     class="px-4 py-3 rounded-xl bg-green-600 text-white font-semibold
-            hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
-     Save
-   </button>
- </div>
-</form>
-
-
-   <!-- New Password -->
-   <form method="POST" action="/profile/update-password" class="mb-8">
-    <input type="hidden"
-        name="csrf_token"
-        value="{{ csrf_token() }}">
+     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
      <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
        Username
      </label>
-     <div class="flex flex-col sm:flex-row gap-2">
+     <div class="flex gap-2">
        <input type="text" name="username" value="{{ current_user.name }}" required
-         class="w-full px-4 py-3 rounded-xl
+         class="flex-1 px-4 py-3 rounded-xl
                 bg-gray-50 dark:bg-[#2a2545]
                 border border-gray-300 dark:border-[#40376E]
                 text-gray-900 dark:text-white
                 focus:ring-2 focus:ring-green-600 dark:focus:ring-[#7b2cbf]
-                outline-none">
+                outline-none text-sm sm:text-base">
        <button type="submit"
-         class="w-full sm:w-auto px-6 py-3 rounded-xl bg-green-600 text-white font-semibold
-                hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
+         class="px-4 py-3 sm:px-6 rounded-xl bg-green-600 text-white font-semibold
+                hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition text-sm sm:text-base whitespace-nowrap">
          Save
        </button>
      </div>
    </form>
 
+   <form method="POST" action="/profile/update-password" class="mb-8">
+     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+     <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
+       New Password
+     </label>
+     <div class="flex flex-col sm:flex-row gap-2">
+       <input type="password" name="new_password" required placeholder="••••••••"
+         class="w-full px-4 py-3 rounded-xl
+                bg-gray-50 dark:bg-[#2a2545]
+                border border-gray-300 dark:border-[#40376E]
+                text-gray-900 dark:text-white
+                focus:ring-2 focus:ring-green-600 dark:focus:ring-[#7b2cbf]
+                outline-none text-sm sm:text-base">
+       <button type="submit"
+         class="w-full sm:w-auto px-6 py-3 rounded-xl bg-green-600 text-white font-semibold
+                hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition text-sm sm:text-base whitespace-nowrap">
+         Update
+       </button>
+     </div>
+   </form>
 
    <form method="POST" action="/profile/update-picture" class="mb-8">
      <label class="text-xs font-semibold text-gray-700 dark:text-gray-400 uppercase mb-2 block">
@@ -160,12 +142,12 @@
                 border border-gray-300 dark:border-[#40376E]
                 text-gray-900 dark:text-white
                 focus:ring-2 focus:ring-green-600 dark:focus:ring-[#7b2cbf]
-                outline-none">
+                outline-none text-sm sm:text-base">
        
        <div class="flex flex-col sm:flex-row gap-2 w-full mt-1">
          <button type="submit" name="action" value="save"
            class="flex-1 px-6 py-3 rounded-xl bg-green-600 text-white font-semibold
-                  hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition">
+                  hover:bg-green-700 dark:bg-[#7b2cbf] dark:hover:bg-[#5a189a] transition text-sm sm:text-base">
            Save URL
          </button>
          
@@ -173,7 +155,7 @@
            <button type="submit" name="action" value="reset"
              class="flex-1 px-6 py-3 rounded-xl border-2 border-red-500 text-red-500 font-semibold
                     hover:bg-red-500 hover:text-white dark:border-red-600 dark:text-red-400 
-                    dark:hover:bg-red-600 dark:hover:text-white transition">
+                    dark:hover:bg-red-600 dark:hover:text-white transition text-sm sm:text-base">
              Reset Picture
            </button>
          {% endif %}
@@ -181,48 +163,37 @@
      </div>
    </form>
    
-    <form action="{{ url_for('delete_account') }}" method="POST" 
-          onsubmit="return confirm('Are you absolutely sure? This action cannot be undone.');">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" 
-                class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/20">
-            Delete My Account
-        </button>
-    </form>
-</div>
+   <div class="space-y-3 mb-8">
+     <a href="/"
+        class="block text-center py-3 rounded-xl bg-green-600 text-white font-semibold
+               hover:bg-green-700 dark:bg-[#6f52c9] dark:hover:bg-[#40376E] transition text-sm sm:text-base">
+       Return to Home
+     </a>
+     <a href="/logout"
+        class="block text-center py-3 rounded-xl bg-red-500 text-white font-semibold
+               hover:bg-red-600 dark:bg-[#d00000] dark:hover:bg-[#9b0000] transition text-sm sm:text-base">
+       Log Out
+     </a>
+   </div>
 
-   <div class="mb-8 p-5 sm:p-6 border border-red-200 dark:border-red-900/30 rounded-3xl bg-red-50 dark:bg-red-900/10">
+   <div class="border-t border-gray-300 dark:border-[#40376E] mb-8"></div>
+
+   <div class="p-5 sm:p-6 border border-red-200 dark:border-red-900/30 rounded-3xl bg-red-50 dark:bg-red-900/10">
      <h3 class="text-xl font-bold text-red-700 dark:text-red-400 mb-2">Danger Zone</h3>
-     <p class="text-sm text-red-600 dark:text-red-300/70 mb-4">
+     <p class="text-sm text-red-600 dark:text-red-300/70 mb-4 leading-relaxed">
        Once you delete your account, there is no going back. All your reviews, favorites, and profile data will be permanently removed.
      </p>
      <form action="{{ url_for('delete_account') }}" method="POST" 
            onsubmit="return confirm('Are you absolutely sure? This action cannot be undone.');">
          <button type="submit" 
-                 class="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/20">
+                 class="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-red-500/20 text-sm sm:text-base">
              Delete My Account
          </button>
      </form>
    </div>
 
-   <div class="border-t border-gray-300 dark:border-[#40376E] mb-8"></div>
-
-   <div class="space-y-3">
-     <a href="/"
-        class="block text-center py-3 rounded-xl bg-green-600 text-white font-semibold
-               hover:bg-green-700 dark:bg-[#6f52c9] dark:hover:bg-[#40376E] transition">
-       Return to Home
-     </a>
-     <a href="/logout"
-        class="block text-center py-3 rounded-xl bg-red-500 text-white font-semibold
-               hover:bg-red-600 dark:bg-[#d00000] dark:hover:bg-[#9b0000] transition">
-       Log Out
-     </a>
-   </div>
-
  </div>
 </div>
-
 <script>
  document.addEventListener("DOMContentLoaded", () => {
    const alerts = document.querySelectorAll(".flash-message");

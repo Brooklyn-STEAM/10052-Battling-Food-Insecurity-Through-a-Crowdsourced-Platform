@@ -1725,7 +1725,6 @@ DOM.itinerary.innerHTML = stepsHtml;
         }
     }
 
-
 if (isMobile()) {
     show(DOM.directionsModal);
 
@@ -2014,9 +2013,6 @@ let lastRenderKey = "";
 
 
 
-
-
-
 /* =========================
    RENDER SIDEBAR ONLY
 ========================= */
@@ -2200,124 +2196,213 @@ if (mobileSearch) {
 }
 
 /* =========================================================
-   FAVORITES
+   FAVORITES ENGINE (FINAL PRODUCTION VERSION)
 ========================================================= */
-async function loadFavoritesFromServer() {
 
-    try {
-
-        const favorites =
-            await apiGet(CONFIG.API.FAVORITES);
-
-        renderFavoritesList(favorites);
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
-}
-
-window.toggleFavorite = async function(fridge) {
-
-    try {
-
-        await apiPost(
-            CONFIG.API.TOGGLE_FAVORITE,
-            {
-                fridge_id:
-                    fridge.id || fridge.ID
-            }
-        );
-
-        loadFavoritesFromServer();
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
+// 1. Safe fetch utilities
+const safeApiGet = async (url) => {
+    if (typeof apiGet === 'function') return await apiGet(url);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    return res.json();
 };
 
+const safeApiPost = async (url, body = {}) => {
+    if (typeof apiPost === 'function') return await apiPost(url, body);
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    return res.json();
+};
+
+/* =========================================================
+   RENDER SIDEBAR FAVORITES LIST
+========================================================= */
 function renderFavoritesList(favorites) {
-
     if (!DOM.favoritesList) return;
-
     clearHTML(DOM.favoritesList);
 
-    if (!favorites?.length) {
-
-        DOM.favoritesList.innerHTML =
-            `<li class="p-2 text-xs text-gray-400 italic text-center">
-                No favorites yet.
-            </li>`;
-
+    if (!favorites || favorites.length === 0) {
+        DOM.favoritesList.innerHTML = `
+            <li class="text-xs text-gray-400 dark:text-purple-300/40 py-3 text-center border-2 border-dashed border-gray-200 dark:border-[#40376E] rounded-xl w-full">
+                No favorites added yet.
+            </li>
+        `;
         return;
     }
 
+    const fragment = document.createDocumentFragment();
     favorites.forEach(f => {
+        const id = f.ID !== undefined ? f.ID : f.id;
+        const name = f.Name || f.name || "Community Fridge";
+        const address = f.Address || f.address || "No address provided";
+        const lat = f.Lat !== undefined ? f.Lat : f.lat;
+        const lng = f.Lng !== undefined ? f.Lng : f.lng;
 
-        const li =
-            document.createElement("li");
-
-        const fID = f.ID || f.id;
-        const fName = f.Name || f.name;
-        const fLat = f.Latitude || f.lat;
-        const fLng = f.Longitude || f.lng;
-
-        li.className =
-            "p-2 bg-yellow-50 dark:bg-[#2a2545] border border-yellow-200 dark:border-[#40376E] rounded-xl flex justify-between items-center gap-2";
-
+        const li = document.createElement("li");
+        li.id = `fav-item-${id}`;
+        li.className = "flex justify-between items-center p-3 rounded-xl bg-white dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] text-sm shadow-sm hover:shadow transition-all w-full mb-2";
+        
         li.innerHTML = `
-<span class="font-semibold text-sm cursor-pointer hover:text-yellow-700 flex-grow py-1">
-    ⭐ ${fName}
-</span>
+            <div class="cursor-pointer flex-grow truncate mr-2" onclick="map.flyTo([${lat}, ${lng}], 16); if(typeof window.routeToFridge==='function') window.routeToFridge(${lat}, ${lng});">
+                <p class="font-bold text-gray-900 dark:text-white text-xs truncate">${name}</p>
+                <p class="text-[10px] text-gray-400 dark:text-gray-400/80 truncate max-w-[180px]">${address}</p>
+            </div>
+            <button class="text-yellow-400 hover:text-gray-400 text-xl p-1 transition-transform active:scale-75" style="color: #fbbf24 !important;">
+                ★
+            </button>
+        `;
 
-<button class="go-to-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded-lg font-bold uppercase hover:bg-yellow-600 transition-colors">
-    Go to →
-</button>
-`;
-
-        li.querySelector("span").onclick = () => {
-
-            if (fLat && fLng) {
-
-                map.setView(
-                    [fLat, fLng],
-                    15
-                );
-
-            } else {
-
-                window.location.href =
-                    `/individfridge/${fID}`;
-            }
+        // Direct click handler to remove favorite from sidebar
+        li.querySelector("button").onclick = async (e) => {
+            e.stopPropagation();
+            await window.toggleFavorite({ id, lat, lng, name, address });
         };
 
-        li.querySelector(".go-to-btn")
-            .onclick = (e) => {
-
-                e.stopPropagation();
-
-                map.setView(
-                    [fLat, fLng],
-                    CONFIG.FRIDGE_ZOOM
-                );
-
-                window.routeToFridge(
-                    fLat,
-                    fLng
-                );
-
-                if (isMobile()) {
-                    hideSidebar();
-                }
-            };
-
-        DOM.favoritesList.appendChild(li);
+        fragment.appendChild(li);
     });
+
+    DOM.favoritesList.appendChild(fragment);
 }
 
+async function loadFavoritesFromServer() {
+    try {
+        const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.FAVORITES) ? CONFIG.API.FAVORITES : "/get-favorites";
+        const favorites = await safeApiGet(endpoint);
+        renderFavoritesList(favorites);
+    } catch (err) {
+        console.error("Failed to sync favorites array:", err);
+    }
+}
+
+/* =========================================================
+   SYNCHRONIZE ALL VISUAL STARS ACROSS THE MAP PAGE
+========================================================= */
+window.syncStarUIStates = function(fridgeId, isFav) {
+    // 1. Sync main search/fridge result list buttons
+    document.querySelectorAll(".fav-btn").forEach(btn => {
+        const parentLi = btn.closest("li");
+        // Verify this card belongs to the modified fridge
+        if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${fridgeId}'`)) {
+            if (isFav) {
+                btn.innerText = "★";
+                btn.style.color = "#fbbf24"; // Bright gold utility override
+            } else {
+                btn.innerText = "⭐";
+                btn.style.color = ""; // Clear fallback rules
+            }
+        }
+    });
+
+    // 2. Update dynamic map elements if they exist
+    const inlineStar = document.getElementById(`sidebar-star-btn-${fridgeId}`);
+    if (inlineStar) {
+        if (isFav) {
+            inlineStar.innerText = "★";
+            inlineStar.style.color = "#fbbf24";
+        } else {
+            inlineStar.innerText = "☆";
+            inlineStar.style.color = "";
+        }
+    }
+};
+
+/* =========================================================
+   GLOBAL MUTATION ACTION EXECUTOR
+========================================================= */
+window.toggleFavorite = async function(fridge) {
+    try {
+        const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.TOGGLE_FAVORITE) ? CONFIG.API.TOGGLE_FAVORITE : "/toggle-favorite";
+        const id = fridge.id !== undefined ? fridge.id : fridge.ID;
+        
+        const data = await safeApiPost(endpoint, { fridge_id: id });
+        
+        if (data.success) {
+            const isFav = (data.action === "added");
+
+            // Update inner state data structures
+            const localMatch = state.allFridges.find(f => (f.id !== undefined ? f.id : f.ID) === id);
+            if (localMatch) localMatch.isFavorite = isFav;
+
+            // Instantly transition local screen icons
+            window.syncStarUIStates(id, isFav);
+
+            // Fetch clean data array to redraw the sidebar list wrapper
+            await loadFavoritesFromServer();
+
+            // Broadcast real-time events to background tabs (like the Individual Detail view)
+            if (window.BroadcastChannel) {
+                new BroadcastChannel('favorites_sync').postMessage({
+                    action: data.action,
+                    fridge_id: id
+                });
+            }
+        }
+    } catch (err) {
+        console.error("Critical error inside favorite engine transaction loop:", err);
+    }
+};
+
+/* =========================================================
+   BROADCAST CHANNEL LISTENER (TAB INTERLINKING)
+========================================================= */
+if (window.BroadcastChannel) {
+    const syncChannel = new BroadcastChannel('favorites_sync');
+    syncChannel.onmessage = async (event) => {
+        const data = event.data;
+        const isFav = (data.action === "added");
+
+        const localMatch = state.allFridges.find(f => (f.id !== undefined ? f.id : f.ID) === data.fridge_id);
+        if (localMatch) localMatch.isFavorite = isFav;
+
+        window.syncStarUIStates(data.fridge_id, isFav);
+        await loadFavoritesFromServer();
+    };
+}
+
+// Fire server sync automatically on viewport entry passes
+document.addEventListener("DOMContentLoaded", () => {
+    loadFavoritesFromServer();
+});
+
+/* =========================================================
+   CROSS-WINDOW REALTIME POST-MESSAGE REGISTER
+========================================================= */
+if (window.BroadcastChannel) {
+    const syncChannel = new BroadcastChannel('favorites_sync');
+    syncChannel.onmessage = async (event) => {
+        const data = event.data;
+        
+        // Find local object references inside the global application registry arrays
+        const targetedFridge = state.allFridges.find(f => (f.id || f.ID) === data.fridge_id);
+        if (targetedFridge) {
+            targetedFridge.isFavorite = (data.action === "added");
+        }
+
+        // Apply synchronized state styling mutations directly onto UI buttons
+        document.querySelectorAll(".fav-btn").forEach(btn => {
+            const parentLi = btn.closest("li");
+            if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${data.fridge_id}'`)) {
+                if (data.action === "added") {
+                    btn.classList.add("favorited");
+                } else {
+                    btn.classList.remove("favorited");
+                }
+            }
+        });
+
+        // Pull down cleanly formed HTML items down to populate sidebar viewports
+        await loadFavoritesFromServer();
+    };
+}
+
+// Initial engine activation sequence pass on setup
+document.addEventListener("DOMContentLoaded", () => {
+    loadFavoritesFromServer();
+});
 
 /* =========================================================
    RECENTS
