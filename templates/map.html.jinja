@@ -2243,6 +2243,29 @@ async function waitForUI() {
 
 
 
+function renderFridges(fridges) {
+
+    clearHTML(DOM.fridgeList);
+
+    const fragment =
+        document.createDocumentFragment();
+
+    const fridgesWithData = fridges
+        .map(f => ({
+            ...f,
+            distance: state.userLat
+                ? getDistance(
+                    state.userLat,
+                    state.userLng,
+                    f.lat,
+                    f.lng
+                )
+                : null
+        }))
+        .sort((a, b) =>
+            (a.distance || 999) -
+            (b.distance || 999)
+        );
 
 
 
@@ -2404,149 +2427,29 @@ ${f.distance
                 )
             );
 
-        });
+/* =========================================================
+   FAVORITES ENGINE (FINAL PRODUCTION VERSION)
 
-        const mobileSearch =
-            document.getElementById("mobile-search");
-
-        if (mobileSearch) {
-
-            mobileSearch.addEventListener(
-                "input",
-                debounce((e) => {
-
-                    const value =
-                        e.target.value.toLowerCase();
-
-                    renderFridges(
-                        state.allFridges.filter(f =>
-                            f.name.toLowerCase()
-                                .includes(value)
-                        )
-                    );
-                })
-            );
+    // 2. Update dynamic map elements if they exist
+    const inlineStar = document.getElementById(`sidebar-star-btn-${fridgeId}`);
+    if (inlineStar) {
+        if (isFav) {
+            inlineStar.innerText = "★";
+            inlineStar.style.color = "#fbbf24";
+        } else {
+            inlineStar.innerText = "☆";
+            inlineStar.style.color = "";
         }
+    }
+};
 
-        /* =========================================================
-           FAVORITES
-        ========================================================= */
-        async function loadFavoritesFromServer() {
+/* =========================================================
+   GLOBAL MUTATION ACTION EXECUTOR
 
-            try {
-
-                const favorites =
-                    await apiGet(CONFIG.API.FAVORITES);
-
-                renderFavoritesList(favorites);
-
-            } catch (err) {
-
-                console.error(err);
-
-            }
-        }
-
-        window.toggleFavorite = async function (fridge) {
-
-            try {
-
-                await apiPost(
-                    CONFIG.API.TOGGLE_FAVORITE,
-                    {
-                        fridge_id:
-                            fridge.id || fridge.ID
-                    }
-                );
-
-                loadFavoritesFromServer();
-
-            } catch (err) {
-
-                console.error(err);
-
-            }
-        };
-
-        function renderFavoritesList(favorites) {
-
-            if (!DOM.favoritesList) return;
-
-            clearHTML(DOM.favoritesList);
-
-            if (!favorites?.length) {
-
-                DOM.favoritesList.innerHTML =
-                    `<li class="p-2 text-xs text-gray-400 italic text-center">
-                No favorites yet.
-            </li>`;
-
-                return;
-            }
-
-            favorites.forEach(f => {
-
-                const li =
-                    document.createElement("li");
-
-                const fID = f.ID || f.id;
-                const fName = f.Name || f.name;
-                const fLat = f.Latitude || f.lat;
-                const fLng = f.Longitude || f.lng;
-
-                li.className =
-                    "p-2 bg-yellow-50 dark:bg-[#2a2545] border border-yellow-200 dark:border-[#40376E] rounded-xl flex justify-between items-center gap-2";
-
-                li.innerHTML = `
-<span class="font-semibold text-sm cursor-pointer hover:text-yellow-700 flex-grow py-1">
-    ⭐ ${fName}
-</span>
-
-<button class="go-to-btn text-[10px] bg-yellow-500 text-white px-2 py-1 rounded-lg font-bold uppercase hover:bg-yellow-600 transition-colors">
-    Go to →
-</button>
-`;
-
-                li.querySelector("span").onclick = () => {
-
-                    if (fLat && fLng) {
-
-                        map.setView(
-                            [fLat, fLng],
-                            15
-                        );
-
-                    } else {
-
-                        window.location.href =
-                            `/individfridge/${fID}`;
-                    }
-                };
-
-                li.querySelector(".go-to-btn")
-                    .onclick = (e) => {
-
-                        e.stopPropagation();
-
-                        map.setView(
-                            [fLat, fLng],
-                            CONFIG.FRIDGE_ZOOM
-                        );
-
-                        window.routeToFridge(
-                            fLat,
-                            fLng
-                        );
-
-                        if (isMobile()) {
-                            hideSidebar();
-                        }
-                    };
-
-                DOM.favoritesList.appendChild(li);
-            });
-        }
-
+// Initial engine activation sequence pass on setup
+document.addEventListener("DOMContentLoaded", () => {
+    loadFavoritesFromServer();
+});
 
         /* =========================================================
            RECENTS
