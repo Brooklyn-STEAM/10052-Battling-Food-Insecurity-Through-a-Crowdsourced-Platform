@@ -15,6 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import CSRFProtect
 
 
+
 app = Flask(__name__)      
 config = Dynaconf(settings_file=["settings.toml"])
 app.secret_key = config.secret_key
@@ -940,15 +941,18 @@ def account():
 @app.route("/profile/update-username", methods=["POST"])
 @login_required
 def update_username():
+   connection = connect_db()
+   cursor = connection.cursor()
    username = request.form.get("username", "").strip()
+
    if not username:
        flash("Username cannot be empty", "profile_error")
        return redirect("/profile")
-   connection = connect_db()
-   cursor = connection.cursor()
+   
    cursor.execute("UPDATE User SET Name = %s WHERE ID = %s", (username, current_user.id))
    connection.close()
    current_user.name = username
+   
    flash("Username updated!", "profile_success")
    return redirect("/profile_page")
 
@@ -958,16 +962,39 @@ def update_username():
 @app.route("/profile/update-password", methods=["POST"])
 @login_required
 def update_password():
-   password = request.form.get("password", "")
-   if len(password) < 8:
-    flash("Password must be at least 8 characters", "profile_error")
-    return redirect("/profile")
-   connection = connect_db()
-   cursor = connection.cursor()
-   cursor.execute("UPDATE User SET Password = %s WHERE ID = %s", (password, current_user.id))
-   connection.close()
-   flash("Password updated!", "profile_success")
-   return redirect("/profile_page")
+    # 1. Grab the form field data (Make sure this matches the HTML 'name' attribute)
+    password = request.form.get("new_password", "").strip()
+
+    # 2. Validation check
+    if len(password) < 8:
+        flash("Password must be at least 8 characters", "profile_error")
+        return redirect("/profile_page")
+   
+    # 3. Securely hash the plaintext password
+    hashed_password = generate_password_hash(password, method="scrypt")
+
+    try:
+        connection = connect_db()
+        cursor = connection.cursor()
+        
+        # 4. Execute the update query using the secure hash
+        cursor.execute(
+            "UPDATE User SET Password = %s WHERE ID = %s", 
+            (hashed_password, current_user.id)
+        )
+        
+        # 5. CRITICAL: Commit changes to save them permanently to the database
+        connection.commit()
+        
+        flash("Password updated successfully!", "profile_success")
+    except Exception as e:
+        # If something database-related goes wrong, catch it cleanly
+        flash("An error occurred while updating your password.", "profile_error")
+    finally:
+        connection.close()
+
+    # 6. Redirect back to the correct profile view route
+    return redirect("/profile_page")
 
 
 # PROFILE PICTURE 
@@ -976,6 +1003,7 @@ def update_password():
 def update_profile_picture():
     connection = connect_db()
     action = request.form.get('action')
+
     DEFAULT_PICTURE = '/static/images/default-profile.png'
     
     # Initialize the target URL variable
