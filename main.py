@@ -12,14 +12,13 @@ from flask_mail import Mail, Message
 import smtplib, hashlib
 from email.mime.text import MIMEText
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf import CSRFProtect
 
 
 
 app = Flask(__name__)      
 config = Dynaconf(settings_file=["settings.toml"])
 app.secret_key = config.secret_key
-csrf = CSRFProtect(app)
+
 
 DB_HOST = "db.steamcenter.tech"
 DB_USER = "smack"
@@ -1271,19 +1270,22 @@ def toggle_favorite():
         return jsonify({"error": "Unauthorized"}), 401
     connection = None
     try:
-        data = request.get_json()
-        fridge_id = int(data.get('fridge_id'))
+        data = request.get_json(force=True, silent=True)
+        if not data or 'fridge_id' not in data:
+            return jsonify({"error": "Missing fridge_id"}), 400
+        try:
+            fridge_id = int(data.get('fridge_id'))
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid fridge_id"}), 400
+            
         user_id = current_user.id
-
         connection = connect_db()
         cursor = connection.cursor(pymysql.cursors.DictCursor)
-
         cursor.execute(
             "SELECT * FROM Favorites WHERE UserID = %s AND FridgeID = %s",
             (user_id, fridge_id)
         )
         existing = cursor.fetchone()
-
         if existing:
             cursor.execute(
                 "DELETE FROM Favorites WHERE UserID = %s AND FridgeID = %s",
@@ -1298,24 +1300,14 @@ def toggle_favorite():
             )
             message = "Added to favorites"
             action = "added"
-
         connection.commit()
-
-        return jsonify({
-            "success": True,
-            "message": message,
-            "action": action
-        })
+        return jsonify({"success": True, "message": message, "action": action})
 
     except Exception as e:
         if connection:
             connection.rollback()
         print(f"ERROR IN TOGGLE: {e}")
-
-        return jsonify({
-            "success": False,
-            "message": "Something went wrong"
-        }), 500
+        return jsonify({"success": False, "message": "Something went wrong"}), 500
 
     finally:
         if connection:

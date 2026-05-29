@@ -304,9 +304,7 @@
             <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg font-medium">No, Keep</button>
             <form id="deleteForm" method="POST" class="w-full sm:w-auto">
               
-                <input type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token() }}">
+                
                 <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-medium">Yes, Delete</button>
             </form>
         </div>
