@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/static/images/logo.png">
@@ -10,605 +11,606 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-<style>
-/* =========================================================
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.js.iife.js"></script>
+    <style>
+        /* =========================================================
    LEAFLET + MAP
 ========================================================= */
-:root {
-    --vh: 1vh;
-}
-.leaflet-routing-container {
-    display: none;
-}
+        :root {
+            --vh: 1vh;
+        }
 
-.leaflet-container {
-    touch-action: pan-x pan-y;
-}
+        .leaflet-routing-container {
+            display: none;
+        }
 
-.leaflet-tile {
-    transition: filter 0.3s ease;
-}
+        .leaflet-container {
+            touch-action: pan-x pan-y;
+        }
 
-.leaflet-marker-icon {
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
-    transition: transform 0.2s ease;
-}
+        .leaflet-tile {
+            transition: filter 0.3s ease;
+        }
 
-.leaflet-marker-icon:hover {
-    transform: scale(1.05);
-}
+        .leaflet-marker-icon {
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+            transition: transform 0.2s ease;
+        }
 
-.dark .leaflet-marker-icon {
-    filter:
-        drop-shadow(0 0 10px rgba(168,85,247,0.35))
-        drop-shadow(0 6px 14px rgba(0,0,0,0.5));
-}
+        .leaflet-marker-icon:hover {
+            transform: scale(1.05);
+        }
 
-#map {
-    height: 100%;
-    width: 100%;
-    background: #0b0b10;
-}
+        .dark .leaflet-marker-icon {
+            filter:
+                drop-shadow(0 0 10px rgba(168, 85, 247, 0.35))
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            background: #0b0b10;
+        }
 
 
-/* =========================================================
+        /* =========================================================
    ROUTING / DIRECTIONS
 ========================================================= */
-#itinerary-container .leaflet-routing-alt {
-    max-height: 300px;
-    overflow-y: auto;
-    background: transparent !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    font-size: 13px;
-    color: #166534;
-}
+        #itinerary-container .leaflet-routing-alt {
+            max-height: 300px;
+            overflow-y: auto;
+            background: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            font-size: 13px;
+            color: #166534;
+        }
 
-#itinerary-container tr {
-    display: flex;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #e2e8f0;
-}
+        #itinerary-container tr {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
 
-/* Animated route line */
-/* =========================================================
+        /* Animated route line */
+        /* =========================================================
    ROUTE ANIMATION
 ========================================================= */
 
-/* Main animated route */
-.animated-route {
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    animation:
-        routeFlow 1s linear infinite,
-        routePulseColor 2.5s linear infinite,
-        routeGlow 2s ease-in-out infinite;
-}
+        /* Main animated route */
+        .animated-route {
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            animation:
+                routeFlow 1s linear infinite,
+                routePulseColor 2.5s linear infinite,
+                routeGlow 2s ease-in-out infinite;
+        }
 
-/* Desktop only */
-@media (min-width: 769px) {
-    .animated-route {
-        animation:
-            routeFlow 1.2s linear infinite,
-            routePulse 2s ease-in-out infinite;
-    }
-}
+        /* Desktop only */
+        @media (min-width: 769px) {
+            .animated-route {
+                animation:
+                    routeFlow 1.2s linear infinite,
+                    routePulse 2s ease-in-out infinite;
+            }
+        }
 
-/* Moving dashed effect */
-@keyframes routeFlow {
-    from {
-        stroke-dashoffset: 24;
-    }
+        /* Moving dashed effect */
+        @keyframes routeFlow {
+            from {
+                stroke-dashoffset: 24;
+            }
 
-    to {
-        stroke-dashoffset: 0;
-    }
-}
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
 
-/* Gentle breathing glow */
-@keyframes routePulse {
-    0%, 100% {
-        opacity: 0.85;
-        filter: drop-shadow(0 0 2px rgba(34,197,94,0.4));
-    }
+        /* Gentle breathing glow */
+        @keyframes routePulse {
 
-    50% {
-        opacity: 1;
-        filter: drop-shadow(0 0 8px rgba(34,197,94,0.9));
-    }
-}
+            0%,
+            100% {
+                opacity: 0.85;
+                filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.4));
+            }
 
-/* Dark mode glow */
-.dark .animated-route {
-    filter: drop-shadow(0 0 10px rgba(168,85,247,0.8));
-}
+            50% {
+                opacity: 1;
+                filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.9));
+            }
+        }
 
-.route-draw {
-    stroke-dasharray: 2000;
-    stroke-dashoffset: 2000;
-    animation: drawRoute 1.4s ease forwards;
-}
+        /* Dark mode glow */
+        .dark .animated-route {
+            filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.8));
+        }
 
-@keyframes drawRoute {
-    to {
-        stroke-dashoffset: 0;
-    }
-}
+        .route-draw {
+            stroke-dasharray: 2000;
+            stroke-dashoffset: 2000;
+            animation: drawRoute 1.4s ease forwards;
+        }
+
+        @keyframes drawRoute {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
 
 
 
-/* =========================================================
+        /* =========================================================
    INPUTS + FORMS
 ========================================================= */
-.input {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-    border: 1px solid #d1d5db;
-    background: #f8fafc;
-    transition: 0.25s;
-}
+        .input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            transition: 0.25s;
+        }
 
-.input:focus {
-    border-color: #a78bfa;
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
-}
+        .input:focus {
+            border-color: #a78bfa;
+        }
 
-.dark .input {
-    background: #2a2545;
-    border-color: #40376E;
-    color: #fff;
-}
+        .dark .input {
+            background: #2a2545;
+            border-color: #40376E;
+            color: #fff;
+        }
 
-.dark .dropdown {
-    background: #2a2545;
-    border-color: #40376E;
-}
+        .dark .dropdown {
+            background: #2a2545;
+            border-color: #40376E;
+        }
 
 
-/* =========================================================
+        /* =========================================================
    FORM CARD
 ========================================================= */
-.form-card {
-    background: linear-gradient(135deg, #ffffff, #f3f0ff);
-    border: 1px solid #cac2d2;
-}
+        .form-card {
+            background: linear-gradient(135deg, #ffffff, #f3f0ff);
+            border: 1px solid #cac2d2;
+        }
 
-.dark .form-card {
-    background: linear-gradient(135deg, #1e1b2e, #2a2545);
-    border: 1px solid #40376E;
-}
+        .dark .form-card {
+            background: linear-gradient(135deg, #1e1b2e, #2a2545);
+            border: 1px solid #40376E;
+        }
 
 
-/* =========================================================
+        /* =========================================================
    PAGE LAYOUT
 ========================================================= */
-html,
-body {
-    height: 100%;
-    margin: 0;
-}
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
 
-html {
-    scroll-behavior: smooth;
-    transition: background-color 0.3s ease,
+        html {
+            scroll-behavior: smooth;
+            transition: background-color 0.3s ease,
                 color 0.3s ease;
-}
+        }
 
-body {
-    overflow-x: hidden;
-    overflow-y: auto;
-}
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
 
-body > div {
-    min-height: 100vh;
-}
+        body>div {
+            min-height: 100vh;
+        }
 
-nav {
-    position: relative;
-    z-index: 9000;
-}
+        nav {
+            position: relative;
+            z-index: 9000;
+        }
 
 
-/* =========================================================
+        /* =========================================================
    FLASH MESSAGES
 ========================================================= */
-.flash-message {
-    position: fixed;
-    top: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 99999;
+        .flash-message {
+            position: fixed;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
 
-    display: flex;
-    align-items: center;
-    gap: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
 
-    padding: 8px 12px;
-    max-width: 260px;
-    border-radius: 0.6rem;
+            padding: 8px 12px;
+            max-width: 260px;
+            border-radius: 0.6rem;
 
-    font-size: 13px;
-    height: auto;
+            font-size: 13px;
+            height: auto;
 
-    opacity: 0;
+            opacity: 0;
 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transition:
+                opacity 0.3s ease,
+                transform 0.3s ease;
+        }
 
-    transition:
-        opacity 0.3s ease,
-        transform 0.3s ease;
-}
+        .flash-success {
+            background: #16a34a;
+            color: white;
+        }
 
-.flash-success {
-    background: #16a34a;
-    color: white;
-}
+        .flash-error {
+            background: #dc2626;
+            color: white;
+        }
 
-.flash-error {
-    background: #dc2626;
-    color: white;
-}
+        .dark .flash-success {
+            background: #6d28d9;
+        }
 
-.dark .flash-success {
-    background: #6d28d9;
-}
-
-.dark .flash-error {
-    background: #ef4444;
-}
+        .dark .flash-error {
+            background: #ef4444;
+        }
 
 
-/* =========================================================
+        /* =========================================================
    SCROLLBARS
 ========================================================= */
-.scrollbar-hide {
-    scrollbar-width: thin;
-    scrollbar-color: #22c55e transparent;
-}
+        .scrollbar-hide {
+            scrollbar-width: thin;
+            scrollbar-color: #22c55e transparent;
+        }
 
-.scrollbar-hide::-webkit-scrollbar {
-    width: 8px;
-}
+        .scrollbar-hide::-webkit-scrollbar {
+            width: 8px;
+        }
 
-.scrollbar-hide::-webkit-scrollbar-track {
-    background: transparent;
-}
+        .scrollbar-hide::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-.scrollbar-hide::-webkit-scrollbar-thumb {
-    background-color: #22c55e;
-    border-radius: 999px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-}
+        .scrollbar-hide::-webkit-scrollbar-thumb {
+            background-color: #22c55e;
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
 
-.dark .scrollbar-hide::-webkit-scrollbar-thumb {
-    background-color: #a855f7;
-}
+        .dark .scrollbar-hide::-webkit-scrollbar-thumb {
+            background-color: #a855f7;
+        }
 
 
-/* =========================================================
+        /* =========================================================
    MOBILE STYLES
 ========================================================= */
-/* =========================================================
+        /* =========================================================
    MOBILE DECLUTTER
 ========================================================= */
-@media (max-width: 768px) {
+        @media (max-width: 768px) {
 
-    /* Hide secondary sections on mobile */
-    #recent-list,
-    #clear-recents,
-    #undo-recents
- {
-        display: none !important;
-    }
+            /* Hide secondary sections on mobile */
+            #recent-list,
+            #clear-recents,
+            #undo-recents {
+                display: none !important;
+            }
 
-    /* Hide helper labels/text */
-    #sidebar p,
-    label[for="start-location"] {
-        display: none !important;
-    }
+            /* Hide helper labels/text */
+            #sidebar p,
+            label[for="start-location"] {
+                display: none !important;
+            }
 
-    /* Make sidebar cleaner */
-    #sidebar .px-4.pt-2.pb-24 {
-        padding-top: 0.5rem;
-    }
+            /* Make sidebar cleaner */
+            #sidebar .px-4.pt-2.pb-24 {
+                padding-top: 0.5rem;
+            }
 
-    /* Reduce fridge card density */
-    #fridge-list li {
-        padding: 0.85rem;
-        gap: 0.5rem;
-    }
+            /* Reduce fridge card density */
+            #fridge-list li {
+                padding: 0.85rem;
+                gap: 0.5rem;
+            }
 
-    /* Hide distance pill on mobile */
-    #fridge-list li span.text-xs.font-bold {
-        display: none;
-    }
+            /* Hide distance pill on mobile */
+            #fridge-list li span.text-xs.font-bold {
+                display: none;
+            }
 
-    /* Smaller buttons */
-    .details-btn,
-    .fav-btn {
-        font-size: 9px;
-        padding: 4px 8px;
-    }
+            /* Smaller buttons */
+            .details-btn,
+            .fav-btn {
+                font-size: 9px;
+                padding: 4px 8px;
+            }
 
-    /* Compact fridge titles */
-    #fridge-list .font-bold.text-base {
-        font-size: 0.95rem;
-    }
+            /* Compact fridge titles */
+            #fridge-list .font-bold.text-base {
+                font-size: 0.95rem;
+            }
 
-    /* Hide desktop search */
-    #fridge-search {
-        display: none;
-    }
+            /* Hide desktop search */
+            #fridge-search {
+                display: none;
+            }
 
-    /* Cleaner drag handle spacing */
-    #drag-handle {
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
+            /* Cleaner drag handle spacing */
+            #drag-handle {
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
 
-/* =========================================================
+            /* =========================================================
    MOBILE BOTTOM SHEET POLISH
 ========================================================= */
 
-#sidebar {
-    will-change: transform;
-    touch-action: none;
-    overscroll-behavior: contain;
+            #sidebar {
+                will-change: transform;
+                touch-action: none;
+                overscroll-behavior: contain;
 
-    box-shadow:
-        0 -10px 40px rgba(0,0,0,0.18);
+            }
 
-    backdrop-filter: blur(18px);
-}
+            #drag-handle {
+                user-select: none;
+                -webkit-user-select: none;
+            }
 
-#drag-handle {
-    user-select: none;
-    -webkit-user-select: none;
-}
+            #drag-handle div {
+                transition:
+                    width 0.2s ease,
+                    opacity 0.2s ease;
+            }
 
-#drag-handle div {
-    transition:
-        width 0.2s ease,
-        opacity 0.2s ease;
-}
+            #drag-handle:active div {
+                width: 5rem;
+                opacity: 0.8;
+            }
 
-#drag-handle:active div {
-    width: 5rem;
-    opacity: 0.8;
-}
+            /* smoother scroll */
+            #sidebar .overflow-y-auto {
+                -webkit-overflow-scrolling: touch;
+            }
 
-/* smoother scroll */
-#sidebar .overflow-y-auto {
-    -webkit-overflow-scrolling: touch;
-}
+            /* prevents ugly bounce */
+            body.dragging-sheet {
+                overflow: hidden;
+            }
 
-/* prevents ugly bounce */
-body.dragging-sheet {
-    overflow: hidden;
-}
+            /* Route summary box */
+            #mobile-itinerary-container .p-3.mb-3 {
+                font-size: 12px;
+                padding: 10px;
+                border-radius: 12px;
+            }
 
-    /* Route summary box */
-    #mobile-itinerary-container .p-3.mb-3 {
-        font-size: 12px;
-        padding: 10px;
-        border-radius: 12px;
-    }
+            /* Distance/ETA header */
+            #mobile-itinerary-container .text-3xl {
+                font-size: 1.1rem !important;
+            }
 
-    /* Distance/ETA header */
-    #mobile-itinerary-container .text-3xl {
-        font-size: 1.1rem !important;
-    }
+            #mobile-itinerary-container .text-[10px] {
+                font-size: 9px !important;
+            }
 
-    #mobile-itinerary-container .text-[10px] {
-        font-size: 9px !important;
-    }
+            /* Step instructions */
+            #mobile-itinerary-container .text-sm {
+                font-size: 12px !important;
+                line-height: 1.35rem;
+            }
 
-    /* Step instructions */
-    #mobile-itinerary-container .text-sm {
-        font-size: 12px !important;
-        line-height: 1.35rem;
-    }
+            /* Make spacing tighter */
+            #mobile-itinerary-container div {
+                padding-top: 6px;
+                padding-bottom: 6px;
+            }
 
-    /* Make spacing tighter */
-    #mobile-itinerary-container div {
-        padding-top: 6px;
-        padding-bottom: 6px;
-    }
-
-    /* Reduce modal padding slightly */
-    #directions-modal > div {
-        padding: 10px !important;
-    }
+            /* Reduce modal padding slightly */
+            #directions-modal>div {
+                padding: 10px !important;
+            }
 
 
-/* =========================================================
+            /* =========================================================
    MOBILE FRIDGE BOTTOM SHEET
 ========================================================= */
 
-#fridge-sheet {
-    will-change: transform;
-}
+            #fridge-sheet {
+                will-change: transform;
+            }
 
-#fridge-sheet.open {
-    transform: translateY(0%);
-}
+            #fridge-sheet.open {
+                transform: translateY(0%);
+            }
 
-#fridge-sheet::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.35);
-    backdrop-filter: blur(2px);
-    z-index: -1;
-}
+            #fridge-sheet::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.35);
+                z-index: -1;
+            }
 
-/* smooth scroll */
-#fridge-sheet-content {
-    -webkit-overflow-scrolling: touch;
-}
-#fridge-sheet > div {
-    touch-action: none;
-    will-change: transform;
-}
+            /* smooth scroll */
+            #fridge-sheet-content {
+                -webkit-overflow-scrolling: touch;
+            }
 
-#fridge-sheet.open {
-    transform: translateY(0%);
-    transition: transform 0.28s cubic-bezier(.22,.9,.35,1);
-}
-}
+            #fridge-sheet>div {
+                touch-action: none;
+                will-change: transform;
+            }
+
+            #fridge-sheet.open {
+                transform: translateY(0%);
+                transition: transform 0.28s cubic-bezier(.22, .9, .35, 1);
+            }
+        }
 
 
-#routing-directions .mb-4 {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
+        #routing-directions .mb-4 {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
 
-/* Directions reopen fade animation */
-.fade-out-directions {
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-    pointer-events: none;
+        /* Directions reopen fade animation */
+        .fade-out-directions {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            pointer-events: none;
 
-    transition:
-        opacity 0.4s ease,
-        transform 0.4s ease;
-}
-/* =========================
+            transition:
+                opacity 0.4s ease,
+                transform 0.4s ease;
+        }
+
+        /* =========================
    CLEAN LEAFLET POPUP FIX
 ========================= */
 
-.leaflet-popup {
-    z-index: 9999;
-}
+        .leaflet-popup {
+            z-index: 9999;
+        }
 
-/* main popup container */
-.leaflet-popup-content-wrapper {
-    width: 260px;
-    max-width: 85vw;
-    border-radius: 16px;
-    padding: 0;
-    overflow: hidden;
-    background: white;
-    color: #111;
-    box-shadow: 0 18px 45px rgba(0,0,0,0.25);
-}
+        /* main popup container */
+        .leaflet-popup-content-wrapper {
+            width: 260px;
+            max-width: 85vw;
+            border-radius: 16px;
+            padding: 0;
+            overflow: hidden;
+            background: white;
+            color: #111;
+        }
 
-/* dark mode */
-.dark .leaflet-popup-content-wrapper {
-    background: #1f1a3a;
-    color: white;
-    box-shadow: 0 18px 55px rgba(0,0,0,0.6);
-}
+        /* dark mode */
+        .dark .leaflet-popup-content-wrapper {
+            background: #1f1a3a;
+            color: white;
+        }
 
-/* content reset */
-.leaflet-popup-content {
-    margin: 0;
-    padding: 12px;
-    width: 100% !important;
-}
+        /* content reset */
+        .leaflet-popup-content {
+            margin: 0;
+            padding: 12px;
+            width: 100% !important;
+        }
 
-/* remove default tip cleanly */
-.leaflet-popup-tip {
-    background: inherit;
-    box-shadow: none;
-}
+        /* remove default tip cleanly */
+        .leaflet-popup-tip {
+            background: inherit;
+        }
 
-/* title styling */
-.leaflet-popup-content b {
-    font-size: 14px;
-    display: block;
-    margin-bottom: 6px;
-}
+        /* title styling */
+        .leaflet-popup-content b {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 6px;
+        }
 
-/* buttons */
-.leaflet-popup-content button {
-    border-radius: 10px;
-    font-size: 12px;
-    padding: 8px 10px;
-    font-weight: 700;
-    transition: 0.2s ease;
-}
+        /* buttons */
+        .leaflet-popup-content button {
+            border-radius: 10px;
+            font-size: 12px;
+            padding: 8px 10px;
+            font-weight: 700;
+            transition: 0.2s ease;
+        }
 
-.leaflet-popup-content button:hover {
-    transform: translateY(-1px);
-}
-    .fav-btn {
-    font-size: 10px;
-    padding: 4px 8px;
-    border-radius: 0.5rem;
-    color: white;
-    background: #eab308; /* yellow */
-    transition: all 0.2s ease;
-}
+        .leaflet-popup-content button:hover {
+            transform: translateY(-1px);
+        }
 
-/* unfavorite state = RED */
-.fav-btn.favorited {
-    background: #dc2626;
-    color: #fff;
-}
+        .fav-btn {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 0.5rem;
+            color: white;
+            background: #eab308;
+            /* yellow */
+            transition: all 0.2s ease;
+        }
 
-.fav-btn:hover {
-    transform: scale(1.05);
-}
-/* mobile sizing */
-@media (max-width: 768px) {
-    .leaflet-popup-content-wrapper {
-        width: 220px;
-        max-width: 80vw;
-    }
+        /* unfavorite state = RED */
+        .fav-btn.favorited {
+            background: #dc2626;
+            color: #fff;
+        }
 
-    .leaflet-popup-content {
-        font-size: 12px;
-    }
+        .fav-btn:hover {
+            transform: scale(1.05);
+        }
 
-    .leaflet-popup-content button {
-        font-size: 11px;
-        padding: 7px 9px;
-    }
-}
-#tutorial-tooltip::before {
-    content: "";
+        /* mobile sizing */
+        @media (max-width: 768px) {
+            .leaflet-popup-content-wrapper {
+                width: 220px;
+                max-width: 80vw;
+            }
 
-    position: absolute;
+            .leaflet-popup-content {
+                font-size: 12px;
+            }
 
-    width: 12px;
-    height: 12px;
+            .leaflet-popup-content button {
+                font-size: 11px;
+                padding: 7px 9px;
+            }
+        }
 
-    background: inherit;
+        #tutorial-tooltip::before {
+            content: "";
 
-    transform: rotate(45deg);
+            position: absolute;
 
-    left: 32px;
+            width: 12px;
+            height: 12px;
 
-    border-left: 1px solid rgba(0,0,0,0.08);
-    border-top: 1px solid rgba(0,0,0,0.08);
-}
+            background: inherit;
 
-/* tooltip BELOW target */
-#tutorial-tooltip[data-position="bottom"]::before {
-    top: -6px;
-}
+            transform: rotate(45deg);
 
-/* tooltip ABOVE target */
-#tutorial-tooltip[data-position="top"]::before {
-    bottom: -6px;
-    top: auto;
+            left: 32px;
 
-    transform: rotate(225deg);
-}
+            border-left: 1px solid rgba(0, 0, 0, 0.08);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+        }
 
-.dark #tutorial-tooltip::before {
-    border-color: rgba(168,85,247,0.25);
+        /* tooltip BELOW target */
+        #tutorial-tooltip[data-position="bottom"]::before {
+            top: -6px;
+        }
+
+        /* tooltip ABOVE target */
+        #tutorial-tooltip[data-position="top"]::before {
+            bottom: -6px;
+            top: auto;
+
+            transform: rotate(225deg);
+        }
+
+        .dark #tutorial-tooltip::before {
+            border-color: rgba(168, 85, 247, 0.25);
+        }
+        .paused-animations * {
+    animation-play-state: paused !important;
 }
     </style>
     <script>
@@ -616,8 +618,6 @@ body.dragging-sheet {
             darkMode: 'class'
         }
     </script>
-
-
     <script>
             (function () {
                 const saved = localStorage.getItem("theme");
@@ -635,34 +635,43 @@ body.dragging-sheet {
 </head>
 
 <body class="bg-gray-100 dark:bg-[#0f0c1f] text-gray-900 dark:text-gray-100 font-sans">
-{% include "components/navbar.html.jinja" %}
+    {% include "components/navbar.html.jinja" %}
 
-<div class="relative w-full flex flex-col md:flex-row overflow-hidden"
-     style="height: calc(var(--vh, 1vh) * 100 - 5rem);">
-    <!-- MAP (UNCHANGED) -->
-    <div class="md:hidden absolute top-4 left-4 right-4 z-[1200]">
-    <input
-        type="text"
-        id="mobile-search"
-        placeholder="Search nearby fridges..."
-        class="w-full px-4 py-3 rounded-2xl
-               bg-white/95 dark:bg-[#1f1a3a]/95
-               backdrop-blur-xl
-               shadow-xl
-               border border-white/20
+    <div class="relative flex flex-col md:flex-row w-full
+h-[100svh] md:h-[calc(100vh-5rem)]
+overflow-hidden isolate">
+        <!-- MAP (UNCHANGED) -->
+        <div class="
+md:hidden
+absolute
+top-[max(env(safe-area-inset-top),1rem)]
+left-4 right-4
+z-[1200]
+pointer-events-none
+">
+            <input type="text" id="mobile-fridge-search" placeholder="Search nearby fridges..." class="w-full px-4 py-3 rounded-2xl
+               bg-white dark:bg-[#1f1a3a]/95
+               border border-white/20 
                text-sm outline-none">
-</div>
+        </div>
         <div id="map"
-     class="w-full md:w-2/3 flex-1 z-0 order-1 md:order-2 h-[50vh] md:h-full transition-all duration-300">
-    </div>
-<!-- MOBILE FRIDGE SHEET -->
-<div id="fridge-sheet"
-class="fixed inset-x-0 bottom-0 z-[3000]
+class="
+order-1 md:order-2
+w-full md:w-2/3
+flex-1
+h-[100svh] md:h-full
+min-h-[320px]
+z-0
+transition-transform duration-300
+">
+        </div>
+        <!-- MOBILE FRIDGE SHEET -->
+        <div id="fridge-sheet" class="fixed inset-x-0 bottom-0 z-[3000]
 translate-y-full
 transition-transform duration-300 ease-out
 md:hidden">
 
-    <div class="
+            <div class="
         bg-white dark:bg-[#1b1730]
         rounded-t-3xl
         shadow-2xl
@@ -672,187 +681,206 @@ md:hidden">
         overflow-y-auto
     ">
 
-        <!-- drag handle -->
-        <div class="flex justify-center mb-4">
-            <div class="w-16 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                <!-- drag handle -->
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                </div>
+
+                <div id="fridge-sheet-content"></div>
+
+            </div>
         </div>
 
-        <div id="fridge-sheet-content"></div>
-
-    </div>
-</div>
-
-<button id="reopen-directions"
-    class="hidden fixed bottom-6 right-6 md:right-6 md:bottom-6 z-[1001]
-    bg-green-600 text-white px-4 py-3 rounded-full shadow-xl
-    hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700
+        <button id="reopen-directions" class="hidden fixed bottom-6 right-6 md:right-6 md:bottom-6 z-[1001]
+    bg-green-600 text-white px-4 py-3 rounded-full hover:bg-green-700 dark:bg-purple-600 dark:hover:bg-purple-700
     transition text-sm font-bold">
-    Directions
-</button>
-    <!-- SIDEBAR -->
-<aside id="sidebar"
-        class="w-full md:w-1/3 h-[70dvh] md:h-full 
-               bg-white dark:bg-[#1b1730]
-               transition-transform duration-300
-               md:translate-y-0
-               fixed md:static bottom-0 left-0
-               z-[1000]
-               rounded-t-2xl md:rounded-none
-               flex flex-col">
-<!-- DRAG HANDLE (PRIMARY MOBILE CONTROL) -->
-<div id="drag-handle"
-     class="md:hidden w-full flex justify-center pt-3 pb-3 cursor-grab active:cursor-grabbing
+            Directions
+        </button>
+        <!-- SIDEBAR -->
+        <aside id="sidebar"
+class="
+fixed inset-x-0 bottom-0
+md:static
+
+w-full md:w-1/3
+
+h-[78svh] md:h-full
+max-h-[90svh]
+
+translate-y-[68svh]
+md:translate-y-0
+
+transition-transform duration-300 ease-out
+
+bg-white dark:bg-[#1b1730]
+
+rounded-t-[28px] md:rounded-none
+
+z-[2000]
+
+flex flex-col
+
+shadow-[0_-12px_40px_rgba(0,0,0,0.22)]
+
+border-t border-gray-200 dark:border-[#40376E]
+
+">
+            <!-- DRAG HANDLE (PRIMARY MOBILE CONTROL) -->
+            <div id="drag-handle" class="md:hidden w-full flex justify-center pt-3 pb-3 cursor-grab active:cursor-grabbing
      bg-gray-100 dark:bg-[#1b1730]">
-    <div class="w-16 h-2 bg-gray-400 rounded-full"></div>
-</div>
+                <div class="w-16 h-2 bg-gray-400 rounded-full"></div>
+            </div>
 
-<!-- OPTIONAL CLOSE BUTTON (SMALL + NON-CONFLICTING) -->
-<div id="close-sidebar"
-     class="md:hidden w-full flex items-center justify-between px-4 py-2">
-    
-    <div class="w-16"></div> <!-- spacer to balance drag handle -->
+            <!-- OPTIONAL CLOSE BUTTON (SMALL + NON-CONFLICTING) -->
+            <div id="close-sidebar" class="md:hidden w-full flex items-center justify-between px-4 py-2">
 
-<button class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-lg">
-    Close
-</button>
+                <div class="w-16"></div> <!-- spacer to balance drag handle -->
 
-    <div class="w-16"></div> <!-- keeps button centered visually -->
-</div>
+                <button class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-lg">
+                    Close
+                </button>
 
-<div class="px-4 pt-2 pb-24 overflow-y-auto flex-grow scrollbar-hide">
+                <div class="w-16"></div> <!-- keeps button centered visually -->
+            </div>
 
-    <!-- =====================================================
+            <div class="
+flex-1
+overflow-y-auto
+overscroll-contain
+scrollbar-hide
+
+px-4 pt-2
+pb-[140px]
+
+touch-pan-y
+
+[-webkit-overflow-scrolling:touch]
+">
+
+                <!-- =====================================================
          TRANSPORT (NORMAL FLOW - ABOVE ROUTE BOX)
     ====================================================== -->
-    <div id="transport-controls"
-        class="grid grid-cols-3 gap-2 mb-5 p-2 rounded-xl
+                <div id="transport-controls" class="grid grid-cols-3 gap-2 mb-5 p-2 rounded-xl
         bg-white dark:bg-[#1b1730]
         border border-gray-200 dark:border-[#40376E]">
 
-        <!-- WALK -->
-        <label class="cursor-pointer">
-            <input type="radio" name="transport" value="foot" class="hidden peer" checked>
-            <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
+                    <!-- WALK -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="transport" value="foot" class="hidden peer" checked>
+                        <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
                 border-2 border-gray-200 dark:border-[#40376E]
                 bg-white dark:bg-[#2a2545]
                 peer-checked:border-green-600 dark:peer-checked:border-purple-500
                 peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
                 peer-checked:text-green-700 dark:peer-checked:text-purple-300
                 transition">
-                🚶 Walk
-            </div>
-        </label>
+                            🚶 Walk
+                        </div>
+                    </label>
 
-        <!-- BIKE -->
-        <label class="cursor-pointer">
-            <input type="radio" name="transport" value="bicycle" class="hidden peer">
-            <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
+                    <!-- BIKE -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="transport" value="bicycle" class="hidden peer">
+                        <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
                 border-2 border-gray-200 dark:border-[#40376E]
                 bg-white dark:bg-[#2a2545]
                 peer-checked:border-green-600 dark:peer-checked:border-purple-500
                 peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
                 peer-checked:text-green-700 dark:peer-checked:text-purple-300
                 transition">
-                🚴 Bike
-            </div>
-        </label>
+                            🚴 Bike
+                        </div>
+                    </label>
 
-        <!-- DRIVE -->
-        <label class="cursor-pointer">
-            <input type="radio" name="transport" value="car" class="hidden peer">
-            <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
+                    <!-- DRIVE -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="transport" value="car" class="hidden peer">
+                        <div class="p-2 rounded-xl text-center text-[10px] font-bold uppercase
                 border-2 border-gray-200 dark:border-[#40376E]
                 bg-white dark:bg-[#2a2545]
                 peer-checked:border-green-600 dark:peer-checked:border-purple-500
                 peer-checked:bg-green-50 dark:peer-checked:bg-[#1f1a3a]
                 peer-checked:text-green-700 dark:peer-checked:text-purple-300
                 transition">
-                🚗 Drive
-            </div>
-        </label>
+                            🚗 Drive
+                        </div>
+                    </label>
 
-    </div>
+                </div>
 
 
-    <!-- =====================================================
+                <!-- =====================================================
          ROUTE BOX (NO STICKY HEADER, SIMPLE FLOW)
     ====================================================== -->
-    <div id="routing-directions"
-        class="hidden mb-6 p-4 rounded-2xl border
+                <div id="routing-directions" class="hidden mb-6 p-4 rounded-2xl border
         bg-gradient-to-br from-green-50 to-white
         dark:from-[#241a3a] dark:to-[#1b1730]
         border-green-200 dark:border-[#40376E]
         shadow-lg">
 
-        <div class="flex justify-between items-center mb-3">
-            <h3 class="font-black text-green-800 dark:text-purple-300 text-sm uppercase tracking-wide">
-                Route Instructions
-            </h3>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-black text-green-800 dark:text-purple-300 text-sm uppercase tracking-wide">
+                            Route Instructions
+                        </h3>
 
-            <button onclick="window.clearRoute()"
-                class="text-[10px] px-2 py-1 rounded-md
+                        <button onclick="window.clearRoute()" class="text-[10px] px-2 py-1 rounded-md
                 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-500/10 transition">
-                CLEAR
-            </button>
-        </div>
+                            CLEAR
+                        </button>
+                    </div>
 
-        <div id="itinerary-container"></div>
+                    <div id="itinerary-container"></div>
 
-    </div>
+                </div>
 
 
-    <!-- =====================================================
+                <!-- =====================================================
          HEADER SECTION (FRIDGES)
     ====================================================== -->
-    <div class="mb-4">
+                <div class="mb-4">
 
-        <div id="sidebar-toggle" class="md:cursor-default cursor-pointer">
-            <h2 class="text-2xl font-black flex items-center gap-2">
-                🧊 Nearby Fridges
-            </h2>
-        </div>
+                    <div id="sidebar-toggle" class="md:cursor-default cursor-pointer">
+                        <h2 class="text-2xl font-black flex items-center gap-2">
+                            🧊 Nearby Fridges
+                        </h2>
+                    </div>
 
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Swipe, tap, and explore community fridges near you
-        </p>
-    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Swipe, tap, and explore community fridges near you
+                    </p>
+                </div>
 
 
-    <!-- =====================================================
+                <!-- =====================================================
          START LOCATION
     ====================================================== -->
-    <div class="mb-5 p-3 rounded-xl bg-gray-50 dark:bg-[#2a2545]
+                <div class="mb-5 p-3 rounded-xl bg-gray-50 dark:bg-[#2a2545]
         border border-gray-200 dark:border-[#40376E]">
 
-        <label class="font-semibold text-xs text-gray-600 dark:text-gray-400 block mb-2">
-            Starting Location
-        </label>
+                    <label class="font-semibold text-xs text-gray-600 dark:text-gray-400 block mb-2">
+                        Starting Location
+                    </label>
 
-        <div class="flex gap-2">
+                    <div class="flex gap-2">
 
-            <input type="text" id="start-location"
-                placeholder="Enter address"
-                class="flex-grow p-2 rounded-lg text-sm
+                        <input type="text" id="start-location" placeholder="Enter address" class="flex-grow p-2 rounded-lg text-sm
                 bg-white dark:bg-[#1f1a3a]
                 border border-gray-200 dark:border-[#40376E]
                 text-gray-900 dark:text-white
                 outline-none focus:ring-2 focus:ring-green-500" />
 
-            <button id="set-start"
-                class="bg-green-500 hover:bg-green-600
+                        <button id="set-start" class="bg-green-500 hover:bg-green-600
                 text-white px-3 py-2 rounded-lg font-bold text-sm
                 dark:bg-purple-600 dark:hover:bg-purple-700 transition">
-                Set
-            </button>
+                            Set
+                        </button>
 
-        </div>
-    </div>
+                    </div>
+                </div>
 
 
-    <!-- SEARCH -->
-    <input type="text" id="fridge-search"
-        placeholder="Search fridges..."
-        class="w-full p-3 mb-5 rounded-xl text-sm
+                <!-- SEARCH -->
+                <input type="text" id="fridge-search" placeholder="Search fridges..." class="w-full p-3 mb-5 rounded-xl text-sm
         bg-gray-50 dark:bg-[#2a2545]
         border border-gray-200 dark:border-[#40376E]
         text-gray-900 dark:text-white
@@ -860,14 +888,12 @@ md:hidden">
 
 
                 <!-- FAVORITES -->
-                <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400" >
+                <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
                     Favorites
                 </h3>
                 <!-- FAVORITES -->
-<ul id="favorites-list"
-    data-tutorial="favorites"
-    class="space-y-2 mb-5">
-</ul>
+                <ul id="favorites-list" data-tutorial="favorites" class="space-y-2 mb-5">
+                </ul>
 
 
                 <!-- RECENTS -->
@@ -889,274 +915,250 @@ md:hidden">
                     </div>
                 </div>
 
+                <ul id="recent-list" class="space-y-2 mb-5 text-sm text-gray-700 dark:text-gray-300">
+                </ul>
 
-    <!-- RECENTS -->
-    <div class="flex justify-between items-center mb-2 hidden md:flex">
-        <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400">
-            Recently Viewed
-        </h3>
+
+                <!-- FRIDGE LIST -->
+                <ul id="fridge-list" class="space-y-3 pb-24 overflow-y-auto max-h-[50vh] md:max-h-full pr-1">
+                </ul>
+
+            </div>
+        </aside>
+    </div>
+    <div id="directions-controls-mobile" class="mb-2"></div>
+
+    <div id="directions-modal"
+        class="hidden w-full max-h-[45dvh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-2 overflow-y-auto md:hidden">
+        <h2 class="font-bold text-base">Directions</h2>
 
         <div class="flex gap-2">
-            <button id="undo-recents"
-                class="text-[10px] font-bold uppercase text-blue-500 hover:underline hidden">
-                Undo
+            <button onclick="window.clearRoute(); closeDirectionsModal()"
+                class="text-[10px] font-bold text-red-500 border border-red-300 px-2 py-1 rounded-md">
+                Clear
             </button>
 
-            <button id="clear-recents"
-                class="text-[10px] font-bold uppercase text-gray-400 hover:text-red-500">
-                Clear
+            <button onclick="closeDirectionsModal()" class="text-[10px] font-bold text-gray-500">
+                Close
             </button>
         </div>
     </div>
 
-    <ul id="recent-list"
-        class="space-y-2 mb-5 text-sm text-gray-700 dark:text-gray-300">
-    </ul>
-
-
-    <!-- FRIDGE LIST -->
-    <ul id="fridge-list"
-        class="space-y-3 pb-24 overflow-y-auto max-h-[50vh] md:max-h-full pr-1">
-    </ul>
-
-</div>
-    </aside>
-</div>
-<div id="directions-controls-mobile" class="mb-2"></div>
-
-<div class="w-full max-h-[45dvh] bg-white dark:bg-[#1b1730] rounded-t-2xl p-2 overflow-y-auto md:hidden">    <h2 class="font-bold text-base">Directions</h2>
-
-    <div class="flex gap-2">
-        <button onclick="window.clearRoute(); closeDirectionsModal()"
-            class="text-[10px] font-bold text-red-500 border border-red-300 px-2 py-1 rounded-md">
-            Clear
-        </button>
-
-        <button onclick="closeDirectionsModal()"
-            class="text-[10px] font-bold text-gray-500">
-            Close
-        </button>
+    <div id="mobile-itinerary-container" class="max-h-[55dvh] overflow-y-auto rounded-lg px-2 py-3
+        text-sm leading-relaxed
+                bg-white text-gray-900
+                dark:bg-[#1b1730] dark:text-gray-100
+                transition-colors">
     </div>
-</div>
 
-<div id="mobile-itinerary-container"
-     class="max-h-[55dvh] overflow-y-auto rounded-lg px-2 py-3
-       text-sm leading-relaxed
-            bg-white text-gray-900
-            dark:bg-[#1b1730] dark:text-gray-100
-            transition-colors">
-</div>
- </div>
-</div>
-<script>
-/* =========================================================
-   CONFIG
-========================================================= */
-const CONFIG = {
-    DEFAULT_LOCATION: [40.7128, -74.0060],
-    DEFAULT_ZOOM: 12,
-    USER_ZOOM: 13,
-    FRIDGE_ZOOM: 16,
+</body>
+    <script>
+    window.mapTour = null;
+window.isMapTourActive = false;
+        /* =========================================================
+           CONFIG
+        ========================================================= */
+        const CONFIG = {
+            DEFAULT_LOCATION: [40.7128, -74.0060],
+            DEFAULT_ZOOM: 12,
+            USER_ZOOM: 13,
+            FRIDGE_ZOOM: 16,
 
-    MOBILE_BREAKPOINT: 768,
+            MOBILE_BREAKPOINT: 768,
 
-    ROUTE_PADDING: [50, 50],
+            ROUTE_PADDING: [50, 50],
 
-    ROUTE_STYLE: {
-        light: '#16a34a',
-        dark: '#a855f7',
-        weight: 6,
-        opacity: 1,
-        dashArray: '12 16'
-    },
+            ROUTE_STYLE: {
+                light: '#16a34a',
+                dark: '#a855f7',
+                weight: 6,
+                opacity: 1,
+                dashArray: '12 16'
+            },
 
-    API: {
-        GEOAPIFY_KEY: "364fdb68178f4a09b69ef7df5051e13b",
-        FRIDGES: "/get-fridges",
-        FAVORITES: "/get-favorites",
-        TOGGLE_FAVORITE: "/toggle-favorite"
-    }
-};
+            API: {
+                GEOAPIFY_KEY: "364fdb68178f4a09b69ef7df5051e13b",
+                FRIDGES: "/get-fridges",
+                FAVORITES: "/get-favorites",
+                TOGGLE_FAVORITE: "/toggle-favorite"
+            }
+        };
 
 
-/* =========================================================
-   DOM CACHE
-========================================================= */
-const DOM = {
-    sidebar: document.getElementById('sidebar'),
-    closeBtn: document.getElementById('close-sidebar'),
-    sidebarToggle: document.getElementById("sidebar-toggle"),
+        /* =========================================================
+           DOM CACHE
+        ========================================================= */
+        const DOM = {
+            sidebar: document.getElementById('sidebar'),
+            closeBtn: document.getElementById('close-sidebar'),
+            sidebarToggle: document.getElementById("sidebar-toggle"),
 
-    fridgeList: document.getElementById("fridge-list"),
-    fridgeSearch: document.getElementById("fridge-search"),
+            fridgeList: document.getElementById("fridge-list"),
+            fridgeSearch: document.getElementById("fridge-search"),
 
-    itinerary: document.getElementById('itinerary-container'),
-    mobileItinerary: document.getElementById('mobile-itinerary-container'),
+            itinerary: document.getElementById('itinerary-container'),
+            mobileItinerary: document.getElementById('mobile-itinerary-container'),
 
-    directions: document.getElementById('routing-directions'),
-    directionsModal: document.getElementById('directions-modal'),
+            directions: document.getElementById('routing-directions'),
+            directionsModal: document.getElementById('directions-modal'),
 
-    reopenDirections: document.getElementById('reopen-directions'),
+            reopenDirections: document.getElementById('reopen-directions'),
 
-    startLocation: document.getElementById("start-location"),
-    setStart: document.getElementById("set-start"),
+            startLocation: document.getElementById("start-location"),
+            setStart: document.getElementById("set-start"),
 
-    favoritesList: document.getElementById("favorites-list"),
-    recentList: document.getElementById("recent-list"),
+            favoritesList: document.getElementById("favorites-list"),
+            recentList: document.getElementById("recent-list"),
 
-    clearRecents: document.getElementById("clear-recents"),
-    undoRecents: document.getElementById("undo-recents"),
+            clearRecents: document.getElementById("clear-recents"),
+            undoRecents: document.getElementById("undo-recents"),
 
-    transportControls: document.getElementById('transport-controls')
-};
-
-
-/* =========================================================
-   GLOBAL STATE
-========================================================= */
-const state = {
-    userLat: null,
-    userLng: null,
-    userMarker: null,
-
-    currentRouteLayer: null,
-    currentTargetFridge: null,
-
-    allFridges: [],
-    lastRoute: null,
-
-    recentsBackup: null,
-    undoTimeout: null,
-    undoInterval: null,
-
-    currentTileLayer: null,
-
-    isDragging: false,
-    startY: 0,
-    currentY: 0,
-    currentTranslate: 0,
-    sidebarState: "collapsed"
-};
-state.markerMap = new Map();
-
-const MAX_TRANSLATE = window.innerHeight * 0.6;
+            transportControls: document.getElementById('transport-controls')
+        };
 
 
-/* =========================================================
-   HELPERS
-========================================================= */
-function isMobile() {
-    return window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
-}
+        /* =========================================================
+           GLOBAL STATE
+        ========================================================= */
+        const state = {
+            userLat: null,
+            userLng: null,
+            userMarker: null,
 
-function show(el) {
-    el?.classList.remove("hidden");
+            currentRouteLayer: null,
+            currentTargetFridge: null,
 
-    requestAnimationFrame(() => {
-        el.style.opacity = "1";
-        el.style.transform = "translateY(0)";
-    });
-}
-function hide(el) {
-    el?.classList.add("hidden");
-}
+            allFridges: [],
+            preparedFridges: [],
+            lastRoute: null,
 
-function clearHTML(el) {
-    if (el) el.innerHTML = "";
-}
+            recentsBackup: null,
+            undoTimeout: null,
+            undoInterval: null,
 
-function debounce(fn, delay = 250) {
+            currentTileLayer: null,
 
-    let timeout;
+            isDragging: false,
+            startY: 0,
+            currentY: 0,
+            currentTranslate: 0,
+            sidebarState: "collapsed"
+        };
+        state.markerMap = new Map();
 
-    return (...args) => {
+        const MAX_TRANSLATE = window.innerHeight * 0.6;
 
-        clearTimeout(timeout);
 
-        timeout = setTimeout(() => {
-            fn(...args);
-        }, delay);
+        /* =========================================================
+           HELPERS
+        ========================================================= */
+        function isMobile() {
+            return window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
+        }
 
-    };
-}
-let resizeRAF = null;
+        function show(el) {
+            el?.classList.remove("hidden");
 
-function safeMapResize() {
+            requestAnimationFrame(() => {
+                el.style.opacity = "1";
+                el.style.transform = "translateY(0)";
+            });
+        }
+        function hide(el) {
+            el?.classList.add("hidden");
+        }
+
+        function clearHTML(el) {
+            if (el) el.innerHTML = "";
+        }
+
+        function debounce(fn, delay = 250) {
+
+            let timeout;
+
+            return (...args) => {
+
+                clearTimeout(timeout);
+
+                timeout = setTimeout(() => {
+                    fn(...args);
+                }, delay);
+
+            };
+        }
+        let resizeRAF = null;
+
+        function safeMapResize() {
     if (resizeRAF) return;
 
     resizeRAF = requestAnimationFrame(() => {
-
-        map.invalidateSize({
-            pan: false,
-            animate: false
-        });
-
         resizeRAF = null;
     });
 }
-/* =========================================================
-   API HELPERS
-========================================================= */
+       
+        /* =========================================================
+           API HELPERS
+        ========================================================= */
 
-async function apiGet(url) {
+        async function apiGet(url) {
 
-    const res = await fetch(url);
+            const res = await fetch(url);
 
-    if (!res.ok) {
-        throw new Error(`API Error: ${res.status}`);
-    }
+            if (!res.ok) {
+                throw new Error(`API Error: ${res.status}`);
+            }
 
-    return res.json();
-}
+            return res.json();
+        }
 
-async function apiPost(url, body = {}) {
+        async function apiPost(url, body = {}) {
 
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
 
-    if (!res.ok) {
-        throw new Error(`API Error: ${res.status}`);
-    }
+            if (!res.ok) {
+                throw new Error(`API Error: ${res.status}`);
+            }
 
-    return res.json();
-}
+            return res.json();
+        }
 
 
-/* =========================================================
-   MAP INITIALIZATION
-========================================================= */
-const map = L.map('map', {
-    zoomAnimation: true,
-    fadeAnimation: true,
-    zoomControl: false
-}).setView(
-    CONFIG.DEFAULT_LOCATION,
-    CONFIG.DEFAULT_ZOOM
-);
+        /* =========================================================
+           MAP INITIALIZATION
+        ========================================================= */
+        const map = L.map('map', {
+            zoomAnimation: true,
+            fadeAnimation: true,
+            zoomControl: false
+        }).setView(
+            CONFIG.DEFAULT_LOCATION,
+            CONFIG.DEFAULT_ZOOM
+        );
 
-setTimeout(() => {
-    safeMapResize();
-}, 300);
+        setTimeout(() => {
+            safeMapResize();
+        }, 300);
 
-// Only show zoom controls on desktop
-if (!isMobile()) {
-    L.control.zoom({
-        position: 'topright'
-    }).addTo(map);
-}
-map.on("click", (e) => {
+        // Only show zoom controls on desktop
+        if (!isMobile()) {
+            L.control.zoom({
+                position: 'topright'
+            }).addTo(map);
+        }
+       map.on("click", (e) => {
     if (!isMobile()) return;
 
     closeFridgeSheet();
 
     const el = e.originalEvent?.target;
 
-    // ignore map UI interactions
+    // ignore clicks on UI elements
     if (
         el?.closest("#sidebar") ||
         el?.closest(".leaflet-popup") ||
@@ -1164,306 +1166,306 @@ map.on("click", (e) => {
         el?.closest("#directions-modal")
     ) return;
 
-    // collapse BOTH sidebar + directions for clean map focus
     hideSidebar();
     hide(DOM.directionsModal);
     hide(DOM.directions);
 });
-/* =========================================================
-   TILE LAYERS
-========================================================= */
-const lightTiles = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 20,
-        updateWhenIdle: false,
-        updateWhenZooming: true,
-        keepBuffer: 4
-        
-    }
-);
+        /* =========================================================
+           TILE LAYERS
+        ========================================================= */
+        const lightTiles = L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20,
+                updateWhenIdle: false,
+                updateWhenZooming: true,
+                keepBuffer: 4
 
-const darkTiles = L.tileLayer(
-    'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
-    {
-        attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
-        maxZoom: 20,
-        updateWhenIdle: false,
-        updateWhenZooming: true,
-        keepBuffer: 4
-    }
-);
+            }
+        );
 
-
-/* =========================================================
-   APPLY MAP THEME
-========================================================= */
-window.applyMapTheme = function () {
-
-    const isDark =
-        document.documentElement.classList.contains('dark');
-
-    if (state.currentTileLayer) {
-        map.removeLayer(state.currentTileLayer);
-    }
-
-    state.currentTileLayer =
-        isDark ? darkTiles : lightTiles;
-
-    state.currentTileLayer.addTo(map);
-
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-    safeMapResize();
-}, 250);
-    });
-};
-
-applyMapTheme();
+        const darkTiles = L.tileLayer(
+            'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+            {
+                attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
+                maxZoom: 20,
+                updateWhenIdle: false,
+                updateWhenZooming: true,
+                keepBuffer: 4
+            }
+        );
 
 
-/* =========================================================
-   ICONS
-========================================================= */
-const userIcon = L.icon({
-    iconUrl: "/static/images/pin.png",
-    iconSize: [35, 35],
-    className: "drop-shadow-lg"
-});
+        /* =========================================================
+           APPLY MAP THEME
+        ========================================================= */
+        window.applyMapTheme = function () {
 
-const fridgeIcon = L.icon({
-    iconUrl: "/static/images/fridge.png",
-    iconSize: [45, 45],
-    className: "drop-shadow-lg"
-});
+            const isDark =
+                document.documentElement.classList.contains('dark');
+
+            if (state.currentTileLayer) {
+                map.removeLayer(state.currentTileLayer);
+            }
+
+            state.currentTileLayer =
+                isDark ? darkTiles : lightTiles;
+
+            state.currentTileLayer.addTo(map);
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    safeMapResize();
+                }, 250);
+            });
+        };
+
+        applyMapTheme();
 
 
-/* =========================================================
-   MOBILE BOTTOM SHEET
-========================================================= */
+        /* =========================================================
+           ICONS
+        ========================================================= */
+        const userIcon = L.icon({
+            iconUrl: "/static/images/pin.png",
+            iconSize: [35, 35],
+            className: "drop-shadow-lg"
+        });
 
-const SHEET = {
-    FULL: 0,
-    HALF: window.innerHeight * 0.45,
-    PEEK: window.innerHeight * 0.6
-};
+        const fridgeIcon = L.icon({
+            iconUrl: "/static/images/fridge.png",
+            iconSize: [45, 45],
+            className: "drop-shadow-lg"
+        });
 
-state.sheetPosition = SHEET.FULL;
-state.dragStartY = 0;
-state.dragStartTranslate = 0;
-state.lastDragY = 0;
-state.lastDragTime = 0;
-state.velocity = 0;
-state.isDragging = false;
 
-/* =========================
-   APPLY POSITION
-========================= */
-function setSheetPosition(y, animate = true) {
+        /* =========================================================
+           MOBILE BOTTOM SHEET
+        ========================================================= */
 
-    state.sheetPosition = y;
+        const SHEET = {
+            FULL: 0,
+            HALF: window.innerHeight * 0.45,
+            PEEK: window.innerHeight * 0.6,
+            CLOSED: window.innerHeight
+        };
 
-    DOM.sidebar.style.transition =
-        animate
-            ? "transform 0.28s cubic-bezier(.22,.9,.35,1)"
-            : "none";
-
-    DOM.sidebar.style.transform =
-        `translateY(${y}px)`;
-}
-
-/* =========================
-   SNAP LOGIC
-========================= */
-function snapSheet() {
-
-    const y = state.sheetPosition;
-
-    const snapPoints = [SHEET.FULL, SHEET.HALF, SHEET.PEEK];
-
-    // fast flick down → close
-    if (state.velocity > 1.2) {
-        return setSheetPosition(SHEET.CLOSED);
-    }
-
-    // fast flick up → open fully
-    if (state.velocity < -1.2) {
-        return setSheetPosition(SHEET.FULL);
-    }
-
-    let nearest = snapPoints[0];
-
-    for (const point of snapPoints) {
-        if (Math.abs(point - y) < Math.abs(nearest - y)) {
-            nearest = point;
-        }
-    }
-
-    setSheetPosition(nearest);
-}
-/* =========================
-   OPEN/CLOSE HELPERS
-========================= */
-function openSidebar() {
-    setSheetPosition(SHEET.FULL);
-}
-
-function halfSidebar() {
-    setSheetPosition(SHEET.HALF);
-}
-
-function hideSidebar() {
-    setSheetPosition(SHEET.PEEK);
-}
-
-/* initial mobile state */
-if (isMobile()) {
-    requestAnimationFrame(() => {
-        setSheetPosition(SHEET.PEEK, false);
-    });
-}
-
-/* =========================================================
-   DRAGGING
-========================================================= */
-
-const dragHandle =
-    document.getElementById("drag-handle");
-
-dragHandle.addEventListener(
-    "touchstart",
-    (e) => {
-
-        state.isDragging = true;
-
-        state.dragStartY =
-            e.touches[0].clientY;
-
-        state.dragStartTranslate =
-            state.sheetPosition;
-
-        state.lastDragY =
-            state.dragStartY;
-
-        state.lastDragTime =
-            performance.now();
-
-        DOM.sidebar.style.transition = "none";
-    },
-    { passive: true }
-);
-window.addEventListener(
-    "touchmove",
-    (e) => {
-        if (!state.isDragging) return;
-
-        const currentY = e.touches[0].clientY;
-        const delta = currentY - state.dragStartY;
-
-        let next = state.dragStartTranslate + delta;
-
-        // clamp bounds
-        next = Math.max(SHEET.FULL, Math.min(next, SHEET.PEEK));
-
-        const now = performance.now();
-
-        state.velocity =
-            (currentY - state.lastDragY) /
-            Math.max(1, (now - state.lastDragTime));
-
-        state.lastDragY = currentY;
-        state.lastDragTime = now;
-
-        setSheetPosition(next, false);
-    },
-    { passive: true }
-);
-window.addEventListener(
-    "touchend",
-    () => {
-
-        if (!state.isDragging) return;
-
+        state.sheetPosition = SHEET.FULL;
+        state.dragStartY = 0;
+        state.dragStartTranslate = 0;
+        state.lastDragY = 0;
+        state.lastDragTime = 0;
+        state.velocity = 0;
         state.isDragging = false;
 
-        snapSheet();
-    }
-);
+        /* =========================
+           APPLY POSITION
+        ========================= */
+        function setSheetPosition(y, animate = true) {
 
-/* =========================================================
-   BUTTONS
-========================================================= */
+            state.sheetPosition = y;
 
-DOM.closeBtn.onclick = () => {
-    hideSidebar();
-};
-DOM.sidebarToggle.onclick = () => {
+            DOM.sidebar.style.transition =
+                animate
+                    ? "transform 0.28s cubic-bezier(.22,.9,.35,1)"
+                    : "none";
 
-    if (!isMobile()) return;
+            DOM.sidebar.style.transform =
+                `translateY(${y}px)`;
+        }
 
-    if (state.sheetPosition <= SHEET.HALF) {
-        hideSidebar();
-    } else {
-        openSidebar();
-    }
-};
-/* =========================================================
-   INITIAL MOBILE STATE
-========================================================= */
+        /* =========================
+           SNAP LOGIC
+        ========================= */
+        function snapSheet() {
 
-if (isMobile()) {
-    hideSidebar();
-}
-/* =========================================================
-   DISTANCE HELPERS
-========================================================= */
-function getDistance(lat1, lon1, lat2, lon2) {
+            const y = state.sheetPosition;
 
-    const R = 3958.8;
+            const snapPoints = [SHEET.FULL, SHEET.HALF, SHEET.PEEK];
 
-    const dLat =
-        (lat2 - lat1) * Math.PI / 180;
+            // fast flick down → close
+            if (state.velocity > 1.2) {
+                return setSheetPosition(SHEET.CLOSED);
+            }
 
-    const dLon =
-        (lon2 - lon1) * Math.PI / 180;
+            // fast flick up → open fully
+            if (state.velocity < -1.2) {
+                return setSheetPosition(SHEET.FULL);
+            }
 
-    const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) ** 2;
+            let nearest = snapPoints[0];
 
-    return R * (
-        2 * Math.atan2(
-            Math.sqrt(a),
-            Math.sqrt(1 - a)
-        )
-    );
-}
+            for (const point of snapPoints) {
+                if (Math.abs(point - y) < Math.abs(nearest - y)) {
+                    nearest = point;
+                }
+            }
+
+            setSheetPosition(nearest);
+        }
+        /* =========================
+           OPEN/CLOSE HELPERS
+        ========================= */
+        function openSidebar() {
+            setSheetPosition(SHEET.FULL);
+        }
+
+        function halfSidebar() {
+            setSheetPosition(SHEET.HALF);
+        }
+
+        function hideSidebar() {
+            setSheetPosition(SHEET.PEEK);
+        }
+
+        /* initial mobile state */
+        if (isMobile()) {
+            requestAnimationFrame(() => {
+                setSheetPosition(SHEET.PEEK, false);
+            });
+        }
+
+        /* =========================================================
+           DRAGGING
+        ========================================================= */
+
+        const dragHandle =
+            document.getElementById("drag-handle");
+
+        dragHandle.addEventListener(
+            "touchstart",
+            (e) => {
+
+                state.isDragging = true;
+
+                state.dragStartY =
+                    e.touches[0].clientY;
+
+                state.dragStartTranslate =
+                    state.sheetPosition;
+
+                state.lastDragY =
+                    state.dragStartY;
+
+                state.lastDragTime =
+                    performance.now();
+
+                DOM.sidebar.style.transition = "none";
+            },
+            { passive: true }
+        );
+        window.addEventListener(
+            "touchmove",
+            (e) => {
+                if (!state.isDragging) return;
+
+                const currentY = e.touches[0].clientY;
+                const delta = currentY - state.dragStartY;
+
+                let next = state.dragStartTranslate + delta;
+
+                // clamp bounds
+                next = Math.max(SHEET.FULL, Math.min(next, SHEET.PEEK));
+
+                const now = performance.now();
+
+                state.velocity =
+                    (currentY - state.lastDragY) /
+                    Math.max(1, (now - state.lastDragTime));
+
+                state.lastDragY = currentY;
+                state.lastDragTime = now;
+
+                setSheetPosition(next, false);
+            },
+            { passive: true }
+        );
+        window.addEventListener(
+            "touchend",
+            () => {
+
+                if (!state.isDragging) return;
+
+                state.isDragging = false;
+
+                snapSheet();
+            }
+        );
+
+        /* =========================================================
+           BUTTONS
+        ========================================================= */
+
+        DOM.closeBtn.onclick = () => {
+            hideSidebar();
+        };
+        DOM.sidebarToggle.onclick = () => {
+
+            if (!isMobile()) return;
+
+            if (state.sheetPosition <= SHEET.HALF) {
+                hideSidebar();
+            } else {
+                openSidebar();
+            }
+        };
+        /* =========================================================
+           INITIAL MOBILE STATE
+        ========================================================= */
+
+        if (isMobile()) {
+            hideSidebar();
+        }
+        /* =========================================================
+           DISTANCE HELPERS
+        ========================================================= */
+        function getDistance(lat1, lon1, lat2, lon2) {
+
+            const R = 3958.8;
+
+            const dLat =
+                (lat2 - lat1) * Math.PI / 180;
+
+            const dLon =
+                (lon2 - lon1) * Math.PI / 180;
+
+            const a =
+                Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) ** 2;
+
+            return R * (
+                2 * Math.atan2(
+                    Math.sqrt(a),
+                    Math.sqrt(1 - a)
+                )
+            );
+        }
 
 
-/* =========================================================
-   USER LOCATION
-========================================================= */
-function setUserLocation(lat, lng) {
+        /* =========================================================
+           USER LOCATION
+        ========================================================= */
+        function setUserLocation(lat, lng) {
 
-    state.userLat = lat;
-    state.userLng = lng;
+            state.userLat = lat;
+            state.userLng = lng;
 
-    if (state.userMarker) {
-        map.removeLayer(state.userMarker);
-    }
+            if (state.userMarker) {
+                map.removeLayer(state.userMarker);
+            }
 
-    state.userMarker = L.marker(
-        [lat, lng],
-        { icon: userIcon }
-    )
+            state.userMarker = L.marker(
+                [lat, lng],
+                { icon: userIcon }
+            )
 
-    .addTo(map)
+                .addTo(map)
 
-.bindPopup(`
+                .bindPopup(`
 <div class="
     px-2 py-1.5
     text-center
@@ -1487,64 +1489,64 @@ function setUserLocation(lat, lng) {
     </div>
 
 </div>
-`)  
-    
-    .openPopup();
+`)
 
-    map.flyTo(
-        [lat, lng],
-        CONFIG.USER_ZOOM,
-        {
-            duration: 0.8,
-            easeLinearity: 0.25
+                .openPopup();
+
+            map.setView(
+                [lat, lng],
+                CONFIG.USER_ZOOM,
+                {
+                    duration: 0.8,
+                    easeLinearity: 0.25
+                }
+            );
+
+            renderFridges(state.allFridges);
         }
-    );
-
-    renderFridges(state.allFridges);
-}
 
 
-/* =========================================================
-   ROUTE HELPERS
-========================================================= */
-function clearRouteLayer() {
+        /* =========================================================
+           ROUTE HELPERS
+        ========================================================= */
+        function clearRouteLayer() {
 
-    if (!state.currentRouteLayer) return;
+            if (!state.currentRouteLayer) return;
 
-    map.removeLayer(state.currentRouteLayer);
+            map.removeLayer(state.currentRouteLayer);
 
-    state.currentRouteLayer = null;
-}
-
-function drawRoute(coords) {
-
-    clearRouteLayer();
-
-    const isDark =
-        document.documentElement.classList.contains('dark');
-
-    state.currentRouteLayer = L.polyline(coords, {
-        color: isDark
-            ? CONFIG.ROUTE_STYLE.dark
-            : CONFIG.ROUTE_STYLE.light,
-
-        weight: CONFIG.ROUTE_STYLE.weight,
-        opacity: CONFIG.ROUTE_STYLE.opacity,
-        dashArray: CONFIG.ROUTE_STYLE.dashArray,
-        className: 'animated-route'
-    }).addTo(map);
-
-    map.fitBounds(
-        state.currentRouteLayer.getBounds(),
-        {
-            padding: CONFIG.ROUTE_PADDING
+            state.currentRouteLayer = null;
         }
-    );
-}
 
-function createRouteSummary(distMi, timeMin) {
+        function drawRoute(coords) {
 
-    return `
+            clearRouteLayer();
+
+            const isDark =
+                document.documentElement.classList.contains('dark');
+
+            state.currentRouteLayer = L.polyline(coords, {
+                color: isDark
+                    ? CONFIG.ROUTE_STYLE.dark
+                    : CONFIG.ROUTE_STYLE.light,
+
+                weight: CONFIG.ROUTE_STYLE.weight,
+                opacity: CONFIG.ROUTE_STYLE.opacity,
+                dashArray: CONFIG.ROUTE_STYLE.dashArray,
+                className: 'animated-route'
+            }).addTo(map);
+
+            map.fitBounds(
+                state.currentRouteLayer.getBounds(),
+                {
+                    padding: CONFIG.ROUTE_PADDING
+                }
+            );
+        }
+
+        function createRouteSummary(distMi, timeMin) {
+
+            return `
 <div class="
     mb-5 p-5 rounded-3xl
     border border-white/10 dark:border-[#4c3b73]
@@ -1589,44 +1591,44 @@ function createRouteSummary(distMi, timeMin) {
     </div>
 </div>
 `;
-}
+        }
 
 
-/* =========================================================
-   ROUTING
-========================================================= */
-const profileMap = {
-    foot: "walk",
-    bicycle: "bicycle",
-    car: "drive"
-};
-function getStepIcon(text = "") {
-    const t = text.toLowerCase();
+        /* =========================================================
+           ROUTING
+        ========================================================= */
+        const profileMap = {
+            foot: "walk",
+            bicycle: "bicycle",
+            car: "drive"
+        };
+        function getStepIcon(text = "") {
+            const t = text.toLowerCase();
 
-    if (t.includes("left")) return "⬅️";
-    if (t.includes("right")) return "➡️";
-    if (t.includes("slight left")) return "↖️";
-    if (t.includes("slight right")) return "↗️";
-    if (t.includes("sharp left")) return "⤴️";
-    if (t.includes("sharp right")) return "⤵️";
-    if (t.includes("continue") || t.includes("straight")) return "⬆️";
-    if (t.includes("arrive")) return "📍";
+            if (t.includes("left")) return "⬅️";
+            if (t.includes("right")) return "➡️";
+            if (t.includes("slight left")) return "↖️";
+            if (t.includes("slight right")) return "↗️";
+            if (t.includes("sharp left")) return "⤴️";
+            if (t.includes("sharp right")) return "⤵️";
+            if (t.includes("continue") || t.includes("straight")) return "⬆️";
+            if (t.includes("arrive")) return "📍";
 
-    return "•";
-}
+            return "•";
+        }
 
-function renderMobileDirections(distMi, timeMin, steps) {
-    let html = `
+        function renderMobileDirections(distMi, timeMin, steps) {
+            let html = `
         <div class="p-2 mb-2 rounded-lg bg-green-600 text-white font-bold text-xs flex justify-between">
             <span>${distMi} mi</span>
             <span>${timeMin} min</span>
         </div>
     `;
 
-    steps.forEach((step, i) => {
-        const icon = getStepIcon(step.instruction.text);
+            steps.forEach((step, i) => {
+                const icon = getStepIcon(step.instruction.text);
 
-        html += `
+                html += `
 <div class="flex items-start gap-2 text-sm py-2 border-b border-gray-200 dark:border-[#40376E] leading-relaxed">
 
                 <span class="text-sm w-5 text-center">
@@ -1640,99 +1642,99 @@ function renderMobileDirections(distMi, timeMin, steps) {
 
             </div>
         `;
-    });
+            });
 
-    return html;
-}
-window.updateRouteTheme = function () {
-    if (!state.currentRouteLayer) return;
+            return html;
+        }
+        window.updateRouteTheme = function () {
+            if (!state.currentRouteLayer) return;
 
-    const isDark =
-        document.documentElement.classList.contains('dark');
+            const isDark =
+                document.documentElement.classList.contains('dark');
 
-    state.currentRouteLayer.setStyle({
-        color: isDark
-            ? CONFIG.ROUTE_STYLE.dark
-            : CONFIG.ROUTE_STYLE.light
-    });
-};
+            state.currentRouteLayer.setStyle({
+                color: isDark
+                    ? CONFIG.ROUTE_STYLE.dark
+                    : CONFIG.ROUTE_STYLE.light
+            });
+        };
 
-window.routeToFridge = async function(lat, lng) {
+        window.routeToFridge = async function (lat, lng) {
 
-    if (!state.userLat || !state.userLng) {
-        return alert("Please set your starting location first.");
-    }
+            if (!state.userLat || !state.userLng) {
+                return alert("Please set your starting location first.");
+            }
 
-    state.currentTargetFridge = { lat, lng };
+            state.currentTargetFridge = { lat, lng };
 
-    const loadingHtml =
-        `<p class='text-xs text-green-600 animate-pulse'>
+            const loadingHtml =
+                `<p class='text-xs text-green-600 animate-pulse'>
             Calculating route...
         </p>`;
 
-    show(DOM.directions);
+            show(DOM.directions);
 
-    if (isMobile()) {
-        show(DOM.directionsModal);
+            if (isMobile()) {
+                show(DOM.directionsModal);
 
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-    safeMapResize();
-}, 250);
-        });
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        safeMapResize();
+                    }, 250);
+                });
 
-        DOM.mobileItinerary.innerHTML = loadingHtml;
+                DOM.mobileItinerary.innerHTML = loadingHtml;
 
-    } else {
-        DOM.itinerary.innerHTML = loadingHtml;
-    }
+            } else {
+                DOM.itinerary.innerHTML = loadingHtml;
+            }
 
 
-    try {
+            try {
 
-        const selectedMode =
-            document.querySelector(
-                'input[name="transport"]:checked'
-            ).value;
+                const selectedMode =
+                    document.querySelector(
+                        'input[name="transport"]:checked'
+                    ).value;
 
-        const geoMode =
-            profileMap[selectedMode] || "walk";
+                const geoMode =
+                    profileMap[selectedMode] || "walk";
 
-        const url =
-            `https://api.geoapify.com/v1/routing?waypoints=${state.userLat},${state.userLng}|${lat},${lng}&mode=${geoMode}&apiKey=${CONFIG.API.GEOAPIFY_KEY}`;
+                const url =
+                    `https://api.geoapify.com/v1/routing?waypoints=${state.userLat},${state.userLng}|${lat},${lng}&mode=${geoMode}&apiKey=${CONFIG.API.GEOAPIFY_KEY}`;
 
-        const data = await apiGet(url);
+                const data = await apiGet(url);
 
-        if (!data.features?.length) {
-            throw new Error("No route found");
-        }
+                if (!data.features?.length) {
+                    throw new Error("No route found");
+                }
 
-        const routeData = data.features[0];
+                const routeData = data.features[0];
 
-        const coords =
-            routeData.geometry.coordinates[0]
-                .map(c => [c[1], c[0]]);
+                const coords =
+                    routeData.geometry.coordinates[0]
+                        .map(c => [c[1], c[0]]);
 
-        drawRoute(coords);
+                drawRoute(coords);
 
-        const distMi =
-            (
-                routeData.properties.distance *
-                0.000621371
-            ).toFixed(1);
+                const distMi =
+                    (
+                        routeData.properties.distance *
+                        0.000621371
+                    ).toFixed(1);
 
-        const timeMin =
-            Math.round(
-                routeData.properties.time / 60
-            );
+                const timeMin =
+                    Math.round(
+                        routeData.properties.time / 60
+                    );
 
-let stepsHtml = createRouteSummary(distMi, timeMin);
+                let stepsHtml = createRouteSummary(distMi, timeMin);
 
-routeData.properties.legs[0].steps.forEach((step, i) => {
+                routeData.properties.legs[0].steps.forEach((step, i) => {
 
-    const icon = getStepIcon(step.instruction.text);
+                    const icon = getStepIcon(step.instruction.text);
 
-    stepsHtml += `
+                    stepsHtml += `
         <div class="flex items-start gap-2 text-xs py-2 border-b border-gray-200 dark:border-[#40376E] leading-snug">
 
             <span class="text-base w-6 text-center">
@@ -1746,138 +1748,115 @@ routeData.properties.legs[0].steps.forEach((step, i) => {
 
         </div>
     `;
-show(DOM.directions);
-DOM.sidebar.classList.add("directions-open");
-});
+                    show(DOM.directions);
+                    DOM.sidebar.classList.add("directions-open");
+                });
 
-DOM.itinerary.innerHTML = stepsHtml;
+                DOM.itinerary.innerHTML = stepsHtml;
 
-        if (isMobile()) {
-    DOM.mobileItinerary.innerHTML =
-        renderMobileDirections(distMi, timeMin, routeData.properties.legs[0].steps);
-         hideSidebar();
+                if (isMobile()) {
+                    DOM.mobileItinerary.innerHTML =
+                        renderMobileDirections(distMi, timeMin, routeData.properties.legs[0].steps);
+                    hideSidebar();
+                }
+
+                state.lastRoute = {
+                    lat,
+                    lng,
+                    coords,
+                    distance: distMi,
+                    time: timeMin,
+                    rawSteps: routeData.properties.legs[0].steps
+                };
+            } catch (err) {
+    console.error(err);
 }
-
-        state.lastRoute = {
-    lat,
-    lng,
-    coords,
-    distance: distMi,
-    time: timeMin,
-    rawSteps: routeData.properties.legs[0].steps
-};
-
-    } catch (err) {
-
-        console.error(err);
-
-        const errorHtml =
-            `<p class="text-red-500 text-sm">
-                Failed to load route
-            </p>`;
-
-        DOM.itinerary.innerHTML = errorHtml;
-
-        if (DOM.mobileItinerary) {
-            DOM.mobileItinerary.innerHTML = errorHtml;
-        }
-    }
-
-if (isMobile()) {
-    show(DOM.directionsModal);
-
-    const clone = DOM.transportControls.cloneNode(true);
-    document.getElementById("directions-controls-mobile").innerHTML = "";
-    document.getElementById("directions-controls-mobile").appendChild(clone);
-
-    DOM.mobileItinerary.innerHTML = loadingHtml;
-}
-};
+        };
 
 
-/* =========================================================
-   ROUTE RESTORE / CLEAR
-========================================================= */
-window.clearRoute = function() {
+        /* =========================================================
+           ROUTE RESTORE / CLEAR
+        ========================================================= */
+        window.clearRoute = function () {
 
-    clearRouteLayer();
+            clearRouteLayer();
 
-    // animate directions panel out
-    DOM.directions.classList.add("fade-out-directions");
+            // animate directions panel out
+            DOM.directions.classList.add("fade-out-directions");
 
-    setTimeout(() => {
-        hide(DOM.directions);
-        DOM.directions.classList.remove("fade-out-directions");
-    }, 400);
+            setTimeout(() => {
+                hide(DOM.directions);
+                DOM.directions.classList.remove("fade-out-directions");
+            }, 400);
 
-    DOM.sidebar.classList.remove("directions-open");
+            DOM.sidebar.classList.remove("directions-open");
 
-    clearHTML(DOM.itinerary);
-    hide(DOM.directionsModal);
-    clearHTML(DOM.mobileItinerary);
+            clearHTML(DOM.itinerary);
+            hide(DOM.directionsModal);
+            clearHTML(DOM.mobileItinerary);
 
-    state.currentTargetFridge = null;
+            state.currentTargetFridge = null;
 
-    // fade in reopen button
-    DOM.reopenDirections.classList.remove("hidden");
+            // fade in reopen button
+            DOM.reopenDirections.classList.remove("hidden");
 
-    requestAnimationFrame(() => {
-        DOM.reopenDirections.style.opacity = "1";
-        DOM.reopenDirections.style.transform = "translateY(0)";
-    });
-};
-function restoreLastRoute() {
-    if (!state.lastRoute) return;
+            requestAnimationFrame(() => {
+                DOM.reopenDirections.style.opacity = "1";
+                DOM.reopenDirections.style.transform = "translateY(0)";
+            });
+        };
+        function restoreLastRoute() {
+            if (!state.lastRoute) return;
 
-    const {
-        coords,
-        distance,
-        time,
-        steps
-    } = state.lastRoute;
+            const {
+                coords,
+                distance,
+                time,
+                steps
+            } = state.lastRoute;
 
-    drawRoute(coords);
+            drawRoute(coords);
 
-    show(DOM.directions);
+            show(DOM.directions);
 
-    const selectedMode =
-        document.querySelector('input[name="transport"]:checked').value;
+            const selectedMode =
+                document.querySelector('input[name="transport"]:checked').value;
 
-    const geoMode =
-        profileMap[selectedMode] || "walk";
+            const geoMode =
+                profileMap[selectedMode] || "walk";
 
-    const stepsData =
-        state.lastRoute.rawSteps || [];
+            const stepsData =
+                state.lastRoute.rawSteps || [];
 
-    const html = createRouteSummary(distance, time) +
-        stepsData.map((step, i) => {
-            const icon = getStepIcon(step.instruction.text);
+            const html = createRouteSummary(distance, time) +
+                stepsData.map((step, i) => {
+                    const icon = getStepIcon(step.instruction.text);
 
-            return `
+                    return `
                 <div class="flex items-start gap-2 text-xs py-2 border-b border-gray-200 dark:border-[#40376E]">
                     <span class="w-5 text-center">${icon}</span>
                     <div><b>${i + 1}.</b> ${step.instruction.text}</div>
                 </div>
             `;
-        }).join("");
+                }).join("");
 
-    DOM.itinerary.innerHTML = html;
+            DOM.itinerary.innerHTML = html;
 
-    if (isMobile()) {
-        DOM.mobileItinerary.innerHTML =
-            renderMobileDirections(distance, time, stepsData);
+            if (isMobile()) {
+                DOM.mobileItinerary.innerHTML =
+                    renderMobileDirections(distance, time, stepsData);
 
-        show(DOM.directionsModal);
-        hideSidebar();
-    }
-}
+                show(DOM.directionsModal);
+                hideSidebar();
+            }
+        }
 
-/* =========================================================
-   CREATE POPUP HTML
-========================================================= */
-function createFridgePopup(f) {
+        /* =========================================================
+           CREATE POPUP HTML
+        ========================================================= */
+        function createFridgePopup(f) {
 
-    return `
+            return `
 <div class="p-4 rounded-2xl text-center text-gray-900 dark:text-white">
 
     <div class="mb-2">
@@ -1914,15 +1893,15 @@ function createFridgePopup(f) {
 
 </div>
 `;
-}
+        }
 
 
-function openFridgeSheet(fridge) {
+        function openFridgeSheet(fridge) {
 
-    const sheet = document.getElementById("fridge-sheet");
-    const content = document.getElementById("fridge-sheet-content");
+            const sheet = document.getElementById("fridge-sheet");
+            const content = document.getElementById("fridge-sheet-content");
 
-    content.innerHTML = `
+            content.innerHTML = `
 <div class="space-y-4">
 
 
@@ -1978,110 +1957,105 @@ function openFridgeSheet(fridge) {
 </div>
 `;
 
-    // open sheet
-    sheet.classList.add("open");
-}
-function closeFridgeSheet() {
-    const sheet = document.getElementById("fridge-sheet");
+            // open sheet
+            sheet.classList.add("open");
+        }
+        function closeFridgeSheet() {
+            const sheet = document.getElementById("fridge-sheet");
 
-    sheet.classList.remove("open");
+            sheet.classList.remove("open");
 
-    // reset swipe transform
-    sheet.style.transform = "";
-}
-function createMarkers(fridges) {
+            // reset swipe transform
+            sheet.style.transform = "";
+        }
+        function createMarkers(fridges) {
 
-    fridges.forEach(f => {
+    let index = 0;
+    const chunkSize = 125;
 
-        if (state.markerMap.has(f.id)) return;
+    function processChunk() {
 
-        const marker = L.marker(
-    [f.lat, f.lng],
-    { icon: fridgeIcon }
-).addTo(map);
+        const slice = fridges.slice(index, index + chunkSize);
 
-// ONLY use Leaflet popups on desktop
-if (!isMobile()) {
-    marker.bindPopup(createFridgePopup(f));
-}
+        slice.forEach(f => {
 
-        marker.on('dblclick', () => {
-            window.location.href =
-                `/individfridge/${f.id}`;
+            if (state.markerMap.has(f.id)) return;
+
+            const marker = L.marker(
+                [f.lat, f.lng],
+                { icon: fridgeIcon }
+            ).addTo(map);
+
+            if (!isMobile()) {
+                marker.bindPopup(createFridgePopup(f));
+            }
+
+            marker.on('click', () => {
+                saveRecentlyViewed(f);
+
+                map.setView(
+                    [f.lat, f.lng],
+                    CONFIG.FRIDGE_ZOOM
+                );
+
+                if (isMobile()) {
+                    openFridgeSheet(f);
+                } else {
+                    marker.openPopup();
+                }
+            });
+
+            state.markerMap.set(f.id, marker);
         });
 
-        marker.on('click', () => {
+        index += chunkSize;
 
-    saveRecentlyViewed(f);
-
-    map.setView(
-        [f.lat, f.lng],
-        CONFIG.FRIDGE_ZOOM
-    );
-
-    if (isMobile()) {
-        openFridgeSheet(f);   // 👈 bottom sheet instead of popup
-    } else {
-        marker.openPopup();   // desktop stays same
+        if (index < fridges.length) {
+            requestAnimationFrame(processChunk);
+        }
     }
-});
-        state.markerMap.set(f.id, marker);
-    });
+
+    processChunk();
 }
-let sheetStartY = 0;
-let sheetDragging = false;
+        
+        let sheetStartY = 0;
+        let sheetDragging = false;
 
-const sheet = document.getElementById("fridge-sheet");
+        const sheet = document.getElementById("fridge-sheet");
 
-sheet.addEventListener("touchstart", (e) => {
-    sheetStartY = e.touches[0].clientY;
-    sheetDragging = true;
-});
+        sheet.addEventListener("touchstart", (e) => {
+            sheetStartY = e.touches[0].clientY;
+            sheetDragging = true;
+        });
 
-sheet.addEventListener("touchmove", (e) => {
-    if (!sheetDragging) return;
+        sheet.addEventListener("touchmove", (e) => {
+            if (!sheetDragging) return;
 
-    const currentY = e.touches[0].clientY;
-    const delta = currentY - sheetStartY;
+            const currentY = e.touches[0].clientY;
+            const delta = currentY - sheetStartY;
 
-    // swipe down only
-    if (delta > 0) {
-        sheet.style.transform = `translateY(${delta}px)`;
-    }
-});
+            // swipe down only
+            if (delta > 0) {
+                sheet.style.transform = `translateY(${delta}px)`;
+            }
+        });
 
-sheet.addEventListener("touchend", (e) => {
-    sheetDragging = false;
+        sheet.addEventListener("touchend", (e) => {
+            sheetDragging = false;
 
-    const endY = e.changedTouches[0].clientY;
-    const delta = endY - sheetStartY;
+            const endY = e.changedTouches[0].clientY;
+            const delta = endY - sheetStartY;
 
-    if (delta > 120) {
-        closeFridgeSheet();
-    } else {
-        sheet.style.transform = "";
-    }
-});
+            if (delta > 120) {
+                closeFridgeSheet();
+            } else {
+                sheet.style.transform = "";
+            }
+        });
 
+function prepareFridges(fridges) {
 
-/* =========================================================
-   RENDER FRIDGES
-========================================================= */
-let lastRenderKey = "";
-
-
-
-/* =========================
-   RENDER SIDEBAR ONLY
-========================= */
-function renderFridges(fridges) {
-
-    clearHTML(DOM.fridgeList);
-
-    const fragment =
-        document.createDocumentFragment();
-
-    const fridgesWithData = fridges
+    return fridges
         .map(f => ({
             ...f,
             distance: state.userLat
@@ -2097,15 +2071,35 @@ function renderFridges(fridges) {
             (a.distance || 999) -
             (b.distance || 999)
         );
+}
 
-    fridgesWithData.forEach(f => {
+        /* =========================================================
+           RENDER FRIDGES
+        ========================================================= */
+        let lastRenderKey = "";
 
-        const marker = state.markerMap.get(f.id);
 
-        const li =
-            document.createElement("li");
 
-        li.className = `
+        /* =========================
+           RENDER SIDEBAR ONLY
+        ========================= */
+        function renderFridges(fridges) {
+
+            clearHTML(DOM.fridgeList);
+
+            const fragment =
+                document.createDocumentFragment();
+
+            const fridgesWithData = fridges;
+
+            fridgesWithData.forEach(f => {
+
+                const marker = state.markerMap.get(f.id);
+
+                const li =
+                    document.createElement("li");
+
+                li.className = `
 p-4 rounded-2xl cursor-pointer
 bg-white dark:bg-[#2a2545]
 border border-gray-200 dark:border-[#40376E]
@@ -2117,7 +2111,7 @@ sm:justify-between sm:items-center
 gap-3
 `;
 
-        li.innerHTML = `
+                li.innerHTML = `
 <div class="flex flex-col">
 
     <span class="font-bold text-base">
@@ -2142,103 +2136,99 @@ gap-3
 </div>
 
 ${f.distance
-? `<span class="text-xs font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-[#1f1a3a] px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>`
-: ''}
+                        ? `<span class="text-xs font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-[#1f1a3a] px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>`
+                        : ''}
 `;
 
-        li.querySelector(".details-btn")
-            .onclick = (e) => {
+                li.querySelector(".details-btn")
+                    .onclick = (e) => {
 
-                e.stopPropagation();
+                        e.stopPropagation();
 
-                saveRecentlyViewed(f);
+                        saveRecentlyViewed(f);
 
-                window.location.href =
-                    `/individfridge/${f.id}`;
-            };
+                        window.location.href =
+                            `/individfridge/${f.id}`;
+                    };
 
-        li.querySelector(".fav-btn")
-    .onclick = async (e) => {
+                li.querySelector(".fav-btn")
+                    .onclick = async (e) => {
 
-        e.stopPropagation();
+                        e.stopPropagation();
 
-        await toggleFavorite(f);
+                        await toggleFavorite(f);
 
-        // toggle local state
-        f.isFavorite = !f.isFavorite;
+                        // toggle local state
+                        f.isFavorite = !f.isFavorite;
 
-        // update button color instantly
-        e.target.classList.toggle("favorited");
-    };
+                        // update button color instantly
+                        e.target.classList.toggle("favorited");
+                    };
 
-        li.onclick = () => {
+                li.onclick = () => {
 
-            saveRecentlyViewed(f);
+                    saveRecentlyViewed(f);
 
-            map.setView(
-                [f.lat, f.lng],
-                CONFIG.FRIDGE_ZOOM
-            );
+                    map.setView(
+                        [f.lat, f.lng],
+                        CONFIG.FRIDGE_ZOOM
+                    );
 
-            marker.openPopup();
+                    marker.openPopup();
 
-            if (!isMobile()) {
-                window.routeToFridge(f.lat, f.lng);
-            }
-        };
+                    if (!isMobile()) {
+                        window.routeToFridge(f.lat, f.lng);
+                    }
+                };
 
-        fragment.appendChild(li);
-    });
+                fragment.appendChild(li);
+            });
 
-    DOM.fridgeList.appendChild(fragment);
+            DOM.fridgeList.appendChild(fragment);
+        }
+
+        /* =========================================================
+           LOAD FRIDGES
+        ========================================================= */
+function loadFridges() {
+
+    // 1. instant UI state
+    DOM.fridgeList.innerHTML = `
+        <li class="p-4 text-xs text-gray-400 animate-pulse">
+            Loading fridges...
+        </li>
+    `;
+
+    // 2. async fetch (non-blocking)
+    apiGet(CONFIG.API.FRIDGES)
+        .then(data => {
+
+            state.allFridges = data;
+
+            // sidebar updates immediately
+            renderFridges(data);
+
+            // markers delayed slightly so UI doesn't freeze
+            setTimeout(() => {
+                createMarkers(data);
+            }, 50);
+
+        })
+        .catch(err => {
+            console.error(err);
+
+            DOM.fridgeList.innerHTML = `
+                <li class="p-4 text-red-400 text-xs">
+                    Failed to load fridges
+                </li>
+            `;
+        });
 }
 
-/* =========================================================
-   LOAD FRIDGES
-========================================================= */
-async function loadFridges() {
-
-    try {
-
-        state.allFridges =
-            await apiGet(CONFIG.API.FRIDGES);
-
-        createMarkers(state.allFridges);
-
-        renderFridges(state.allFridges);
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
-}
-
-/* =========================================================
-   SEARCH
-========================================================= */
-DOM.fridgeSearch.oninput = debounce((e) => {
-
-    const value =
-        e.target.value.toLowerCase();
-
-    renderFridges(
-        state.allFridges.filter(f =>
-            f.name.toLowerCase()
-                .includes(value)
-        )
-    );
-
-});
-
-const mobileSearch =
-    document.getElementById("mobile-search");
-
-if (mobileSearch) {
-
-    mobileSearch.addEventListener(
-        "input",
-        debounce((e) => {
+        /* =========================================================
+           SEARCH
+        ========================================================= */
+        DOM.fridgeSearch.oninput = debounce((e) => {
 
             const value =
                 e.target.value.toLowerCase();
@@ -2249,62 +2239,83 @@ if (mobileSearch) {
                         .includes(value)
                 )
             );
-        })
-    );
-}
 
-/* =========================================================
-   FAVORITES ENGINE (PATCHED)
-========================================================= */
+        });
 
-// 1. Fallback Fetch Client Handlers (Ensures code doesn't crash if imported standalone)
-const safeApiGet = async (url) => {
-    if (typeof apiGet === 'function') return await apiGet(url);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-    return res.json();
-};
+        const mobileSearch =
+            document.getElementById("mobile-fridge-search");
 
-const safeApiPost = async (url, body = {}) => {
-    if (typeof apiPost === 'function') return await apiPost(url, body);
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-    });
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-    return res.json();
-};
+        if (mobileSearch) {
 
-/* =========================================================
-   RENDER FAVORITES CONTAINER
-========================================================= */
-function renderFavoritesList(favorites) {
-    if (!DOM.favoritesList) return;
-    clearHTML(DOM.favoritesList);
+            mobileSearch.addEventListener(
+                "input",
+                debounce((e) => {
 
-    if (favorites.length === 0) {
-        DOM.favoritesList.innerHTML = `
+                    const value =
+                        e.target.value.toLowerCase();
+
+                    renderFridges(
+                        state.allFridges.filter(f =>
+                            f.name.toLowerCase()
+                                .includes(value)
+                        )
+                    );
+                })
+            );
+        }
+
+        /* =========================================================
+           FAVORITES ENGINE (PATCHED)
+        ========================================================= */
+
+        // 1. Fallback Fetch Client Handlers (Ensures code doesn't crash if imported standalone)
+        const safeApiGet = async (url) => {
+            if (typeof apiGet === 'function') return await apiGet(url);
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+            return res.json();
+        };
+
+        const safeApiPost = async (url, body = {}) => {
+            if (typeof apiPost === 'function') return await apiPost(url, body);
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+            return res.json();
+        };
+
+        /* =========================================================
+           RENDER FAVORITES CONTAINER
+        ========================================================= */
+        function renderFavoritesList(favorites) {
+            if (!DOM.favoritesList) return;
+            clearHTML(DOM.favoritesList);
+
+            if (favorites.length === 0) {
+                DOM.favoritesList.innerHTML = `
             <li class="text-xs text-gray-400 dark:text-purple-300/40 py-2 text-center border-2 border-dashed border-gray-100 dark:border-[#40376E] rounded-xl">
                 No favorites added yet.
             </li>
         `;
-        return;
-    }
+                return;
+            }
 
-    const fragment = document.createDocumentFragment();
-    favorites.forEach(f => {
-        const id = f.ID || f.id;
-        const name = f.Name || f.name;
-        const address = f.Address || f.address || "Community Fridge";
-        const lat = f.Lat || f.lat;
-        const lng = f.Lng || f.lng;
+            const fragment = document.createDocumentFragment();
+            favorites.forEach(f => {
+                const id = f.ID || f.id;
+                const name = f.Name || f.name;
+                const address = f.Address || f.address || "Community Fridge";
+                const lat = f.Lat || f.lat;
+                const lng = f.Lng || f.lng;
 
-        const li = document.createElement("li");
-        li.id = `fav-item-${id}`;
-        li.className = "flex justify-between items-center p-2.5 rounded-xl bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] text-sm shadow-sm transition hover:shadow";
-        
-        li.innerHTML = `
+                const li = document.createElement("li");
+                li.id = `fav-item-${id}`;
+                li.className = "flex justify-between items-center p-2.5 rounded-xl bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] text-sm shadow-sm transition hover:shadow";
+
+                li.innerHTML = `
             <div class="cursor-pointer flex-grow truncate mr-2" onclick="window.routeToFridge(${lat}, ${lng})">
                 <p class="font-bold text-gray-900 dark:text-white text-xs truncate">${name}</p>
                 <p class="text-[10px] text-gray-400 truncate max-w-[180px]">${address}</p>
@@ -2314,171 +2325,180 @@ function renderFavoritesList(favorites) {
             </button>
         `;
 
-        // Direct explicit action hook binding targeting the star selector element inside the node
-        li.querySelector("button").onclick = async (e) => {
-            e.stopPropagation();
-            await window.toggleFavorite({ id, lat, lng, name, address });
-        };
+                // Direct explicit action hook binding targeting the star selector element inside the node
+                li.querySelector("button").onclick = async (e) => {
+                    e.stopPropagation();
+                    await window.toggleFavorite({ id, lat, lng, name, address });
+                };
 
-        fragment.appendChild(li);
-    });
-
-    DOM.favoritesList.appendChild(fragment);
-}
-
-async function loadFavoritesFromServer() {
-    try {
-        const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.FAVORITES) ? CONFIG.API.FAVORITES : "/get-favorites";
-        const favorites = await safeApiGet(endpoint);
-        renderFavoritesList(favorites);
-    } catch (err) {
-        console.error("Failed to load favorites list:", err);
-    }
-}
-
-/* =========================================================
-   GLOBAL MUTATION STAR ACTIONS
-========================================================= */
-window.toggleFavorite = async function(fridge) {
-    try {
-        const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.TOGGLE_FAVORITE) ? CONFIG.API.TOGGLE_FAVORITE : "/toggle-favorite";
-        const id = fridge.id || fridge.ID;
-        
-        const data = await safeApiPost(endpoint, { fridge_id: id });
-        
-        if (data.success || data.action) {
-            // Update the baseline status element models held locally in map state arrays
-            const localMatch = state.allFridges.find(f => (f.id || f.ID) === id);
-            if (localMatch) {
-                localMatch.isFavorite = (data.action === "added");
-            }
-
-            // Sync visual button modifications on parent listings without rewriting layout nodes
-            document.querySelectorAll(".fav-btn").forEach(btn => {
-                const parentLi = btn.closest("li");
-                // Fallback check to scan structural elements during event handling passes
-                if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${id}'`)) {
-                    if (data.action === "added") {
-                        btn.classList.add("favorited");
-                    } else {
-                        btn.classList.remove("favorited");
-                    }
-                }
+                fragment.appendChild(li);
             });
 
-            // Re-render the side list component container with fresh server sync data
-            await loadFavoritesFromServer();
+            DOM.favoritesList.appendChild(fragment);
+        }
 
-            // Broadcast structural data synchronization tokens to open background view windows
-            if (window.BroadcastChannel) {
-                new BroadcastChannel('favorites_sync').postMessage({
-                    action: data.action,
-                    fridge_id: id,
-                    fridge_name: fridge.name || fridge.Name,
-                    fridge_address: fridge.address || fridge.Address
-                });
+        async function loadFavoritesFromServer() {
+            try {
+                const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.FAVORITES) ? CONFIG.API.FAVORITES : "/get-favorites";
+                const favorites = await safeApiGet(endpoint);
+                renderFavoritesList(favorites);
+            } catch (err) {
+                console.error("Failed to load favorites list:", err);
             }
         }
-    } catch (err) {
-        console.error("Critical favorite toggle transaction failed:", err);
-    }
-};
 
-/* =========================================================
-   CROSS-WINDOW REALTIME POST-MESSAGE REGISTER
-========================================================= */
-if (window.BroadcastChannel) {
-    const syncChannel = new BroadcastChannel('favorites_sync');
-    syncChannel.onmessage = async (event) => {
-        const data = event.data;
-        
-        // Find local object references inside the global application registry arrays
-        const targetedFridge = state.allFridges.find(f => (f.id || f.ID) === data.fridge_id);
-        if (targetedFridge) {
-            targetedFridge.isFavorite = (data.action === "added");
-        }
+        /* =========================================================
+           GLOBAL MUTATION STAR ACTIONS
+        ========================================================= */
+        window.toggleFavorite = async function (fridge) {
+            try {
+                const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.TOGGLE_FAVORITE) ? CONFIG.API.TOGGLE_FAVORITE : "/toggle-favorite";
+                const id = fridge.id || fridge.ID;
 
-        // Apply synchronized state styling mutations directly onto UI buttons
-        document.querySelectorAll(".fav-btn").forEach(btn => {
-            const parentLi = btn.closest("li");
-            if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${data.fridge_id}'`)) {
-                if (data.action === "added") {
-                    btn.classList.add("favorited");
-                } else {
-                    btn.classList.remove("favorited");
+                const data = await safeApiPost(endpoint, { fridge_id: id });
+
+                if (data.success || data.action) {
+                    // Update the baseline status element models held locally in map state arrays
+                    const localMatch = state.allFridges.find(f => (f.id || f.ID) === id);
+                    if (localMatch) {
+                        localMatch.isFavorite = (data.action === "added");
+                    }
+
+                    // Sync visual button modifications on parent listings without rewriting layout nodes
+                    document.querySelectorAll(".fav-btn").forEach(btn => {
+                        const parentLi = btn.closest("li");
+                        // Fallback check to scan structural elements during event handling passes
+                        if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${id}'`)) {
+                            if (data.action === "added") {
+                                btn.classList.add("favorited");
+                            } else {
+                                btn.classList.remove("favorited");
+                            }
+                        }
+                    });
+
+                    // Re-render the side list component container with fresh server sync data
+                    await loadFavoritesFromServer();
+
+                    // Broadcast structural data synchronization tokens to open background view windows
+                    if (window.BroadcastChannel) {
+                        new BroadcastChannel('favorites_sync').postMessage({
+                            action: data.action,
+                            fridge_id: id,
+                            fridge_name: fridge.name || fridge.Name,
+                            fridge_address: fridge.address || fridge.Address
+                        });
+                    }
                 }
+            } catch (err) {
+                console.error("Critical favorite toggle transaction failed:", err);
             }
-        });
+        };
 
-        // Pull down cleanly formed HTML items down to populate sidebar viewports
-        await loadFavoritesFromServer();
-    };
-}
+        /* =========================================================
+           CROSS-WINDOW REALTIME POST-MESSAGE REGISTER
+        ========================================================= */
+        if (window.BroadcastChannel) {
+            const syncChannel = new BroadcastChannel('favorites_sync');
+            syncChannel.onmessage = async (event) => {
+                const data = event.data;
 
-// Initial engine activation sequence pass on setup
-document.addEventListener("DOMContentLoaded", () => {
-    loadFavoritesFromServer();
+                // Find local object references inside the global application registry arrays
+                const targetedFridge = state.allFridges.find(f => (f.id || f.ID) === data.fridge_id);
+                if (targetedFridge) {
+                    targetedFridge.isFavorite = (data.action === "added");
+                }
+
+                // Apply synchronized state styling mutations directly onto UI buttons
+                document.querySelectorAll(".fav-btn").forEach(btn => {
+                    const parentLi = btn.closest("li");
+                    if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${data.fridge_id}'`)) {
+                        if (data.action === "added") {
+                            btn.classList.add("favorited");
+                        } else {
+                            btn.classList.remove("favorited");
+                        }
+                    }
+                });
+
+                // Pull down cleanly formed HTML items down to populate sidebar viewports
+                await loadFavoritesFromServer();
+            };
+        }
+
+window.addEventListener("pageshow", () => {
+    if (window.map) {
+        setTimeout(() => {
+            map.invalidateSize(true);
+        }, 200);
+    }
 });
 
-/* =========================================================
-   RECENTS
-========================================================= */
-function saveRecentlyViewed(fridge) {
+window.addEventListener("focus", () => {
+    if (window.map) {
+        map.invalidateSize(true);
+    }
+});
 
-    let recent =
-        JSON.parse(
-            localStorage.getItem("recentFridges")
-        ) || [];
+        /* =========================================================
+           RECENTS
+        ========================================================= */
+        function saveRecentlyViewed(fridge) {
 
-    recent = recent.filter(
-        f => f.id !== (
-            fridge.id || fridge.ID
-        )
-    );
+            let recent =
+                JSON.parse(
+                    localStorage.getItem("recentFridges")
+                ) || [];
 
-    recent.unshift({
-        id: fridge.id || fridge.ID,
-        name: fridge.name || fridge.Name
-    });
+            recent = recent.filter(
+                f => f.id !== (
+                    fridge.id || fridge.ID
+                )
+            );
 
-    recent = recent.slice(0, 5);
+            recent.unshift({
+                id: fridge.id || fridge.ID,
+                name: fridge.name || fridge.Name
+            });
 
-    localStorage.setItem(
-        "recentFridges",
-        JSON.stringify(recent)
-    );
+            recent = recent.slice(0, 5);
 
-    renderRecent();
-}
+            localStorage.setItem(
+                "recentFridges",
+                JSON.stringify(recent)
+            );
 
-function renderRecent() {
+            renderRecent();
+        }
 
-    if (!DOM.recentList) return;
+        function renderRecent() {
 
-    const data =
-        JSON.parse(
-            localStorage.getItem("recentFridges")
-        ) || [];
+            if (!DOM.recentList) return;
 
-    clearHTML(DOM.recentList);
+            const data =
+                JSON.parse(
+                    localStorage.getItem("recentFridges")
+                ) || [];
 
-    if (!data.length) {
+            clearHTML(DOM.recentList);
 
-        DOM.recentList.innerHTML = `
+            if (!data.length) {
+
+                DOM.recentList.innerHTML = `
 <li class="p-3 text-xs text-gray-400 italic text-center bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] rounded-xl">
     No recent activity
 </li>
 `;
 
-        return;
-    }
+                return;
+            }
 
-    data.forEach(f => {
+            data.forEach(f => {
 
-        const li =
-            document.createElement("li");
+                const li =
+                    document.createElement("li");
 
-        li.className = `
+                li.className = `
 p-3 bg-gray-50 dark:bg-[#2a2545]
 border border-gray-200 dark:border-[#40376E]
 rounded-xl flex justify-between items-center
@@ -2487,7 +2507,7 @@ dark:hover:bg-[#40376E]
 transition-all
 `;
 
-        li.innerHTML = `
+                li.innerHTML = `
 <div class="flex items-center gap-2 flex-grow">
 
     <span class="text-xs">🕒</span>
@@ -2503,101 +2523,115 @@ transition-all
 </span>
 `;
 
-        li.onclick = () => {
-            window.location.href =
-                `/individfridge/${f.id}`;
-        };
+                li.onclick = () => {
+                    window.location.href =
+                        `/individfridge/${f.id}`;
+                };
 
-        DOM.recentList.appendChild(li);
-    });
-}
+                DOM.recentList.appendChild(li);
+            });
+        }
 
 
-/* =========================================================
-   CLEAR / UNDO RECENTS
-========================================================= */
-DOM.clearRecents.onclick = () => {
+        /* =========================================================
+           CLEAR / UNDO RECENTS
+        ========================================================= */
+        DOM.clearRecents.onclick = () => {
 
-    const current =
-        localStorage.getItem("recentFridges");
+            const current =
+                localStorage.getItem("recentFridges");
 
-    if (!current) return;
+            if (!current) return;
 
-    state.recentsBackup = current;
+            state.recentsBackup = current;
 
-    localStorage.removeItem("recentFridges");
+            localStorage.removeItem("recentFridges");
 
-    renderRecent();
+            renderRecent();
 
-    show(DOM.undoRecents);
-    hide(DOM.clearRecents);
+            show(DOM.undoRecents);
+            hide(DOM.clearRecents);
 
-    let timeLeft = 3;
-
-    DOM.undoRecents.textContent =
-        `Undo (${timeLeft})`;
-
-    clearTimeout(state.undoTimeout);
-    clearInterval(state.undoInterval);
-
-    state.undoInterval = setInterval(() => {
-
-        timeLeft--;
-
-        if (timeLeft > 0) {
+            let timeLeft = 3;
 
             DOM.undoRecents.textContent =
                 `Undo (${timeLeft})`;
 
-        } else {
-
-            DOM.undoRecents.textContent =
-                "Undo";
-
+            clearTimeout(state.undoTimeout);
             clearInterval(state.undoInterval);
-        }
 
-    }, 1000);
+            state.undoInterval = setInterval(() => {
 
-    state.undoTimeout = setTimeout(() => {
+                timeLeft--;
 
-        state.recentsBackup = null;
+                if (timeLeft > 0) {
 
-        hide(DOM.undoRecents);
-        show(DOM.clearRecents);
+                    DOM.undoRecents.textContent =
+                        `Undo (${timeLeft})`;
 
-        DOM.undoRecents.textContent =
-            "Undo";
+                } else {
 
-        clearInterval(state.undoInterval);
+                    DOM.undoRecents.textContent =
+                        "Undo";
 
-    }, 3000);
-};
+                    clearInterval(state.undoInterval);
+                }
 
-DOM.undoRecents.onclick = () => {
+            }, 1000);
 
-    if (!state.recentsBackup) return;
+            state.undoTimeout = setTimeout(() => {
 
-    localStorage.setItem(
-        "recentFridges",
-        state.recentsBackup
-    );
+                state.recentsBackup = null;
 
-    renderRecent();
+                hide(DOM.undoRecents);
+                show(DOM.clearRecents);
 
-    state.recentsBackup = null;
+                DOM.undoRecents.textContent =
+                    "Undo";
 
-    hide(DOM.undoRecents);
-    show(DOM.clearRecents);
+                clearInterval(state.undoInterval);
 
-    clearTimeout(state.undoTimeout);
-    clearInterval(state.undoInterval);
-};
+            }, 3000);
+        };
 
+        DOM.undoRecents.onclick = () => {
 
-/* =========================================================
-   GEOLOCATION
-========================================================= */
+            if (!state.recentsBackup) return;
+
+            localStorage.setItem(
+                "recentFridges",
+                state.recentsBackup
+            );
+
+            renderRecent();
+
+            state.recentsBackup = null;
+
+            hide(DOM.undoRecents);
+            show(DOM.clearRecents);
+
+            clearTimeout(state.undoTimeout);
+            clearInterval(state.undoInterval);
+        };
+
+const cached = localStorage.getItem("fridges");
+
+if (cached) {
+    const data = JSON.parse(cached);
+    state.allFridges = data;
+    renderFridges(data);
+    createMarkers(data);
+}
+
+apiGet(CONFIG.API.FRIDGES).then(data => {
+    localStorage.setItem("fridges", JSON.stringify(data));
+    state.allFridges = data;
+    renderFridges(data);
+    createMarkers(data);
+});
+
+loadFridges();
+
 navigator.geolocation.getCurrentPosition(
 
     pos => {
@@ -2606,8 +2640,6 @@ navigator.geolocation.getCurrentPosition(
             pos.coords.latitude,
             pos.coords.longitude
         );
-
-        loadFridges();
     },
 
     () => {
@@ -2616,274 +2648,403 @@ navigator.geolocation.getCurrentPosition(
             CONFIG.DEFAULT_LOCATION[0],
             CONFIG.DEFAULT_LOCATION[1]
         );
-
-        loadFridges();
     }
 );
 
 
-/* =========================================================
-   TRANSPORT MODE
-========================================================= */
-document.querySelectorAll(
-    'input[name="transport"]'
-).forEach(radio => {
+        /* =========================================================
+           TRANSPORT MODE
+        ========================================================= */
+        document.querySelectorAll(
+            'input[name="transport"]'
+        ).forEach(radio => {
 
-    radio.addEventListener("change", () => {
+            radio.addEventListener("change", () => {
 
-        if (!state.currentTargetFridge) return;
+                if (!state.currentTargetFridge) return;
 
-        window.routeToFridge(
-            state.currentTargetFridge.lat,
-            state.currentTargetFridge.lng
-        );
-    });
+                window.routeToFridge(
+                    state.currentTargetFridge.lat,
+                    state.currentTargetFridge.lng
+                );
+            });
 
-});
+        });
 
 
-/* =========================================================
-   START LOCATION SEARCH
-========================================================= */
-DOM.setStart.onclick = async () => {
+        /* =========================================================
+           START LOCATION SEARCH
+        ========================================================= */
+        DOM.setStart.onclick = async () => {
 
-    try {
+            try {
 
-        const address =
-            DOM.startLocation.value;
+                const address =
+                    DOM.startLocation.value;
 
-        const data = await apiGet(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
-        );
+                const data = await apiGet(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+                );
 
-        if (data[0]) {
+                if (data[0]) {
 
-            setUserLocation(
-                parseFloat(data[0].lat),
-                parseFloat(data[0].lon)
-            );
+                    setUserLocation(
+                        parseFloat(data[0].lat),
+                        parseFloat(data[0].lon)
+                    );
+                }
+
+            } catch (err) {
+
+                console.error(err);
+
+                const style = window.getComputedStyle(el);
+
+                const hidden =
+                    style.display === "none" ||
+                    style.visibility === "hidden";
+
+                if (!hidden) return el;
+            }
+
+            return null;
         }
 
-    } catch (err) {
+        function moveSpotlight(rect) {
+            spotlight.style.width = rect.width + "px";
+            spotlight.style.height = rect.height + "px";
+            spotlight.style.transform =
+                `translate(${rect.left + window.scrollX}px, ${rect.top + window.scrollY}px)`;
+        }
 
-        console.error(err);
+        function moveTooltip(rect) {
 
-        const style = window.getComputedStyle(el);
+            const NAVBAR_HEIGHT = 90;
+            const PADDING = 16;
+            const GAP = 18;
 
-        const hidden =
-            style.display === "none" ||
-            style.visibility === "hidden";
+            const tooltipRect = tooltip.getBoundingClientRect();
 
-        if (!hidden) return el;
+            const tooltipWidth = tooltipRect.width || 320;
+            const tooltipHeight = tooltipRect.height || 180;
+
+            /* =========================
+               DEFAULT POSITION
+               BELOW + CENTERED
+            ========================= */
+
+            let left =
+                rect.left +
+                (rect.width / 2) -
+                (tooltipWidth / 2);
+
+            let top =
+                rect.bottom + GAP;
+
+            let position = "bottom";
+
+            /* =========================
+               IF TOO LOW -> PLACE ABOVE
+            ========================= */
+
+            if (
+                top + tooltipHeight >
+                window.innerHeight - PADDING
+            ) {
+
+                top =
+                    rect.top -
+                    tooltipHeight -
+                    GAP;
+
+                position = "top";
+            }
+
+            /* =========================
+               NAVBAR COLLISION
+            ========================= */
+
+            if (top < NAVBAR_HEIGHT) {
+
+                top = NAVBAR_HEIGHT + 12;
+
+                position = "bottom";
+            }
+
+
+            /* =========================
+               LEFT EDGE
+            ========================= */
+
+            if (left < PADDING) {
+                left = PADDING;
+            }
+
+            /* =========================
+               RIGHT EDGE
+            ========================= */
+
+            if (
+                left + tooltipWidth >
+                window.innerWidth - PADDING
+            ) {
+
+                left =
+                    window.innerWidth -
+                    tooltipWidth -
+                    PADDING;
+            }
+
+            /* =========================
+               MOBILE MODE
+            ========================= */
+
+            if (window.innerWidth < 768) {
+
+                left = 16;
+                top = window.innerHeight - tooltipHeight - 28;
+
+                tooltip.style.width =
+                    "calc(100vw - 32px)";
+            } else {
+
+                tooltip.style.width = "";
+            }
+
+            /* =========================
+               APPLY
+            ========================= */
+
+            top = Math.max(
+    12,
+    Math.min(
+        top,
+        window.innerHeight - tooltipRect.height - 12
+    )
+);
+
+tooltip.style.top = `${top}px`;
+tooltip.style.left = `${left}px`;
+
+            tooltip.dataset.position = position;
+        };
+
+        /* =========================================================
+           REOPEN DIRECTIONS
+        ========================================================= */
+        DOM.reopenDirections.onclick = () => {
+
+            if (state.lastRoute) {
+
+                restoreLastRoute();
+
+            } else if (
+                state.currentTargetFridge &&
+                state.userLat &&
+                state.userLng
+            ) {
+
+                window.routeToFridge(
+                    state.currentTargetFridge.lat,
+                    state.currentTargetFridge.lng
+                );
+            }
+
+            if (isMobile()) {
+
+                show(DOM.directionsModal);
+
+            } else {
+
+                openSidebar();
+            }
+
+            hide(DOM.reopenDirections);
+
+            setTimeout(() => {
+                safeMapResize();
+            }, 250);
+        };
+
+        window.closeDirectionsModal = function () {
+            hide(DOM.directionsModal);
+
+            // show compact reopen button like "CLEAR"
+            if (state.lastRoute || state.currentTargetFridge) {
+                show(DOM.reopenDirections);
+            }
+        };
+
+window.startMapTutorial = function () {
+
+    if (!window.driver?.js?.driver) {
+        console.error("Driver.js not loaded");
+        return;
     }
 
-    return null;
-}
+    let fridgeClicked = false;
 
-function moveSpotlight(rect) {
-    spotlight.style.width = rect.width + "px";
-    spotlight.style.height = rect.height + "px";
-    spotlight.style.transform =
-    `translate(${rect.left + window.scrollX}px, ${rect.top + window.scrollY}px)`;
-}
+    const driver = window.driver.js.driver({
 
-function moveTooltip(rect) {
+        showProgress: true,
+        allowClose: true,
+        animate: true,
 
-    const NAVBAR_HEIGHT = 90;
-    const PADDING = 16;
-    const GAP = 18;
+        onHighlightStarted: (element) => {
+            element?.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        },
 
-    const tooltipRect = tooltip.getBoundingClientRect();
+        steps: [
 
-    const tooltipWidth = tooltipRect.width || 320;
-    const tooltipHeight = tooltipRect.height || 180;
+            {
+                element: "#map",
+                popover: {
+                    title: "Interactive Map",
+                    description:
+                        "Fridges appear on this map. Tap any fridge marker to interact with it."
+                }
+            },
 
-    /* =========================
-       DEFAULT POSITION
-       BELOW + CENTERED
-    ========================= */
+            {
+                element: "#sidebar-toggle",
+                popover: {
+                    title: "Fridge Browser",
+                    description:
+                        "Browse nearby community fridges from the sidebar."
+                }
+            },
 
-    let left =
-        rect.left +
-        (rect.width / 2) -
-        (tooltipWidth / 2);
+            {
+                element: "#fridge-search",
+                popover: {
+                    title: "Search",
+                    description:
+                        "Search for fridges by name."
+                }
+            },
 
-    let top =
-        rect.bottom + GAP;
+            {
+                element: "#transport-controls",
+                popover: {
+                    title: "Travel Modes",
+                    description:
+                        "Switch between walking, biking, and driving directions."
+                }
+            },
 
-    let position = "bottom";
+            {
+                element: "#map",
+                popover: {
+                    title: "Your Turn",
+                    description:
+                        "Next: click any fridge marker on the map to continue the tutorial.",
+                    showButtons: []
+                },
 
-    /* =========================
-       IF TOO LOW -> PLACE ABOVE
-    ========================= */
+                onHighlightStarted: () => {
 
-    if (
-        top + tooltipHeight >
-        window.innerHeight - PADDING
-    ) {
+                    fridgeClicked = false;
 
-        top =
-            rect.top -
-            tooltipHeight -
-            GAP;
+                    const cleanup = [];
 
-        position = "top";
-    }
+                    state.markerMap.forEach((marker) => {
 
-    /* =========================
-       NAVBAR COLLISION
-    ========================= */
+                        const handler = () => {
 
-    if (top < NAVBAR_HEIGHT) {
+                            if (fridgeClicked) return;
 
-        top = NAVBAR_HEIGHT + 12;
+                            fridgeClicked = true;
 
-        position = "bottom";
-    }
-};
+                            cleanup.forEach(fn => fn());
 
-    /* =========================
-       LEFT EDGE
-    ========================= */
+                            setTimeout(() => {
+                                driver.moveNext();
+                            }, 500);
+                        };
 
-    if (left < PADDING) {
-        left = PADDING;
-    }
+                        marker.once("click", handler);
 
-    /* =========================
-       RIGHT EDGE
-    ========================= */
+                        cleanup.push(() => {
+                            marker.off("click", handler);
+                        });
+                    });
+                }
+            },
 
-    if (
-        left + tooltipWidth >
-        window.innerWidth - PADDING
-    ) {
+            {
+                element: "#fridge-sheet",
+                popover: {
+                    title: "Fridge Details",
+                    description:
+                        "This panel shows fridge information and quick actions."
+                }
+            },
 
-        left =
-            window.innerWidth -
-            tooltipWidth -
-            PADDING;
-    }
+            {
+                element: "#favorites-list",
+                popover: {
+                    title: "Favorites",
+                    description:
+                        "Save your favorite fridges for quick access later."
+                }
+            },
 
-    /* =========================
-       MOBILE MODE
-    ========================= */
+            {
+                element: "#recent-list",
+                popover: {
+                    title: "Recently Viewed",
+                    description:
+                        "Your recently opened fridges appear here."
+                }
+            },
 
-    if (window.innerWidth < 768) {
+            {
+                element: "#routing-directions",
+                popover: {
+                    title: "Directions",
+                    description:
+                        "Step-by-step route guidance appears here after choosing directions."
+                }
+            },
 
-        left = 16;
-        top = window.innerHeight - tooltipHeight - 28;
-
-        tooltip.style.width =
-            "calc(100vw - 32px)";
-    } else {
-
-        tooltip.style.width = "";
-    }
-
-    /* =========================
-       APPLY
-    ========================= */
-
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${top}px`;
-
-    tooltip.dataset.position = position;
-}
-function showStep(index) {
-    const step = tutorialSteps[index];
-    const el = getVisibleElement(step.el);
-
-    if (existing) {
-        existing.remove();
-    }
-
-    const flash =
-        document.createElement("div");
-
-    flash.id = "flash-message";
-
-    flash.className = `flash-message ${
-        type === "error"
-            ? "flash-error"
-            : "flash-success"
-    }`;
-
-    flash.innerHTML =
-        `<span>${message}</span>`;
-
-    document.body.appendChild(flash);
-
-    requestAnimationFrame(() => {
-
-        flash.style.opacity = "1";
-
-        flash.style.transform =
-            "translateX(-50%) translateY(0)";
+            {
+                element: "#fridge-list",
+                popover: {
+                    title: "You're Ready",
+                    description:
+                        "Explore the map and help support your local community."
+                }
+            }
+        ]
     });
 
-    setTimeout(() => {
+    window.mapTour = driver;
 
-        flash.style.opacity = "0";
-
-        flash.style.transform =
-            "translateX(-50%) translateY(-6px)";
-
-        setTimeout(() => {
-            flash.remove();
-        }, 300);
-
-    }, 2000);
-}
-
-
-/* =========================================================
-   REOPEN DIRECTIONS
-========================================================= */
-DOM.reopenDirections.onclick = () => {
-
-    if (state.lastRoute) {
-
-        restoreLastRoute();
-
-    } else if (
-        state.currentTargetFridge &&
-        state.userLat &&
-        state.userLng
-    ) {
-
-        window.routeToFridge(
-            state.currentTargetFridge.lat,
-            state.currentTargetFridge.lng
-        );
-    }
-
-    if (isMobile()) {
-
-        show(DOM.directionsModal);
-
-    } else {
-
-        openSidebar();
-    }
-
-    hide(DOM.reopenDirections);
-
-    setTimeout(() => {
-    safeMapResize();
-}, 250);
-};
-
-window.closeDirectionsModal = function () {
-    hide(DOM.directionsModal);
-
-    // show compact reopen button like "CLEAR"
-    if (state.lastRoute || state.currentTargetFridge) {
-        show(DOM.reopenDirections);
-    }
+    driver.drive();
 };
 
 
-</script>
-</body>
+window.restartMapTutorial = function () {
+
+    // destroy previous instance safely
+    if (window.mapTour) {
+        try {
+            window.mapTour.destroy();
+        } catch (e) {
+            console.warn(e);
+        }
+    }
+
+    // restart tutorial
+    window.startMapTutorial();
+};
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadFavoritesFromServer();
+});
+    </script>
 </html>
