@@ -14,7 +14,7 @@
 
     <div class="flex items-center gap-2 sm:gap-4">
 
-      {% if request.path == '/' %}
+      {% if request.path in ['/', '/map', '/donate'] %}
         <button id="tutorial-btn-mobile"
           onclick="restartTutorial()"
           class="md:hidden flex items-center justify-center
@@ -301,48 +301,33 @@
      GLOBAL TUTORIAL EVENT
   ========================================================= */
 
-  window.restartTutorial = window.restartTutorial || function () {
+window.restartTutorial = function () {
 
-    // Donate Page Tutorial
-    if (
-      window.location.pathname === "/donate" &&
-      typeof window.restartDonateTutorial === "function"
-    ) {
+  const path = window.location.pathname;
 
+  // MAP PAGE
+  if (path.startsWith("/map")) {
+    if (typeof window.restartMapTutorial === "function") {
+      window.restartMapTutorial();
+    } else {
+      console.warn("Map tutorial not loaded yet");
+    }
+    return;
+  }
+
+  // DONATE PAGE
+  if (path.startsWith("/donate")) {
+    if (typeof window.restartDonateTutorial === "function") {
       window.restartDonateTutorial();
-      return;
-
     }
+    return;
+  }
 
-    // Homepage Tutorial
-    if (typeof window.startHomepageTutorial === "function") {
+  // HOME PAGE
+  if (typeof window.startHomepageTutorial === "function") {
+    window.startHomepageTutorial();
+  }
 
-      window.startHomepageTutorial();
-      return;
-
-    }
-
-    // Generic fallback
-    window.dispatchEvent(
-      new CustomEvent("start-tutorial")
-    );
-
-  };
-
-  /* =========================================================
-     NAVBAR TUTORIAL BUTTONS
-  ========================================================= */
-
-  document
-    .querySelectorAll("[data-tutorial-trigger]")
-    .forEach(btn => {
-
-      btn.addEventListener("click", () => {
-
-        window.restartTutorial();
-
-      });
-
-    });
+};
 
 </script>
