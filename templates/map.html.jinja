@@ -17,7 +17,7 @@
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.css" />
 
-  <script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.js.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.js.iife.js"></script>
     <style>
         /* =========================================================
    LEAFLET + MAP
@@ -47,10 +47,11 @@
             transform: scale(1.05);
         }
 
-        .dark .leaflet-marker-icon {
-            filter:
-                drop-shadow(0 0 10px rgba(168, 85, 247, 0.35))
-        }
+.dark .leaflet-marker-icon {
+    filter:
+        drop-shadow(0 0 6px rgba(255, 255, 255, 0.35))
+        drop-shadow(0 0 14px rgba(255, 255, 255, 0.15));
+}
 
         #map {
             height: 100%;
@@ -208,8 +209,7 @@
 
         body {
             overflow-x: hidden;
-            overflow-y: auto;
-        }
+=        }
 
         body>div {
             min-height: 100vh;
@@ -439,13 +439,6 @@
                 transform: translateY(0%);
             }
 
-            #fridge-sheet::before {
-                content: "";
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.35);
-                z-index: -1;
-            }
 
             /* smooth scroll */
             #fridge-sheet-content {
@@ -550,10 +543,10 @@
 
         /* unfavorite state = RED */
         .fav-btn.favorited {
-            background: #dc2626;
-            color: #fff;
-        }
-
+    background: #16a34a;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
         .fav-btn:hover {
             transform: scale(1.05);
         }
@@ -609,9 +602,105 @@
         .dark #tutorial-tooltip::before {
             border-color: rgba(168, 85, 247, 0.25);
         }
+
         .paused-animations * {
-    animation-play-state: paused !important;
+            animation-play-state: paused !important;
+        }
+        /* =========================================================
+   DRIVER.JS TUTORIAL — CUSTOM MAP THEME
+========================================================= */
+
+
+.driver-popover {
+    border-radius: 18px !important;
+    padding: 14px !important;
+    max-width: 280px !important;
+
+    background: linear-gradient(135deg, #ffffff, #f5f3ff) !important;
+    border: 1px solid rgba(167, 139, 250, 0.25) !important;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.3);
 }
+
+/* DARK MODE */
+.dark .driver-popover {
+    background: linear-gradient(135deg, #1e1b2e, #2a2545) !important;
+    border: 1px solid rgba(168, 85, 247, 0.25) !important;
+    color: #fff !important;
+}
+
+/* TITLE */
+.driver-popover-title {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px !important;
+    color: inherit !important;
+}
+
+/* TEXT */
+.driver-popover-description {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    opacity: 0.9;
+}
+
+/* BUTTONS */
+.driver-popover-footer button {
+    border-radius: 10px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+
+    padding: 7px 10px !important;
+    transition: all 0.2s ease !important;
+}
+
+.driver-popover-footer button:hover {
+    transform: translateY(-1px);
+}
+
+/* PRIMARY BUTTON */
+.driver-popover-footer .driver-next-btn {
+    background: #16a34a !important;
+    color: white !important;
+}
+
+.dark .driver-popover-footer .driver-next-btn {
+    background: #a855f7 !important;
+}
+
+/* BACK BUTTON */
+.driver-popover-footer .driver-prev-btn {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #333 !important;
+}
+
+.dark .driver-popover-footer .driver-prev-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+}
+
+/* CLOSE BUTTON */
+.driver-popover-close-btn {
+    opacity: 0.5;
+    transition: 0.2s;
+}
+
+.driver-popover-close-btn:hover {
+    opacity: 1;
+}
+
+/* HIGHLIGHTED ELEMENT GLOW */
+.driver-highlighted-element {
+    box-shadow:
+        0 0 0 4px rgba(34, 197, 94, 0.25),
+        0 0 0 8px rgba(168, 85, 247, 0.12) !important;
+
+    border-radius: 14px !important;
+}
+
     </style>
     <script>
         tailwind.config = {
@@ -654,8 +743,7 @@ pointer-events-none
                border border-white/20 
                text-sm outline-none">
         </div>
-        <div id="map"
-class="
+        <div id="map" class="
 order-1 md:order-2
 w-full md:w-2/3
 flex-1
@@ -697,8 +785,7 @@ md:hidden">
             Directions
         </button>
         <!-- SIDEBAR -->
-        <aside id="sidebar"
-class="
+        <aside id="sidebar" class="
 fixed inset-x-0 bottom-0
 md:static
 
@@ -812,12 +899,16 @@ touch-pan-y
                 <!-- =====================================================
          ROUTE BOX (NO STICKY HEADER, SIMPLE FLOW)
     ====================================================== -->
+    <div id="routing-wrapper">
+
                 <div id="routing-directions" class="hidden mb-6 p-4 rounded-2xl border
         bg-gradient-to-br from-green-50 to-white
         dark:from-[#241a3a] dark:to-[#1b1730]
         border-green-200 dark:border-[#40376E]
         shadow-lg">
+                <div id="itinerary-container"></div>
 
+</div>
                     <div class="flex justify-between items-center mb-3">
                         <h3 class="font-black text-green-800 dark:text-purple-300 text-sm uppercase tracking-wide">
                             Route Instructions
@@ -878,19 +969,19 @@ touch-pan-y
                     </div>
                 </div>
 
-
+<div id="fridge-search-wrapper">
                 <!-- SEARCH -->
                 <input type="text" id="fridge-search" placeholder="Search fridges..." class="w-full p-3 mb-5 rounded-xl text-sm
         bg-gray-50 dark:bg-[#2a2545]
         border border-gray-200 dark:border-[#40376E]
         text-gray-900 dark:text-white
         outline-none focus:ring-2 focus:ring-green-500" />
+</div>
 
-
-                <!-- FAVORITES -->
-                <h3 class="text-sm font-bold mb-2 text-gray-500 dark:text-gray-400">
-                    Favorites
-                </h3>
+                <div id="favorites-wrapper">
+    <h3>Favorites</h3>
+    <ul id="favorites-list"></ul>
+</div>
                 <!-- FAVORITES -->
                 <ul id="favorites-list" data-tutorial="favorites" class="space-y-2 mb-5">
                 </ul>
@@ -920,8 +1011,10 @@ touch-pan-y
 
 
                 <!-- FRIDGE LIST -->
-                <ul id="fridge-list" class="space-y-3 pb-24 overflow-y-auto max-h-[50vh] md:max-h-full pr-1">
-                </ul>
+                <div id="fridge-list-wrapper">
+    <ul id="fridge-list" class="space-y-3 pb-24 overflow-y-auto max-h-[50vh] md:max-h-full pr-1">
+    </ul>
+</div>
 
             </div>
         </aside>
@@ -952,520 +1045,515 @@ touch-pan-y
     </div>
 
 </body>
-    <script>
+<script>
     window.mapTour = null;
-window.isMapTourActive = false;
-        /* =========================================================
-           CONFIG
-        ========================================================= */
-        const CONFIG = {
-            DEFAULT_LOCATION: [40.7128, -74.0060],
-            DEFAULT_ZOOM: 12,
-            USER_ZOOM: 13,
-            FRIDGE_ZOOM: 16,
+    window.isMapTourActive = false;
+    /* =========================================================
+       CONFIG
+    ========================================================= */
+    const CONFIG = {
+        DEFAULT_LOCATION: [40.7128, -74.0060],
+        DEFAULT_ZOOM: 12,
+        USER_ZOOM: 13,
+        FRIDGE_ZOOM: 16,
 
-            MOBILE_BREAKPOINT: 768,
+        MOBILE_BREAKPOINT: 768,
 
-            ROUTE_PADDING: [50, 50],
+        ROUTE_PADDING: [50, 50],
 
-            ROUTE_STYLE: {
-                light: '#16a34a',
-                dark: '#a855f7',
-                weight: 6,
-                opacity: 1,
-                dashArray: '12 16'
+        ROUTE_STYLE: {
+            light: '#16a34a',
+            dark: '#a855f7',
+            weight: 6,
+            opacity: 1,
+            dashArray: '12 16'
+        },
+
+        API: {
+            GEOAPIFY_KEY: "364fdb68178f4a09b69ef7df5051e13b",
+            FRIDGES: "/get-fridges",
+            FAVORITES: "/get-favorites",
+            TOGGLE_FAVORITE: "/toggle-favorite"
+        }
+    };
+
+
+    /* =========================================================
+       DOM CACHE
+    ========================================================= */
+    const DOM = {
+        sidebar: document.getElementById('sidebar'),
+        closeBtn: document.getElementById('close-sidebar'),
+        sidebarToggle: document.getElementById("sidebar-toggle"),
+
+        fridgeList: document.getElementById("fridge-list"),
+        fridgeSearch: document.getElementById("fridge-search"),
+
+        itinerary: document.getElementById('itinerary-container'),
+        mobileItinerary: document.getElementById('mobile-itinerary-container'),
+
+        directions: document.getElementById('routing-directions'),
+        directionsModal: document.getElementById('directions-modal'),
+
+        reopenDirections: document.getElementById('reopen-directions'),
+
+        startLocation: document.getElementById("start-location"),
+        setStart: document.getElementById("set-start"),
+
+        favoritesList: document.getElementById("favorites-list"),
+        recentList: document.getElementById("recent-list"),
+
+        clearRecents: document.getElementById("clear-recents"),
+        undoRecents: document.getElementById("undo-recents"),
+
+        transportControls: document.getElementById('transport-controls')
+    };
+
+
+    /* =========================================================
+       GLOBAL STATE
+    ========================================================= */
+    const state = {
+        userLat: null,
+        userLng: null,
+        userMarker: null,
+
+        currentRouteLayer: null,
+        currentTargetFridge: null,
+
+        allFridges: [],
+        preparedFridges: [],
+        lastRoute: null,
+
+        recentsBackup: null,
+        undoTimeout: null,
+        undoInterval: null,
+
+        currentTileLayer: null,
+
+        isDragging: false,
+        startY: 0,
+        currentY: 0,
+        currentTranslate: 0,
+        sidebarState: "collapsed"
+    };
+    state.markerMap = new Map();
+
+    const MAX_TRANSLATE = window.innerHeight * 0.6;
+
+
+    /* =========================================================
+       HELPERS
+    ========================================================= */
+    function isMobile() {
+        return window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
+    }
+
+    function show(el) {
+        el?.classList.remove("hidden");
+
+        requestAnimationFrame(() => {
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+        });
+    }
+    function hide(el) {
+        el?.classList.add("hidden");
+    }
+
+    function clearHTML(el) {
+        if (el) el.innerHTML = "";
+    }
+
+    function debounce(fn, delay = 250) {
+
+        let timeout;
+
+        return (...args) => {
+
+            clearTimeout(timeout);
+
+            timeout = setTimeout(() => {
+                fn(...args);
+            }, delay);
+
+        };
+    }
+    let resizeRAF = null;
+
+    function safeMapResize() {
+        if (resizeRAF) return;
+
+        resizeRAF = requestAnimationFrame(() => {
+            resizeRAF = null;
+        });
+    }
+
+    /* =========================================================
+       API HELPERS
+    ========================================================= */
+
+    async function apiGet(url) {
+
+        const res = await fetch(url);
+
+        if (!res.ok) {
+            throw new Error(`API Error: ${res.status}`);
+        }
+
+        return res.json();
+    }
+
+    async function apiPost(url, body = {}) {
+
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             },
+            body: JSON.stringify(body)
+        });
 
-            API: {
-                GEOAPIFY_KEY: "364fdb68178f4a09b69ef7df5051e13b",
-                FRIDGES: "/get-fridges",
-                FAVORITES: "/get-favorites",
-                TOGGLE_FAVORITE: "/toggle-favorite"
-            }
-        };
-
-
-        /* =========================================================
-           DOM CACHE
-        ========================================================= */
-        const DOM = {
-            sidebar: document.getElementById('sidebar'),
-            closeBtn: document.getElementById('close-sidebar'),
-            sidebarToggle: document.getElementById("sidebar-toggle"),
-
-            fridgeList: document.getElementById("fridge-list"),
-            fridgeSearch: document.getElementById("fridge-search"),
-
-            itinerary: document.getElementById('itinerary-container'),
-            mobileItinerary: document.getElementById('mobile-itinerary-container'),
-
-            directions: document.getElementById('routing-directions'),
-            directionsModal: document.getElementById('directions-modal'),
-
-            reopenDirections: document.getElementById('reopen-directions'),
-
-            startLocation: document.getElementById("start-location"),
-            setStart: document.getElementById("set-start"),
-
-            favoritesList: document.getElementById("favorites-list"),
-            recentList: document.getElementById("recent-list"),
-
-            clearRecents: document.getElementById("clear-recents"),
-            undoRecents: document.getElementById("undo-recents"),
-
-            transportControls: document.getElementById('transport-controls')
-        };
-
-
-        /* =========================================================
-           GLOBAL STATE
-        ========================================================= */
-        const state = {
-            userLat: null,
-            userLng: null,
-            userMarker: null,
-
-            currentRouteLayer: null,
-            currentTargetFridge: null,
-
-            allFridges: [],
-            preparedFridges: [],
-            lastRoute: null,
-
-            recentsBackup: null,
-            undoTimeout: null,
-            undoInterval: null,
-
-            currentTileLayer: null,
-
-            isDragging: false,
-            startY: 0,
-            currentY: 0,
-            currentTranslate: 0,
-            sidebarState: "collapsed"
-        };
-        state.markerMap = new Map();
-
-        const MAX_TRANSLATE = window.innerHeight * 0.6;
-
-
-        /* =========================================================
-           HELPERS
-        ========================================================= */
-        function isMobile() {
-            return window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
+        if (!res.ok) {
+            throw new Error(`API Error: ${res.status}`);
         }
 
-        function show(el) {
-            el?.classList.remove("hidden");
+        return res.json();
+    }
 
-            requestAnimationFrame(() => {
-                el.style.opacity = "1";
-                el.style.transform = "translateY(0)";
-            });
-        }
-        function hide(el) {
-            el?.classList.add("hidden");
-        }
 
-        function clearHTML(el) {
-            if (el) el.innerHTML = "";
-        }
+    /* =========================================================
+       MAP INITIALIZATION
+    ========================================================= */
+    const map = L.map('map', {
+        zoomAnimation: true,
+        fadeAnimation: true,
+        zoomControl: false
+    }).setView(
+        CONFIG.DEFAULT_LOCATION,
+        CONFIG.DEFAULT_ZOOM
+    );
 
-        function debounce(fn, delay = 250) {
+    setTimeout(() => {
+        safeMapResize();
+    }, 300);
 
-            let timeout;
+    map.on("click", (e) => {
+        if (!isMobile()) return;
 
-            return (...args) => {
+        closeFridgeSheet();
 
-                clearTimeout(timeout);
+        const el = e.originalEvent?.target;
 
-                timeout = setTimeout(() => {
-                    fn(...args);
-                }, delay);
+        // ignore clicks on UI elements
+        if (
+            el?.closest("#sidebar") ||
+            el?.closest(".leaflet-popup") ||
+            el?.closest(".leaflet-control") ||
+            el?.closest("#directions-modal")
+        ) return;
 
-            };
-        }
-        let resizeRAF = null;
-
-        function safeMapResize() {
-    if (resizeRAF) return;
-
-    resizeRAF = requestAnimationFrame(() => {
-        resizeRAF = null;
+        hideSidebar();
+        hide(DOM.directionsModal);
+        hide(DOM.directions);
     });
-}
-       
-        /* =========================================================
-           API HELPERS
-        ========================================================= */
+    
+    /* =========================================================
+       TILE LAYERS
+    ========================================================= */
+    const lightTiles = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20,
+            updateWhenIdle: false,
+            updateWhenZooming: true,
+            keepBuffer: 4
 
-        async function apiGet(url) {
+        }
+    );
 
-            const res = await fetch(url);
+    const darkTiles = L.tileLayer(
+        'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+        {
+            attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
+            maxZoom: 20,
+            updateWhenIdle: false,
+            updateWhenZooming: true,
+            keepBuffer: 4
+        }
+    );
 
-            if (!res.ok) {
-                throw new Error(`API Error: ${res.status}`);
-            }
 
-            return res.json();
+    /* =========================================================
+       APPLY MAP THEME
+    ========================================================= */
+    window.applyMapTheme = function () {
+
+        const isDark =
+            document.documentElement.classList.contains('dark');
+
+        if (state.currentTileLayer) {
+            map.removeLayer(state.currentTileLayer);
         }
 
-        async function apiPost(url, body = {}) {
+        state.currentTileLayer =
+            isDark ? darkTiles : lightTiles;
 
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
+        state.currentTileLayer.addTo(map);
 
-            if (!res.ok) {
-                throw new Error(`API Error: ${res.status}`);
-            }
-
-            return res.json();
-        }
-
-
-        /* =========================================================
-           MAP INITIALIZATION
-        ========================================================= */
-        const map = L.map('map', {
-            zoomAnimation: true,
-            fadeAnimation: true,
-            zoomControl: false
-        }).setView(
-            CONFIG.DEFAULT_LOCATION,
-            CONFIG.DEFAULT_ZOOM
-        );
-
-        setTimeout(() => {
-            safeMapResize();
-        }, 300);
-
-        // Only show zoom controls on desktop
-        if (!isMobile()) {
-            L.control.zoom({
-                position: 'topright'
-            }).addTo(map);
-        }
-       map.on("click", (e) => {
-    if (!isMobile()) return;
-
-    closeFridgeSheet();
-
-    const el = e.originalEvent?.target;
-
-    // ignore clicks on UI elements
-    if (
-        el?.closest("#sidebar") ||
-        el?.closest(".leaflet-popup") ||
-        el?.closest(".leaflet-control") ||
-        el?.closest("#directions-modal")
-    ) return;
-
-    hideSidebar();
-    hide(DOM.directionsModal);
-    hide(DOM.directions);
-});
-        /* =========================================================
-           TILE LAYERS
-        ========================================================= */
-        const lightTiles = L.tileLayer(
-            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-            {
-                attribution: '&copy; OpenStreetMap &copy; CARTO',
-                subdomains: 'abcd',
-                maxZoom: 20,
-                updateWhenIdle: false,
-                updateWhenZooming: true,
-                keepBuffer: 4
-
-            }
-        );
-
-        const darkTiles = L.tileLayer(
-            'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
-            {
-                attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
-                maxZoom: 20,
-                updateWhenIdle: false,
-                updateWhenZooming: true,
-                keepBuffer: 4
-            }
-        );
-
-
-        /* =========================================================
-           APPLY MAP THEME
-        ========================================================= */
-        window.applyMapTheme = function () {
-
-            const isDark =
-                document.documentElement.classList.contains('dark');
-
-            if (state.currentTileLayer) {
-                map.removeLayer(state.currentTileLayer);
-            }
-
-            state.currentTileLayer =
-                isDark ? darkTiles : lightTiles;
-
-            state.currentTileLayer.addTo(map);
-
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    safeMapResize();
-                }, 250);
-            });
-        };
-
-        applyMapTheme();
-
-
-        /* =========================================================
-           ICONS
-        ========================================================= */
-        const userIcon = L.icon({
-            iconUrl: "/static/images/pin.png",
-            iconSize: [35, 35],
-            className: "drop-shadow-lg"
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                safeMapResize();
+            }, 250);
         });
+    };
 
-        const fridgeIcon = L.icon({
-            iconUrl: "/static/images/fridge.png",
-            iconSize: [45, 45],
-            className: "drop-shadow-lg"
+    applyMapTheme();
+
+
+    /* =========================================================
+       ICONS
+    ========================================================= */
+    const userIcon = L.icon({
+        iconUrl: "/static/images/pin.png",
+        iconSize: [35, 35],
+        className: "fridge-marker"
+    });
+
+    const fridgeIcon = L.icon({
+        iconUrl: "/static/images/fridge.png",
+        iconSize: [45, 45],
+        className: "fridge-marker"
+    });
+
+
+    /* =========================================================
+       MOBILE BOTTOM SHEET
+    ========================================================= */
+
+    const SHEET = {
+        FULL: 0,
+        HALF: window.innerHeight * 0.45,
+        PEEK: window.innerHeight * 0.6,
+        CLOSED: window.innerHeight
+    };
+
+    state.sheetPosition = SHEET.FULL;
+    state.dragStartY = 0;
+    state.dragStartTranslate = 0;
+    state.lastDragY = 0;
+    state.lastDragTime = 0;
+    state.velocity = 0;
+    state.isDragging = false;
+
+    /* =========================
+       APPLY POSITION
+    ========================= */
+    function setSheetPosition(y, animate = true) {
+
+        state.sheetPosition = y;
+
+        DOM.sidebar.style.transition =
+            animate
+                ? "transform 0.28s cubic-bezier(.22,.9,.35,1)"
+                : "none";
+
+        DOM.sidebar.style.transform =
+            `translateY(${y}px)`;
+    }
+
+    /* =========================
+       SNAP LOGIC
+    ========================= */
+    function snapSheet() {
+
+        const y = state.sheetPosition;
+
+        const snapPoints = [SHEET.FULL, SHEET.HALF, SHEET.PEEK];
+
+        // fast flick down → close
+        if (state.velocity > 1.2) {
+            return setSheetPosition(SHEET.CLOSED);
+        }
+
+        // fast flick up → open fully
+        if (state.velocity < -1.2) {
+            return setSheetPosition(SHEET.FULL);
+        }
+
+        let nearest = snapPoints[0];
+
+        for (const point of snapPoints) {
+            if (Math.abs(point - y) < Math.abs(nearest - y)) {
+                nearest = point;
+            }
+        }
+
+        setSheetPosition(nearest);
+    }
+    /* =========================
+       OPEN/CLOSE HELPERS
+    ========================= */
+    function openSidebar() {
+        setSheetPosition(SHEET.FULL);
+    }
+
+    function halfSidebar() {
+        setSheetPosition(SHEET.HALF);
+    }
+
+    function hideSidebar() {
+        setSheetPosition(SHEET.PEEK);
+    }
+
+    /* initial mobile state */
+    if (isMobile()) {
+        requestAnimationFrame(() => {
+            setSheetPosition(SHEET.PEEK, false);
         });
+    }
 
+    /* =========================================================
+       DRAGGING
+    ========================================================= */
 
-        /* =========================================================
-           MOBILE BOTTOM SHEET
-        ========================================================= */
+    const dragHandle =
+        document.getElementById("drag-handle");
 
-        const SHEET = {
-            FULL: 0,
-            HALF: window.innerHeight * 0.45,
-            PEEK: window.innerHeight * 0.6,
-            CLOSED: window.innerHeight
-        };
+    dragHandle.addEventListener(
+        "touchstart",
+        (e) => {
 
-        state.sheetPosition = SHEET.FULL;
-        state.dragStartY = 0;
-        state.dragStartTranslate = 0;
-        state.lastDragY = 0;
-        state.lastDragTime = 0;
-        state.velocity = 0;
-        state.isDragging = false;
+            state.isDragging = true;
 
-        /* =========================
-           APPLY POSITION
-        ========================= */
-        function setSheetPosition(y, animate = true) {
+            state.dragStartY =
+                e.touches[0].clientY;
 
-            state.sheetPosition = y;
+            state.dragStartTranslate =
+                state.sheetPosition;
 
-            DOM.sidebar.style.transition =
-                animate
-                    ? "transform 0.28s cubic-bezier(.22,.9,.35,1)"
-                    : "none";
+            state.lastDragY =
+                state.dragStartY;
 
-            DOM.sidebar.style.transform =
-                `translateY(${y}px)`;
+            state.lastDragTime =
+                performance.now();
+
+            DOM.sidebar.style.transition = "none";
+        },
+        { passive: true }
+    );
+    window.addEventListener(
+        "touchmove",
+        (e) => {
+            if (!state.isDragging) return;
+
+            const currentY = e.touches[0].clientY;
+            const delta = currentY - state.dragStartY;
+
+            let next = state.dragStartTranslate + delta;
+
+            // clamp bounds
+            next = Math.max(SHEET.FULL, Math.min(next, SHEET.PEEK));
+
+            const now = performance.now();
+
+            state.velocity =
+                (currentY - state.lastDragY) /
+                Math.max(1, (now - state.lastDragTime));
+
+            state.lastDragY = currentY;
+            state.lastDragTime = now;
+
+            setSheetPosition(next, false);
+        },
+        { passive: true }
+    );
+    window.addEventListener(
+        "touchend",
+        () => {
+
+            if (!state.isDragging) return;
+
+            state.isDragging = false;
+
+            snapSheet();
         }
+    );
 
-        /* =========================
-           SNAP LOGIC
-        ========================= */
-        function snapSheet() {
+    /* =========================================================
+       BUTTONS
+    ========================================================= */
 
-            const y = state.sheetPosition;
+    DOM.closeBtn.onclick = () => {
+        hideSidebar();
+    };
+    DOM.sidebarToggle.onclick = () => {
 
-            const snapPoints = [SHEET.FULL, SHEET.HALF, SHEET.PEEK];
+        if (!isMobile()) return;
 
-            // fast flick down → close
-            if (state.velocity > 1.2) {
-                return setSheetPosition(SHEET.CLOSED);
-            }
-
-            // fast flick up → open fully
-            if (state.velocity < -1.2) {
-                return setSheetPosition(SHEET.FULL);
-            }
-
-            let nearest = snapPoints[0];
-
-            for (const point of snapPoints) {
-                if (Math.abs(point - y) < Math.abs(nearest - y)) {
-                    nearest = point;
-                }
-            }
-
-            setSheetPosition(nearest);
-        }
-        /* =========================
-           OPEN/CLOSE HELPERS
-        ========================= */
-        function openSidebar() {
-            setSheetPosition(SHEET.FULL);
-        }
-
-        function halfSidebar() {
-            setSheetPosition(SHEET.HALF);
-        }
-
-        function hideSidebar() {
-            setSheetPosition(SHEET.PEEK);
-        }
-
-        /* initial mobile state */
-        if (isMobile()) {
-            requestAnimationFrame(() => {
-                setSheetPosition(SHEET.PEEK, false);
-            });
-        }
-
-        /* =========================================================
-           DRAGGING
-        ========================================================= */
-
-        const dragHandle =
-            document.getElementById("drag-handle");
-
-        dragHandle.addEventListener(
-            "touchstart",
-            (e) => {
-
-                state.isDragging = true;
-
-                state.dragStartY =
-                    e.touches[0].clientY;
-
-                state.dragStartTranslate =
-                    state.sheetPosition;
-
-                state.lastDragY =
-                    state.dragStartY;
-
-                state.lastDragTime =
-                    performance.now();
-
-                DOM.sidebar.style.transition = "none";
-            },
-            { passive: true }
-        );
-        window.addEventListener(
-            "touchmove",
-            (e) => {
-                if (!state.isDragging) return;
-
-                const currentY = e.touches[0].clientY;
-                const delta = currentY - state.dragStartY;
-
-                let next = state.dragStartTranslate + delta;
-
-                // clamp bounds
-                next = Math.max(SHEET.FULL, Math.min(next, SHEET.PEEK));
-
-                const now = performance.now();
-
-                state.velocity =
-                    (currentY - state.lastDragY) /
-                    Math.max(1, (now - state.lastDragTime));
-
-                state.lastDragY = currentY;
-                state.lastDragTime = now;
-
-                setSheetPosition(next, false);
-            },
-            { passive: true }
-        );
-        window.addEventListener(
-            "touchend",
-            () => {
-
-                if (!state.isDragging) return;
-
-                state.isDragging = false;
-
-                snapSheet();
-            }
-        );
-
-        /* =========================================================
-           BUTTONS
-        ========================================================= */
-
-        DOM.closeBtn.onclick = () => {
+        if (state.sheetPosition <= SHEET.HALF) {
             hideSidebar();
-        };
-        DOM.sidebarToggle.onclick = () => {
-
-            if (!isMobile()) return;
-
-            if (state.sheetPosition <= SHEET.HALF) {
-                hideSidebar();
-            } else {
-                openSidebar();
-            }
-        };
-        /* =========================================================
-           INITIAL MOBILE STATE
-        ========================================================= */
-
-        if (isMobile()) {
-            hideSidebar();
+        } else {
+            openSidebar();
         }
-        /* =========================================================
-           DISTANCE HELPERS
-        ========================================================= */
-        function getDistance(lat1, lon1, lat2, lon2) {
+    };
+    /* =========================================================
+       INITIAL MOBILE STATE
+    ========================================================= */
 
-            const R = 3958.8;
+    if (isMobile()) {
+        hideSidebar();
+    }
+    /* =========================================================
+       DISTANCE HELPERS
+    ========================================================= */
+    function getDistance(lat1, lon1, lat2, lon2) {
 
-            const dLat =
-                (lat2 - lat1) * Math.PI / 180;
+        const R = 3958.8;
 
-            const dLon =
-                (lon2 - lon1) * Math.PI / 180;
+        const dLat =
+            (lat2 - lat1) * Math.PI / 180;
 
-            const a =
-                Math.sin(dLat / 2) ** 2 +
-                Math.cos(lat1 * Math.PI / 180) *
-                Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) ** 2;
+        const dLon =
+            (lon2 - lon1) * Math.PI / 180;
 
-            return R * (
-                2 * Math.atan2(
-                    Math.sqrt(a),
-                    Math.sqrt(1 - a)
-                )
-            );
-        }
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) *
+            Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
 
-
-        /* =========================================================
-           USER LOCATION
-        ========================================================= */
-        function setUserLocation(lat, lng) {
-
-            state.userLat = lat;
-            state.userLng = lng;
-
-            if (state.userMarker) {
-                map.removeLayer(state.userMarker);
-            }
-
-            state.userMarker = L.marker(
-                [lat, lng],
-                { icon: userIcon }
+        return R * (
+            2 * Math.atan2(
+                Math.sqrt(a),
+                Math.sqrt(1 - a)
             )
+        );
+    }
 
-                .addTo(map)
 
-                .bindPopup(`
+    /* =========================================================
+       USER LOCATION
+    ========================================================= */
+    function setUserLocation(lat, lng) {
+
+        state.userLat = lat;
+        state.userLng = lng;
+
+        if (state.userMarker) {
+            map.removeLayer(state.userMarker);
+        }
+
+        state.userMarker = L.marker(
+            [lat, lng],
+            { icon: userIcon }
+        )
+
+            .addTo(map)
+
+            .bindPopup(`
 <div class="
     px-2 py-1.5
     text-center
@@ -1491,62 +1579,62 @@ window.isMapTourActive = false;
 </div>
 `)
 
-                .openPopup();
+            .openPopup();
 
-            map.setView(
-                [lat, lng],
-                CONFIG.USER_ZOOM,
-                {
-                    duration: 0.8,
-                    easeLinearity: 0.25
-                }
-            );
+        map.setView(
+            [lat, lng],
+            CONFIG.USER_ZOOM,
+            {
+                duration: 0.8,
+                easeLinearity: 0.25
+            }
+        );
 
-            renderFridges(state.allFridges);
-        }
+        renderFridges(state.allFridges);
+    }
 
 
-        /* =========================================================
-           ROUTE HELPERS
-        ========================================================= */
-        function clearRouteLayer() {
+    /* =========================================================
+       ROUTE HELPERS
+    ========================================================= */
+    function clearRouteLayer() {
 
-            if (!state.currentRouteLayer) return;
+        if (!state.currentRouteLayer) return;
 
-            map.removeLayer(state.currentRouteLayer);
+        map.removeLayer(state.currentRouteLayer);
 
-            state.currentRouteLayer = null;
-        }
+        state.currentRouteLayer = null;
+    }
 
-        function drawRoute(coords) {
+    function drawRoute(coords) {
 
-            clearRouteLayer();
+        clearRouteLayer();
 
-            const isDark =
-                document.documentElement.classList.contains('dark');
+        const isDark =
+            document.documentElement.classList.contains('dark');
 
-            state.currentRouteLayer = L.polyline(coords, {
-                color: isDark
-                    ? CONFIG.ROUTE_STYLE.dark
-                    : CONFIG.ROUTE_STYLE.light,
+        state.currentRouteLayer = L.polyline(coords, {
+            color: isDark
+                ? CONFIG.ROUTE_STYLE.dark
+                : CONFIG.ROUTE_STYLE.light,
 
-                weight: CONFIG.ROUTE_STYLE.weight,
-                opacity: CONFIG.ROUTE_STYLE.opacity,
-                dashArray: CONFIG.ROUTE_STYLE.dashArray,
-                className: 'animated-route'
-            }).addTo(map);
+            weight: CONFIG.ROUTE_STYLE.weight,
+            opacity: CONFIG.ROUTE_STYLE.opacity,
+            dashArray: CONFIG.ROUTE_STYLE.dashArray,
+            className: 'animated-route'
+        }).addTo(map);
 
-            map.fitBounds(
-                state.currentRouteLayer.getBounds(),
-                {
-                    padding: CONFIG.ROUTE_PADDING
-                }
-            );
-        }
+        map.fitBounds(
+            state.currentRouteLayer.getBounds(),
+            {
+                padding: CONFIG.ROUTE_PADDING
+            }
+        );
+    }
 
-        function createRouteSummary(distMi, timeMin) {
+    function createRouteSummary(distMi, timeMin) {
 
-            return `
+        return `
 <div class="
     mb-5 p-5 rounded-3xl
     border border-white/10 dark:border-[#4c3b73]
@@ -1591,44 +1679,44 @@ window.isMapTourActive = false;
     </div>
 </div>
 `;
-        }
+    }
 
 
-        /* =========================================================
-           ROUTING
-        ========================================================= */
-        const profileMap = {
-            foot: "walk",
-            bicycle: "bicycle",
-            car: "drive"
-        };
-        function getStepIcon(text = "") {
-            const t = text.toLowerCase();
+    /* =========================================================
+       ROUTING
+    ========================================================= */
+    const profileMap = {
+        foot: "walk",
+        bicycle: "bicycle",
+        car: "drive"
+    };
+    function getStepIcon(text = "") {
+        const t = text.toLowerCase();
 
-            if (t.includes("left")) return "⬅️";
-            if (t.includes("right")) return "➡️";
-            if (t.includes("slight left")) return "↖️";
-            if (t.includes("slight right")) return "↗️";
-            if (t.includes("sharp left")) return "⤴️";
-            if (t.includes("sharp right")) return "⤵️";
-            if (t.includes("continue") || t.includes("straight")) return "⬆️";
-            if (t.includes("arrive")) return "📍";
+        if (t.includes("left")) return "⬅️";
+        if (t.includes("right")) return "➡️";
+        if (t.includes("slight left")) return "↖️";
+        if (t.includes("slight right")) return "↗️";
+        if (t.includes("sharp left")) return "⤴️";
+        if (t.includes("sharp right")) return "⤵️";
+        if (t.includes("continue") || t.includes("straight")) return "⬆️";
+        if (t.includes("arrive")) return "📍";
 
-            return "•";
-        }
+        return "•";
+    }
 
-        function renderMobileDirections(distMi, timeMin, steps) {
-            let html = `
+    function renderMobileDirections(distMi, timeMin, steps) {
+        let html = `
         <div class="p-2 mb-2 rounded-lg bg-green-600 text-white font-bold text-xs flex justify-between">
             <span>${distMi} mi</span>
             <span>${timeMin} min</span>
         </div>
     `;
 
-            steps.forEach((step, i) => {
-                const icon = getStepIcon(step.instruction.text);
+        steps.forEach((step, i) => {
+            const icon = getStepIcon(step.instruction.text);
 
-                html += `
+            html += `
 <div class="flex items-start gap-2 text-sm py-2 border-b border-gray-200 dark:border-[#40376E] leading-relaxed">
 
                 <span class="text-sm w-5 text-center">
@@ -1642,99 +1730,99 @@ window.isMapTourActive = false;
 
             </div>
         `;
-            });
+        });
 
-            return html;
+        return html;
+    }
+    window.updateRouteTheme = function () {
+        if (!state.currentRouteLayer) return;
+
+        const isDark =
+            document.documentElement.classList.contains('dark');
+
+        state.currentRouteLayer.setStyle({
+            color: isDark
+                ? CONFIG.ROUTE_STYLE.dark
+                : CONFIG.ROUTE_STYLE.light
+        });
+    };
+
+    window.routeToFridge = async function (lat, lng) {
+
+        if (!state.userLat || !state.userLng) {
+            return alert("Please set your starting location first.");
         }
-        window.updateRouteTheme = function () {
-            if (!state.currentRouteLayer) return;
 
-            const isDark =
-                document.documentElement.classList.contains('dark');
+        state.currentTargetFridge = { lat, lng };
 
-            state.currentRouteLayer.setStyle({
-                color: isDark
-                    ? CONFIG.ROUTE_STYLE.dark
-                    : CONFIG.ROUTE_STYLE.light
-            });
-        };
-
-        window.routeToFridge = async function (lat, lng) {
-
-            if (!state.userLat || !state.userLng) {
-                return alert("Please set your starting location first.");
-            }
-
-            state.currentTargetFridge = { lat, lng };
-
-            const loadingHtml =
-                `<p class='text-xs text-green-600 animate-pulse'>
+        const loadingHtml =
+            `<p class='text-xs text-green-600 animate-pulse'>
             Calculating route...
         </p>`;
 
-            show(DOM.directions);
+        show(DOM.directions);
 
-            if (isMobile()) {
-                show(DOM.directionsModal);
+        if (isMobile()) {
+            show(DOM.directionsModal);
 
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        safeMapResize();
-                    }, 250);
-                });
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    safeMapResize();
+                }, 250);
+            });
 
-                DOM.mobileItinerary.innerHTML = loadingHtml;
+            DOM.mobileItinerary.innerHTML = loadingHtml;
 
-            } else {
-                DOM.itinerary.innerHTML = loadingHtml;
+        } else {
+            DOM.itinerary.innerHTML = loadingHtml;
+        }
+
+
+        try {
+
+            const selectedMode =
+                document.querySelector(
+                    'input[name="transport"]:checked'
+                ).value;
+
+            const geoMode =
+                profileMap[selectedMode] || "walk";
+
+            const url =
+                `https://api.geoapify.com/v1/routing?waypoints=${state.userLat},${state.userLng}|${lat},${lng}&mode=${geoMode}&apiKey=${CONFIG.API.GEOAPIFY_KEY}`;
+
+            const data = await apiGet(url);
+
+            if (!data.features?.length) {
+                throw new Error("No route found");
             }
 
+            const routeData = data.features[0];
 
-            try {
+            const coords =
+                routeData.geometry.coordinates[0]
+                    .map(c => [c[1], c[0]]);
 
-                const selectedMode =
-                    document.querySelector(
-                        'input[name="transport"]:checked'
-                    ).value;
+            drawRoute(coords);
 
-                const geoMode =
-                    profileMap[selectedMode] || "walk";
+            const distMi =
+                (
+                    routeData.properties.distance *
+                    0.000621371
+                ).toFixed(1);
 
-                const url =
-                    `https://api.geoapify.com/v1/routing?waypoints=${state.userLat},${state.userLng}|${lat},${lng}&mode=${geoMode}&apiKey=${CONFIG.API.GEOAPIFY_KEY}`;
+            const timeMin =
+                Math.round(
+                    routeData.properties.time / 60
+                );
 
-                const data = await apiGet(url);
+            let stepsHtml = createRouteSummary(distMi, timeMin);
 
-                if (!data.features?.length) {
-                    throw new Error("No route found");
-                }
+            routeData.properties.legs[0].steps.forEach((step, i) => {
 
-                const routeData = data.features[0];
+                const icon = getStepIcon(step.instruction.text);
 
-                const coords =
-                    routeData.geometry.coordinates[0]
-                        .map(c => [c[1], c[0]]);
-
-                drawRoute(coords);
-
-                const distMi =
-                    (
-                        routeData.properties.distance *
-                        0.000621371
-                    ).toFixed(1);
-
-                const timeMin =
-                    Math.round(
-                        routeData.properties.time / 60
-                    );
-
-                let stepsHtml = createRouteSummary(distMi, timeMin);
-
-                routeData.properties.legs[0].steps.forEach((step, i) => {
-
-                    const icon = getStepIcon(step.instruction.text);
-
-                    stepsHtml += `
+                stepsHtml += `
         <div class="flex items-start gap-2 text-xs py-2 border-b border-gray-200 dark:border-[#40376E] leading-snug">
 
             <span class="text-base w-6 text-center">
@@ -1748,115 +1836,115 @@ window.isMapTourActive = false;
 
         </div>
     `;
-                    show(DOM.directions);
-                    DOM.sidebar.classList.add("directions-open");
-                });
-
-                DOM.itinerary.innerHTML = stepsHtml;
-
-                if (isMobile()) {
-                    DOM.mobileItinerary.innerHTML =
-                        renderMobileDirections(distMi, timeMin, routeData.properties.legs[0].steps);
-                    hideSidebar();
-                }
-
-                state.lastRoute = {
-                    lat,
-                    lng,
-                    coords,
-                    distance: distMi,
-                    time: timeMin,
-                    rawSteps: routeData.properties.legs[0].steps
-                };
-            } catch (err) {
-    console.error(err);
-}
-        };
-
-
-        /* =========================================================
-           ROUTE RESTORE / CLEAR
-        ========================================================= */
-        window.clearRoute = function () {
-
-            clearRouteLayer();
-
-            // animate directions panel out
-            DOM.directions.classList.add("fade-out-directions");
-
-            setTimeout(() => {
-                hide(DOM.directions);
-                DOM.directions.classList.remove("fade-out-directions");
-            }, 400);
-
-            DOM.sidebar.classList.remove("directions-open");
-
-            clearHTML(DOM.itinerary);
-            hide(DOM.directionsModal);
-            clearHTML(DOM.mobileItinerary);
-
-            state.currentTargetFridge = null;
-
-            // fade in reopen button
-            DOM.reopenDirections.classList.remove("hidden");
-
-            requestAnimationFrame(() => {
-                DOM.reopenDirections.style.opacity = "1";
-                DOM.reopenDirections.style.transform = "translateY(0)";
+                show(DOM.directions);
+                DOM.sidebar.classList.add("directions-open");
             });
-        };
-        function restoreLastRoute() {
-            if (!state.lastRoute) return;
 
-            const {
+            DOM.itinerary.innerHTML = stepsHtml;
+
+            if (isMobile()) {
+                DOM.mobileItinerary.innerHTML =
+                    renderMobileDirections(distMi, timeMin, routeData.properties.legs[0].steps);
+                hideSidebar();
+            }
+
+            state.lastRoute = {
+                lat,
+                lng,
                 coords,
-                distance,
-                time,
-                steps
-            } = state.lastRoute;
+                distance: distMi,
+                time: timeMin,
+                rawSteps: routeData.properties.legs[0].steps
+            };
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-            drawRoute(coords);
 
-            show(DOM.directions);
+    /* =========================================================
+       ROUTE RESTORE / CLEAR
+    ========================================================= */
+    window.clearRoute = function () {
 
-            const selectedMode =
-                document.querySelector('input[name="transport"]:checked').value;
+        clearRouteLayer();
 
-            const geoMode =
-                profileMap[selectedMode] || "walk";
+        // animate directions panel out
+        DOM.directions.classList.add("fade-out-directions");
 
-            const stepsData =
-                state.lastRoute.rawSteps || [];
+        setTimeout(() => {
+            hide(DOM.directions);
+            DOM.directions.classList.remove("fade-out-directions");
+        }, 400);
 
-            const html = createRouteSummary(distance, time) +
-                stepsData.map((step, i) => {
-                    const icon = getStepIcon(step.instruction.text);
+        DOM.sidebar.classList.remove("directions-open");
 
-                    return `
+        clearHTML(DOM.itinerary);
+        hide(DOM.directionsModal);
+        clearHTML(DOM.mobileItinerary);
+
+        state.currentTargetFridge = null;
+
+        // fade in reopen button
+        DOM.reopenDirections.classList.remove("hidden");
+
+        requestAnimationFrame(() => {
+            DOM.reopenDirections.style.opacity = "1";
+            DOM.reopenDirections.style.transform = "translateY(0)";
+        });
+    };
+    function restoreLastRoute() {
+        if (!state.lastRoute) return;
+
+        const {
+            coords,
+            distance,
+            time,
+            steps
+        } = state.lastRoute;
+
+        drawRoute(coords);
+
+        show(DOM.directions);
+
+        const selectedMode =
+            document.querySelector('input[name="transport"]:checked').value;
+
+        const geoMode =
+            profileMap[selectedMode] || "walk";
+
+        const stepsData =
+            state.lastRoute.rawSteps || [];
+
+        const html = createRouteSummary(distance, time) +
+            stepsData.map((step, i) => {
+                const icon = getStepIcon(step.instruction.text);
+
+                return `
                 <div class="flex items-start gap-2 text-xs py-2 border-b border-gray-200 dark:border-[#40376E]">
                     <span class="w-5 text-center">${icon}</span>
                     <div><b>${i + 1}.</b> ${step.instruction.text}</div>
                 </div>
             `;
-                }).join("");
+            }).join("");
 
-            DOM.itinerary.innerHTML = html;
+        DOM.itinerary.innerHTML = html;
 
-            if (isMobile()) {
-                DOM.mobileItinerary.innerHTML =
-                    renderMobileDirections(distance, time, stepsData);
+        if (isMobile()) {
+            DOM.mobileItinerary.innerHTML =
+                renderMobileDirections(distance, time, stepsData);
 
-                show(DOM.directionsModal);
-                hideSidebar();
-            }
+            show(DOM.directionsModal);
+            hideSidebar();
         }
+    }
 
-        /* =========================================================
-           CREATE POPUP HTML
-        ========================================================= */
-        function createFridgePopup(f) {
+    /* =========================================================
+       CREATE POPUP HTML
+    ========================================================= */
+    function createFridgePopup(f) {
 
-            return `
+        return `
 <div class="p-4 rounded-2xl text-center text-gray-900 dark:text-white">
 
     <div class="mb-2">
@@ -1893,15 +1981,15 @@ window.isMapTourActive = false;
 
 </div>
 `;
-        }
+    }
 
 
-        function openFridgeSheet(fridge) {
+    function openFridgeSheet(fridge) {
 
-            const sheet = document.getElementById("fridge-sheet");
-            const content = document.getElementById("fridge-sheet-content");
+        const sheet = document.getElementById("fridge-sheet");
+        const content = document.getElementById("fridge-sheet-content");
 
-            content.innerHTML = `
+        content.innerHTML = `
 <div class="space-y-4">
 
 
@@ -1957,149 +2045,149 @@ window.isMapTourActive = false;
 </div>
 `;
 
-            // open sheet
-            sheet.classList.add("open");
-        }
-        function closeFridgeSheet() {
-            const sheet = document.getElementById("fridge-sheet");
-
-            sheet.classList.remove("open");
-
-            // reset swipe transform
-            sheet.style.transform = "";
-        }
-        function createMarkers(fridges) {
-
-    let index = 0;
-    const chunkSize = 125;
-
-    function processChunk() {
-
-        const slice = fridges.slice(index, index + chunkSize);
-
-        slice.forEach(f => {
-
-            if (state.markerMap.has(f.id)) return;
-
-            const marker = L.marker(
-                [f.lat, f.lng],
-                { icon: fridgeIcon }
-            ).addTo(map);
-
-            if (!isMobile()) {
-                marker.bindPopup(createFridgePopup(f));
-            }
-
-            marker.on('click', () => {
-                saveRecentlyViewed(f);
-
-                map.setView(
-                    [f.lat, f.lng],
-                    CONFIG.FRIDGE_ZOOM
-                );
-
-                if (isMobile()) {
-                    openFridgeSheet(f);
-                } else {
-                    marker.openPopup();
-                }
-            });
-
-            state.markerMap.set(f.id, marker);
-        });
-
-        index += chunkSize;
-
-        if (index < fridges.length) {
-            requestAnimationFrame(processChunk);
-        }
+        // open sheet
+        sheet.classList.add("open");
     }
-
-    processChunk();
-}
-        
-        let sheetStartY = 0;
-        let sheetDragging = false;
-
+    function closeFridgeSheet() {
         const sheet = document.getElementById("fridge-sheet");
 
-        sheet.addEventListener("touchstart", (e) => {
-            sheetStartY = e.touches[0].clientY;
-            sheetDragging = true;
-        });
+        sheet.classList.remove("open");
 
-        sheet.addEventListener("touchmove", (e) => {
-            if (!sheetDragging) return;
+        // reset swipe transform
+        sheet.style.transform = "";
+    }
+    function createMarkers(fridges) {
 
-            const currentY = e.touches[0].clientY;
-            const delta = currentY - sheetStartY;
+        let index = 0;
+        const chunkSize = 125;
 
-            // swipe down only
-            if (delta > 0) {
-                sheet.style.transform = `translateY(${delta}px)`;
+        function processChunk() {
+
+            const slice = fridges.slice(index, index + chunkSize);
+
+            slice.forEach(f => {
+
+                if (state.markerMap.has(f.id)) return;
+
+                const marker = L.marker(
+                    [f.lat, f.lng],
+                    { icon: fridgeIcon }
+                ).addTo(map);
+
+                if (!isMobile()) {
+                    marker.bindPopup(createFridgePopup(f));
+                }
+
+                marker.on('click', () => {
+                    saveRecentlyViewed(f);
+
+                    map.setView(
+                        [f.lat, f.lng],
+                        CONFIG.FRIDGE_ZOOM
+                    );
+
+                    if (isMobile()) {
+                        openFridgeSheet(f);
+                    } else {
+                        marker.openPopup();
+                    }
+                });
+
+                state.markerMap.set(f.id, marker);
+            });
+
+            index += chunkSize;
+
+            if (index < fridges.length) {
+                requestAnimationFrame(processChunk);
             }
-        });
+        }
 
-        sheet.addEventListener("touchend", (e) => {
-            sheetDragging = false;
+        processChunk();
+    }
 
-            const endY = e.changedTouches[0].clientY;
-            const delta = endY - sheetStartY;
+    let sheetStartY = 0;
+    let sheetDragging = false;
 
-            if (delta > 120) {
-                closeFridgeSheet();
-            } else {
-                sheet.style.transform = "";
-            }
-        });
+    const sheet = document.getElementById("fridge-sheet");
 
-function prepareFridges(fridges) {
+    sheet.addEventListener("touchstart", (e) => {
+        sheetStartY = e.touches[0].clientY;
+        sheetDragging = true;
+    });
 
-    return fridges
-        .map(f => ({
-            ...f,
-            distance: state.userLat
-                ? getDistance(
-                    state.userLat,
-                    state.userLng,
-                    f.lat,
-                    f.lng
-                )
-                : null
-        }))
-        .sort((a, b) =>
-            (a.distance || 999) -
-            (b.distance || 999)
-        );
-}
+    sheet.addEventListener("touchmove", (e) => {
+        if (!sheetDragging) return;
 
-        /* =========================================================
-           RENDER FRIDGES
-        ========================================================= */
-        let lastRenderKey = "";
+        const currentY = e.touches[0].clientY;
+        const delta = currentY - sheetStartY;
+
+        // swipe down only
+        if (delta > 0) {
+            sheet.style.transform = `translateY(${delta}px)`;
+        }
+    });
+
+    sheet.addEventListener("touchend", (e) => {
+        sheetDragging = false;
+
+        const endY = e.changedTouches[0].clientY;
+        const delta = endY - sheetStartY;
+
+        if (delta > 120) {
+            closeFridgeSheet();
+        } else {
+            sheet.style.transform = "";
+        }
+    });
+
+    function prepareFridges(fridges) {
+
+        return fridges
+            .map(f => ({
+                ...f,
+                distance: state.userLat
+                    ? getDistance(
+                        state.userLat,
+                        state.userLng,
+                        f.lat,
+                        f.lng
+                    )
+                    : null
+            }))
+            .sort((a, b) =>
+                (a.distance || 999) -
+                (b.distance || 999)
+            );
+    }
+
+    /* =========================================================
+       RENDER FRIDGES
+    ========================================================= */
+    let lastRenderKey = "";
 
 
 
-        /* =========================
-           RENDER SIDEBAR ONLY
-        ========================= */
-        function renderFridges(fridges) {
+    /* =========================
+       RENDER SIDEBAR ONLY
+    ========================= */
+    function renderFridges(fridges) {
 
-            clearHTML(DOM.fridgeList);
+        clearHTML(DOM.fridgeList);
 
-            const fragment =
-                document.createDocumentFragment();
+        const fragment =
+            document.createDocumentFragment();
 
-            const fridgesWithData = fridges;
+        const fridgesWithData = fridges;
 
-            fridgesWithData.forEach(f => {
+        fridgesWithData.forEach(f => {
 
-                const marker = state.markerMap.get(f.id);
+            const marker = state.markerMap.get(f.id);
 
-                const li =
-                    document.createElement("li");
+            const li =
+                document.createElement("li");
 
-                li.className = `
+            li.className = `
 p-4 rounded-2xl cursor-pointer
 bg-white dark:bg-[#2a2545]
 border border-gray-200 dark:border-[#40376E]
@@ -2111,7 +2199,7 @@ sm:justify-between sm:items-center
 gap-3
 `;
 
-                li.innerHTML = `
+            li.innerHTML = `
 <div class="flex flex-col">
 
     <span class="font-bold text-base">
@@ -2136,186 +2224,186 @@ gap-3
 </div>
 
 ${f.distance
-                        ? `<span class="text-xs font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-[#1f1a3a] px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>`
-                        : ''}
+                    ? `<span class="text-xs font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-[#1f1a3a] px-2 py-1 rounded-lg">${f.distance.toFixed(1)} mi</span>`
+                    : ''}
 `;
 
-                li.querySelector(".details-btn")
-                    .onclick = (e) => {
+            li.querySelector(".details-btn")
+                .onclick = (e) => {
 
-                        e.stopPropagation();
-
-                        saveRecentlyViewed(f);
-
-                        window.location.href =
-                            `/individfridge/${f.id}`;
-                    };
-
-                li.querySelector(".fav-btn")
-                    .onclick = async (e) => {
-
-                        e.stopPropagation();
-
-                        await toggleFavorite(f);
-
-                        // toggle local state
-                        f.isFavorite = !f.isFavorite;
-
-                        // update button color instantly
-                        e.target.classList.toggle("favorited");
-                    };
-
-                li.onclick = () => {
+                    e.stopPropagation();
 
                     saveRecentlyViewed(f);
 
-                    map.setView(
-                        [f.lat, f.lng],
-                        CONFIG.FRIDGE_ZOOM
-                    );
-
-                    marker.openPopup();
-
-                    if (!isMobile()) {
-                        window.routeToFridge(f.lat, f.lng);
-                    }
+                    window.location.href =
+                        `/individfridge/${f.id}`;
                 };
 
-                fragment.appendChild(li);
-            });
+            li.querySelector(".fav-btn")
+                .onclick = async (e) => {
 
-            DOM.fridgeList.appendChild(fragment);
-        }
+                    e.stopPropagation();
 
-        /* =========================================================
-           LOAD FRIDGES
-        ========================================================= */
-function loadFridges() {
+                    await toggleFavorite(f);
 
-    // 1. instant UI state
-    DOM.fridgeList.innerHTML = `
+                    // toggle local state
+                    f.isFavorite = !f.isFavorite;
+
+                    // update button color instantly
+                    e.target.classList.toggle("favorited");
+                };
+
+            li.onclick = () => {
+
+                saveRecentlyViewed(f);
+
+                map.setView(
+                    [f.lat, f.lng],
+                    CONFIG.FRIDGE_ZOOM
+                );
+
+                marker.openPopup();
+
+                if (!isMobile()) {
+                    window.routeToFridge(f.lat, f.lng);
+                }
+            };
+
+            fragment.appendChild(li);
+        });
+
+        DOM.fridgeList.appendChild(fragment);
+    }
+
+    /* =========================================================
+       LOAD FRIDGES
+    ========================================================= */
+    function loadFridges() {
+
+        // 1. instant UI state
+        DOM.fridgeList.innerHTML = `
         <li class="p-4 text-xs text-gray-400 animate-pulse">
             Loading fridges...
         </li>
     `;
 
-    // 2. async fetch (non-blocking)
-    apiGet(CONFIG.API.FRIDGES)
-        .then(data => {
+        // 2. async fetch (non-blocking)
+        apiGet(CONFIG.API.FRIDGES)
+            .then(data => {
 
-            state.allFridges = data;
+                state.allFridges = data;
 
-            // sidebar updates immediately
-            renderFridges(data);
+                // sidebar updates immediately
+                renderFridges(data);
 
-            // markers delayed slightly so UI doesn't freeze
-            setTimeout(() => {
-                createMarkers(data);
-            }, 50);
+                // markers delayed slightly so UI doesn't freeze
+                setTimeout(() => {
+                    createMarkers(data);
+                }, 50);
 
-        })
-        .catch(err => {
-            console.error(err);
+            })
+            .catch(err => {
+                console.error(err);
 
-            DOM.fridgeList.innerHTML = `
+                DOM.fridgeList.innerHTML = `
                 <li class="p-4 text-red-400 text-xs">
                     Failed to load fridges
                 </li>
             `;
-        });
-}
-
-        /* =========================================================
-           SEARCH
-        ========================================================= */
-        DOM.fridgeSearch.oninput = debounce((e) => {
-
-            const value =
-                e.target.value.toLowerCase();
-
-            renderFridges(
-                state.allFridges.filter(f =>
-                    f.name.toLowerCase()
-                        .includes(value)
-                )
-            );
-
-        });
-
-        const mobileSearch =
-            document.getElementById("mobile-fridge-search");
-
-        if (mobileSearch) {
-
-            mobileSearch.addEventListener(
-                "input",
-                debounce((e) => {
-
-                    const value =
-                        e.target.value.toLowerCase();
-
-                    renderFridges(
-                        state.allFridges.filter(f =>
-                            f.name.toLowerCase()
-                                .includes(value)
-                        )
-                    );
-                })
-            );
-        }
-
-        /* =========================================================
-           FAVORITES ENGINE (PATCHED)
-        ========================================================= */
-
-        // 1. Fallback Fetch Client Handlers (Ensures code doesn't crash if imported standalone)
-        const safeApiGet = async (url) => {
-            if (typeof apiGet === 'function') return await apiGet(url);
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-            return res.json();
-        };
-
-        const safeApiPost = async (url, body = {}) => {
-            if (typeof apiPost === 'function') return await apiPost(url, body);
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
             });
-            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-            return res.json();
-        };
+    }
 
-        /* =========================================================
-           RENDER FAVORITES CONTAINER
-        ========================================================= */
-        function renderFavoritesList(favorites) {
-            if (!DOM.favoritesList) return;
-            clearHTML(DOM.favoritesList);
+    /* =========================================================
+       SEARCH
+    ========================================================= */
+    DOM.fridgeSearch.oninput = debounce((e) => {
 
-            if (favorites.length === 0) {
-                DOM.favoritesList.innerHTML = `
+        const value =
+            e.target.value.toLowerCase();
+
+        renderFridges(
+            state.allFridges.filter(f =>
+                f.name.toLowerCase()
+                    .includes(value)
+            )
+        );
+
+    });
+
+    const mobileSearch =
+        document.getElementById("mobile-fridge-search");
+
+    if (mobileSearch) {
+
+        mobileSearch.addEventListener(
+            "input",
+            debounce((e) => {
+
+                const value =
+                    e.target.value.toLowerCase();
+
+                renderFridges(
+                    state.allFridges.filter(f =>
+                        f.name.toLowerCase()
+                            .includes(value)
+                    )
+                );
+            })
+        );
+    }
+
+    /* =========================================================
+       FAVORITES ENGINE (PATCHED)
+    ========================================================= */
+
+    // 1. Fallback Fetch Client Handlers (Ensures code doesn't crash if imported standalone)
+    const safeApiGet = async (url) => {
+        if (typeof apiGet === 'function') return await apiGet(url);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        return res.json();
+    };
+
+    const safeApiPost = async (url, body = {}) => {
+        if (typeof apiPost === 'function') return await apiPost(url, body);
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        return res.json();
+    };
+
+    /* =========================================================
+       RENDER FAVORITES CONTAINER
+    ========================================================= */
+    function renderFavoritesList(favorites) {
+        if (!DOM.favoritesList) return;
+        clearHTML(DOM.favoritesList);
+
+        if (favorites.length === 0) {
+            DOM.favoritesList.innerHTML = `
             <li class="text-xs text-gray-400 dark:text-purple-300/40 py-2 text-center border-2 border-dashed border-gray-100 dark:border-[#40376E] rounded-xl">
                 No favorites added yet.
             </li>
         `;
-                return;
-            }
+            return;
+        }
 
-            const fragment = document.createDocumentFragment();
-            favorites.forEach(f => {
-                const id = f.ID || f.id;
-                const name = f.Name || f.name;
-                const address = f.Address || f.address || "Community Fridge";
-                const lat = f.Lat || f.lat;
-                const lng = f.Lng || f.lng;
+        const fragment = document.createDocumentFragment();
+        favorites.forEach(f => {
+            const id = f.ID || f.id;
+            const name = f.Name || f.name;
+            const address = f.Address || f.address || "Community Fridge";
+            const lat = f.Lat || f.lat;
+            const lng = f.Lng || f.lng;
 
-                const li = document.createElement("li");
-                li.id = `fav-item-${id}`;
-                li.className = "flex justify-between items-center p-2.5 rounded-xl bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] text-sm shadow-sm transition hover:shadow";
+            const li = document.createElement("li");
+            li.id = `fav-item-${id}`;
+            li.className = "flex justify-between items-center p-2.5 rounded-xl bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] text-sm shadow-sm transition hover:shadow";
 
-                li.innerHTML = `
+            li.innerHTML = `
             <div class="cursor-pointer flex-grow truncate mr-2" onclick="window.routeToFridge(${lat}, ${lng})">
                 <p class="font-bold text-gray-900 dark:text-white text-xs truncate">${name}</p>
                 <p class="text-[10px] text-gray-400 truncate max-w-[180px]">${address}</p>
@@ -2325,94 +2413,50 @@ function loadFridges() {
             </button>
         `;
 
-                // Direct explicit action hook binding targeting the star selector element inside the node
-                li.querySelector("button").onclick = async (e) => {
-                    e.stopPropagation();
-                    await window.toggleFavorite({ id, lat, lng, name, address });
-                };
+            // Direct explicit action hook binding targeting the star selector element inside the node
+            li.querySelector("button").onclick = async (e) => {
+                e.stopPropagation();
+                await window.toggleFavorite({ id, lat, lng, name, address });
+            };
 
-                fragment.appendChild(li);
-            });
+            fragment.appendChild(li);
+        });
 
-            DOM.favoritesList.appendChild(fragment);
+        DOM.favoritesList.appendChild(fragment);
+    }
+
+    async function loadFavoritesFromServer() {
+        try {
+            const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.FAVORITES) ? CONFIG.API.FAVORITES : "/get-favorites";
+            const favorites = await safeApiGet(endpoint);
+            renderFavoritesList(favorites);
+        } catch (err) {
+            console.error("Failed to load favorites list:", err);
         }
+    }
 
-        async function loadFavoritesFromServer() {
-            try {
-                const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.FAVORITES) ? CONFIG.API.FAVORITES : "/get-favorites";
-                const favorites = await safeApiGet(endpoint);
-                renderFavoritesList(favorites);
-            } catch (err) {
-                console.error("Failed to load favorites list:", err);
-            }
-        }
+    /* =========================================================
+       GLOBAL MUTATION STAR ACTIONS
+    ========================================================= */
+    window.toggleFavorite = async function (fridge) {
+        try {
+            const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.TOGGLE_FAVORITE) ? CONFIG.API.TOGGLE_FAVORITE : "/toggle-favorite";
+            const id = fridge.id || fridge.ID;
 
-        /* =========================================================
-           GLOBAL MUTATION STAR ACTIONS
-        ========================================================= */
-        window.toggleFavorite = async function (fridge) {
-            try {
-                const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.API?.TOGGLE_FAVORITE) ? CONFIG.API.TOGGLE_FAVORITE : "/toggle-favorite";
-                const id = fridge.id || fridge.ID;
+            const data = await safeApiPost(endpoint, { fridge_id: id });
 
-                const data = await safeApiPost(endpoint, { fridge_id: id });
-
-                if (data.success || data.action) {
-                    // Update the baseline status element models held locally in map state arrays
-                    const localMatch = state.allFridges.find(f => (f.id || f.ID) === id);
-                    if (localMatch) {
-                        localMatch.isFavorite = (data.action === "added");
-                    }
-
-                    // Sync visual button modifications on parent listings without rewriting layout nodes
-                    document.querySelectorAll(".fav-btn").forEach(btn => {
-                        const parentLi = btn.closest("li");
-                        // Fallback check to scan structural elements during event handling passes
-                        if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${id}'`)) {
-                            if (data.action === "added") {
-                                btn.classList.add("favorited");
-                            } else {
-                                btn.classList.remove("favorited");
-                            }
-                        }
-                    });
-
-                    // Re-render the side list component container with fresh server sync data
-                    await loadFavoritesFromServer();
-
-                    // Broadcast structural data synchronization tokens to open background view windows
-                    if (window.BroadcastChannel) {
-                        new BroadcastChannel('favorites_sync').postMessage({
-                            action: data.action,
-                            fridge_id: id,
-                            fridge_name: fridge.name || fridge.Name,
-                            fridge_address: fridge.address || fridge.Address
-                        });
-                    }
-                }
-            } catch (err) {
-                console.error("Critical favorite toggle transaction failed:", err);
-            }
-        };
-
-        /* =========================================================
-           CROSS-WINDOW REALTIME POST-MESSAGE REGISTER
-        ========================================================= */
-        if (window.BroadcastChannel) {
-            const syncChannel = new BroadcastChannel('favorites_sync');
-            syncChannel.onmessage = async (event) => {
-                const data = event.data;
-
-                // Find local object references inside the global application registry arrays
-                const targetedFridge = state.allFridges.find(f => (f.id || f.ID) === data.fridge_id);
-                if (targetedFridge) {
-                    targetedFridge.isFavorite = (data.action === "added");
+            if (data.success || data.action) {
+                // Update the baseline status element models held locally in map state arrays
+                const localMatch = state.allFridges.find(f => (f.id || f.ID) === id);
+                if (localMatch) {
+                    localMatch.isFavorite = (data.action === "added");
                 }
 
-                // Apply synchronized state styling mutations directly onto UI buttons
+                // Sync visual button modifications on parent listings without rewriting layout nodes
                 document.querySelectorAll(".fav-btn").forEach(btn => {
                     const parentLi = btn.closest("li");
-                    if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${data.fridge_id}'`)) {
+                    // Fallback check to scan structural elements during event handling passes
+                    if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${id}'`)) {
                         if (data.action === "added") {
                             btn.classList.add("favorited");
                         } else {
@@ -2421,84 +2465,128 @@ function loadFridges() {
                     }
                 });
 
-                // Pull down cleanly formed HTML items down to populate sidebar viewports
+                // Re-render the side list component container with fresh server sync data
                 await loadFavoritesFromServer();
-            };
+
+                // Broadcast structural data synchronization tokens to open background view windows
+                if (window.BroadcastChannel) {
+                    new BroadcastChannel('favorites_sync').postMessage({
+                        action: data.action,
+                        fridge_id: id,
+                        fridge_name: fridge.name || fridge.Name,
+                        fridge_address: fridge.address || fridge.Address
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("Critical favorite toggle transaction failed:", err);
         }
+    };
 
-window.addEventListener("pageshow", () => {
-    if (window.map) {
-        setTimeout(() => {
-            map.invalidateSize(true);
-        }, 200);
-    }
-});
+    /* =========================================================
+       CROSS-WINDOW REALTIME POST-MESSAGE REGISTER
+    ========================================================= */
+    if (window.BroadcastChannel) {
+        const syncChannel = new BroadcastChannel('favorites_sync');
+        syncChannel.onmessage = async (event) => {
+            const data = event.data;
 
-window.addEventListener("focus", () => {
-    if (window.map) {
-        map.invalidateSize(true);
-    }
-});
+            // Find local object references inside the global application registry arrays
+            const targetedFridge = state.allFridges.find(f => (f.id || f.ID) === data.fridge_id);
+            if (targetedFridge) {
+                targetedFridge.isFavorite = (data.action === "added");
+            }
 
-        /* =========================================================
-           RECENTS
-        ========================================================= */
-        function saveRecentlyViewed(fridge) {
-
-            let recent =
-                JSON.parse(
-                    localStorage.getItem("recentFridges")
-                ) || [];
-
-            recent = recent.filter(
-                f => f.id !== (
-                    fridge.id || fridge.ID
-                )
-            );
-
-            recent.unshift({
-                id: fridge.id || fridge.ID,
-                name: fridge.name || fridge.Name
+            // Apply synchronized state styling mutations directly onto UI buttons
+            document.querySelectorAll(".fav-btn").forEach(btn => {
+                const parentLi = btn.closest("li");
+                if (parentLi && parentLi.innerHTML.includes(`window.location.href='/individfridge/${data.fridge_id}'`)) {
+                    if (data.action === "added") {
+                        btn.classList.add("favorited");
+                    } else {
+                        btn.classList.remove("favorited");
+                    }
+                }
             });
 
-            recent = recent.slice(0, 5);
+            // Pull down cleanly formed HTML items down to populate sidebar viewports
+            await loadFavoritesFromServer();
+        };
+    }
 
-            localStorage.setItem(
-                "recentFridges",
-                JSON.stringify(recent)
-            );
-
-            renderRecent();
+    window.addEventListener("pageshow", () => {
+        if (window.map) {
+            setTimeout(() => {
+                map.invalidateSize(true);
+            }, 200);
         }
+    });
 
-        function renderRecent() {
+    window.addEventListener("focus", () => {
+        if (window.map) {
+            map.invalidateSize(true);
+        }
+    });
 
-            if (!DOM.recentList) return;
+    /* =========================================================
+       RECENTS
+    ========================================================= */
+    function saveRecentlyViewed(fridge) {
 
-            const data =
-                JSON.parse(
-                    localStorage.getItem("recentFridges")
-                ) || [];
+        let recent =
+            JSON.parse(
+                localStorage.getItem("recentFridges")
+            ) || [];
 
-            clearHTML(DOM.recentList);
+        recent = recent.filter(
+            f => f.id !== (
+                fridge.id || fridge.ID
+            )
+        );
 
-            if (!data.length) {
+        recent.unshift({
+            id: fridge.id || fridge.ID,
+            name: fridge.name || fridge.Name
+        });
 
-                DOM.recentList.innerHTML = `
+        recent = recent.slice(0, 5);
+
+        localStorage.setItem(
+            "recentFridges",
+            JSON.stringify(recent)
+        );
+
+        renderRecent();
+    }
+
+    function renderRecent() {
+
+        if (!DOM.recentList) return;
+
+        const data =
+            JSON.parse(
+                localStorage.getItem("recentFridges")
+            ) || [];
+
+        clearHTML(DOM.recentList);
+
+        if (!data.length) {
+
+            DOM.recentList.innerHTML = `
 <li class="p-3 text-xs text-gray-400 italic text-center bg-gray-50 dark:bg-[#2a2545] border border-gray-200 dark:border-[#40376E] rounded-xl">
     No recent activity
 </li>
 `;
 
-                return;
-            }
+            return;
+        }
 
-            data.forEach(f => {
+        data.forEach(f => {
 
-                const li =
-                    document.createElement("li");
+            const li =
+                document.createElement("li");
 
-                li.className = `
+            li.className = `
 p-3 bg-gray-50 dark:bg-[#2a2545]
 border border-gray-200 dark:border-[#40376E]
 rounded-xl flex justify-between items-center
@@ -2507,7 +2595,7 @@ dark:hover:bg-[#40376E]
 transition-all
 `;
 
-                li.innerHTML = `
+            li.innerHTML = `
 <div class="flex items-center gap-2 flex-grow">
 
     <span class="text-xs">🕒</span>
@@ -2523,528 +2611,531 @@ transition-all
 </span>
 `;
 
-                li.onclick = () => {
-                    window.location.href =
-                        `/individfridge/${f.id}`;
-                };
+            li.onclick = () => {
+                window.location.href =
+                    `/individfridge/${f.id}`;
+            };
 
-                DOM.recentList.appendChild(li);
-            });
-        }
+            DOM.recentList.appendChild(li);
+        });
+    }
 
 
-        /* =========================================================
-           CLEAR / UNDO RECENTS
-        ========================================================= */
-        DOM.clearRecents.onclick = () => {
+    /* =========================================================
+       CLEAR / UNDO RECENTS
+    ========================================================= */
+    DOM.clearRecents.onclick = () => {
 
-            const current =
-                localStorage.getItem("recentFridges");
+        const current =
+            localStorage.getItem("recentFridges");
 
-            if (!current) return;
+        if (!current) return;
 
-            state.recentsBackup = current;
+        state.recentsBackup = current;
 
-            localStorage.removeItem("recentFridges");
+        localStorage.removeItem("recentFridges");
 
-            renderRecent();
+        renderRecent();
 
-            show(DOM.undoRecents);
-            hide(DOM.clearRecents);
+        show(DOM.undoRecents);
+        hide(DOM.clearRecents);
 
-            let timeLeft = 3;
+        let timeLeft = 3;
 
-            DOM.undoRecents.textContent =
-                `Undo (${timeLeft})`;
+        DOM.undoRecents.textContent =
+            `Undo (${timeLeft})`;
 
-            clearTimeout(state.undoTimeout);
-            clearInterval(state.undoInterval);
+        clearTimeout(state.undoTimeout);
+        clearInterval(state.undoInterval);
 
-            state.undoInterval = setInterval(() => {
+        state.undoInterval = setInterval(() => {
 
-                timeLeft--;
+            timeLeft--;
 
-                if (timeLeft > 0) {
+            if (timeLeft > 0) {
 
-                    DOM.undoRecents.textContent =
-                        `Undo (${timeLeft})`;
+                DOM.undoRecents.textContent =
+                    `Undo (${timeLeft})`;
 
-                } else {
-
-                    DOM.undoRecents.textContent =
-                        "Undo";
-
-                    clearInterval(state.undoInterval);
-                }
-
-            }, 1000);
-
-            state.undoTimeout = setTimeout(() => {
-
-                state.recentsBackup = null;
-
-                hide(DOM.undoRecents);
-                show(DOM.clearRecents);
+            } else {
 
                 DOM.undoRecents.textContent =
                     "Undo";
 
                 clearInterval(state.undoInterval);
+            }
 
-            }, 3000);
-        };
+        }, 1000);
 
-        DOM.undoRecents.onclick = () => {
-
-            if (!state.recentsBackup) return;
-
-            localStorage.setItem(
-                "recentFridges",
-                state.recentsBackup
-            );
-
-            renderRecent();
+        state.undoTimeout = setTimeout(() => {
 
             state.recentsBackup = null;
 
             hide(DOM.undoRecents);
             show(DOM.clearRecents);
 
-            clearTimeout(state.undoTimeout);
+            DOM.undoRecents.textContent =
+                "Undo";
+
             clearInterval(state.undoInterval);
-        };
 
-const cached = localStorage.getItem("fridges");
+        }, 3000);
+    };
 
-if (cached) {
-    const data = JSON.parse(cached);
-    state.allFridges = data;
-    renderFridges(data);
-    createMarkers(data);
-}
+    DOM.undoRecents.onclick = () => {
 
-apiGet(CONFIG.API.FRIDGES).then(data => {
-    localStorage.setItem("fridges", JSON.stringify(data));
-    state.allFridges = data;
-    renderFridges(data);
-    createMarkers(data);
-});
+        if (!state.recentsBackup) return;
 
-loadFridges();
-
-navigator.geolocation.getCurrentPosition(
-
-    pos => {
-
-        setUserLocation(
-            pos.coords.latitude,
-            pos.coords.longitude
+        localStorage.setItem(
+            "recentFridges",
+            state.recentsBackup
         );
-    },
 
-    () => {
+        renderRecent();
 
-        setUserLocation(
-            CONFIG.DEFAULT_LOCATION[0],
-            CONFIG.DEFAULT_LOCATION[1]
-        );
-    }
-);
+        state.recentsBackup = null;
 
+        hide(DOM.undoRecents);
+        show(DOM.clearRecents);
 
-        /* =========================================================
-           TRANSPORT MODE
-        ========================================================= */
-        document.querySelectorAll(
-            'input[name="transport"]'
-        ).forEach(radio => {
+        clearTimeout(state.undoTimeout);
+        clearInterval(state.undoInterval);
+    };
 
-            radio.addEventListener("change", () => {
+    const cached = localStorage.getItem("fridges");
 
-                if (!state.currentTargetFridge) return;
-
-                window.routeToFridge(
-                    state.currentTargetFridge.lat,
-                    state.currentTargetFridge.lng
-                );
-            });
-
-        });
-
-
-        /* =========================================================
-           START LOCATION SEARCH
-        ========================================================= */
-        DOM.setStart.onclick = async () => {
-
-            try {
-
-                const address =
-                    DOM.startLocation.value;
-
-                const data = await apiGet(
-                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
-                );
-
-                if (data[0]) {
-
-                    setUserLocation(
-                        parseFloat(data[0].lat),
-                        parseFloat(data[0].lon)
-                    );
-                }
-
-            } catch (err) {
-
-                console.error(err);
-
-                const style = window.getComputedStyle(el);
-
-                const hidden =
-                    style.display === "none" ||
-                    style.visibility === "hidden";
-
-                if (!hidden) return el;
-            }
-
-            return null;
-        }
-
-        function moveSpotlight(rect) {
-            spotlight.style.width = rect.width + "px";
-            spotlight.style.height = rect.height + "px";
-            spotlight.style.transform =
-                `translate(${rect.left + window.scrollX}px, ${rect.top + window.scrollY}px)`;
-        }
-
-        function moveTooltip(rect) {
-
-            const NAVBAR_HEIGHT = 90;
-            const PADDING = 16;
-            const GAP = 18;
-
-            const tooltipRect = tooltip.getBoundingClientRect();
-
-            const tooltipWidth = tooltipRect.width || 320;
-            const tooltipHeight = tooltipRect.height || 180;
-
-            /* =========================
-               DEFAULT POSITION
-               BELOW + CENTERED
-            ========================= */
-
-            let left =
-                rect.left +
-                (rect.width / 2) -
-                (tooltipWidth / 2);
-
-            let top =
-                rect.bottom + GAP;
-
-            let position = "bottom";
-
-            /* =========================
-               IF TOO LOW -> PLACE ABOVE
-            ========================= */
-
-            if (
-                top + tooltipHeight >
-                window.innerHeight - PADDING
-            ) {
-
-                top =
-                    rect.top -
-                    tooltipHeight -
-                    GAP;
-
-                position = "top";
-            }
-
-            /* =========================
-               NAVBAR COLLISION
-            ========================= */
-
-            if (top < NAVBAR_HEIGHT) {
-
-                top = NAVBAR_HEIGHT + 12;
-
-                position = "bottom";
-            }
-
-
-            /* =========================
-               LEFT EDGE
-            ========================= */
-
-            if (left < PADDING) {
-                left = PADDING;
-            }
-
-            /* =========================
-               RIGHT EDGE
-            ========================= */
-
-            if (
-                left + tooltipWidth >
-                window.innerWidth - PADDING
-            ) {
-
-                left =
-                    window.innerWidth -
-                    tooltipWidth -
-                    PADDING;
-            }
-
-            /* =========================
-               MOBILE MODE
-            ========================= */
-
-            if (window.innerWidth < 768) {
-
-                left = 16;
-                top = window.innerHeight - tooltipHeight - 28;
-
-                tooltip.style.width =
-                    "calc(100vw - 32px)";
-            } else {
-
-                tooltip.style.width = "";
-            }
-
-            /* =========================
-               APPLY
-            ========================= */
-
-            top = Math.max(
-    12,
-    Math.min(
-        top,
-        window.innerHeight - tooltipRect.height - 12
-    )
-);
-
-tooltip.style.top = `${top}px`;
-tooltip.style.left = `${left}px`;
-
-            tooltip.dataset.position = position;
-        };
-
-        /* =========================================================
-           REOPEN DIRECTIONS
-        ========================================================= */
-        DOM.reopenDirections.onclick = () => {
-
-            if (state.lastRoute) {
-
-                restoreLastRoute();
-
-            } else if (
-                state.currentTargetFridge &&
-                state.userLat &&
-                state.userLng
-            ) {
-
-                window.routeToFridge(
-                    state.currentTargetFridge.lat,
-                    state.currentTargetFridge.lng
-                );
-            }
-
-            if (isMobile()) {
-
-                show(DOM.directionsModal);
-
-            } else {
-
-                openSidebar();
-            }
-
-            hide(DOM.reopenDirections);
-
-            setTimeout(() => {
-                safeMapResize();
-            }, 250);
-        };
-
-        window.closeDirectionsModal = function () {
-            hide(DOM.directionsModal);
-
-            // show compact reopen button like "CLEAR"
-            if (state.lastRoute || state.currentTargetFridge) {
-                show(DOM.reopenDirections);
-            }
-        };
-
-window.startMapTutorial = function () {
-
-    if (!window.driver?.js?.driver) {
-        console.error("Driver.js not loaded");
-        return;
+    if (cached) {
+        const data = JSON.parse(cached);
+        state.allFridges = data;
+        renderFridges(data);
+        createMarkers(data);
     }
 
-    let fridgeClicked = false;
-
-    const driver = window.driver.js.driver({
-
-        showProgress: true,
-        allowClose: true,
-        animate: true,
-
-        onHighlightStarted: (element) => {
-            element?.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-            });
-        },
-
-        steps: [
-
-            {
-                element: "#map",
-                popover: {
-                    title: "Interactive Map",
-                    description:
-                        "Fridges appear on this map. Tap any fridge marker to interact with it."
-                }
-            },
-
-            {
-                element: "#sidebar-toggle",
-                popover: {
-                    title: "Fridge Browser",
-                    description:
-                        "Browse nearby community fridges from the sidebar."
-                }
-            },
-
-            {
-                element: "#fridge-search",
-                popover: {
-                    title: "Search",
-                    description:
-                        "Search for fridges by name."
-                }
-            },
-
-            {
-                element: "#transport-controls",
-                popover: {
-                    title: "Travel Modes",
-                    description:
-                        "Switch between walking, biking, and driving directions."
-                }
-            },
-
-            {
-                element: "#map",
-                popover: {
-                    title: "Your Turn",
-                    description:
-                        "Next: click any fridge marker on the map to continue the tutorial.",
-                    showButtons: []
-                },
-
-                onHighlightStarted: () => {
-
-                    fridgeClicked = false;
-
-                    const cleanup = [];
-
-                    state.markerMap.forEach((marker) => {
-
-                        const handler = () => {
-
-                            if (fridgeClicked) return;
-
-                            fridgeClicked = true;
-
-                            cleanup.forEach(fn => fn());
-
-                            setTimeout(() => {
-                                driver.moveNext();
-                            }, 500);
-                        };
-
-                        marker.once("click", handler);
-
-                        cleanup.push(() => {
-                            marker.off("click", handler);
-                        });
-                    });
-                }
-            },
-
-            {
-                element: "#fridge-sheet",
-                popover: {
-                    title: "Fridge Details",
-                    description:
-                        "This panel shows fridge information and quick actions."
-                }
-            },
-
-            {
-                element: "#favorites-list",
-                popover: {
-                    title: "Favorites",
-                    description:
-                        "Save your favorite fridges for quick access later."
-                }
-            },
-
-            {
-                element: "#recent-list",
-                popover: {
-                    title: "Recently Viewed",
-                    description:
-                        "Your recently opened fridges appear here."
-                }
-            },
-
-            {
-                element: "#routing-directions",
-                popover: {
-                    title: "Directions",
-                    description:
-                        "Step-by-step route guidance appears here after choosing directions."
-                }
-            },
-
-            {
-                element: "#fridge-list",
-                popover: {
-                    title: "You're Ready",
-                    description:
-                        "Explore the map and help support your local community."
-                }
-            }
-        ]
+    apiGet(CONFIG.API.FRIDGES).then(data => {
+        localStorage.setItem("fridges", JSON.stringify(data));
+        state.allFridges = data;
+        renderFridges(data);
+        createMarkers(data);
     });
 
-    window.mapTour = driver;
+    loadFridges();
 
-    driver.drive();
-};
+    navigator.geolocation.getCurrentPosition(
 
+        pos => {
 
-window.restartMapTutorial = function () {
+            setUserLocation(
+                pos.coords.latitude,
+                pos.coords.longitude
+            );
+        },
 
-    // destroy previous instance safely
-    if (window.mapTour) {
-        try {
-            window.mapTour.destroy();
-        } catch (e) {
-            console.warn(e);
+        () => {
+
+            setUserLocation(
+                CONFIG.DEFAULT_LOCATION[0],
+                CONFIG.DEFAULT_LOCATION[1]
+            );
         }
+    );
+
+
+    /* =========================================================
+       TRANSPORT MODE
+    ========================================================= */
+    document.querySelectorAll(
+        'input[name="transport"]'
+    ).forEach(radio => {
+
+        radio.addEventListener("change", () => {
+
+            if (!state.currentTargetFridge) return;
+
+            window.routeToFridge(
+                state.currentTargetFridge.lat,
+                state.currentTargetFridge.lng
+            );
+        });
+
+    });
+
+
+    /* =========================================================
+       START LOCATION SEARCH
+    ========================================================= */
+    DOM.setStart.onclick = async () => {
+
+        try {
+
+            const address =
+                DOM.startLocation.value;
+
+            const data = await apiGet(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+            );
+
+            if (data[0]) {
+
+                setUserLocation(
+                    parseFloat(data[0].lat),
+                    parseFloat(data[0].lon)
+                );
+            }
+
+        } catch (err) {
+
+            console.error(err);
+
+            const style = window.getComputedStyle(el);
+
+            const hidden =
+                style.display === "none" ||
+                style.visibility === "hidden";
+
+            if (!hidden) return el;
+        }
+
+        return null;
     }
 
-    // restart tutorial
-    window.startMapTutorial();
-};
+    function moveSpotlight(rect) {
+        spotlight.style.width = rect.width + "px";
+        spotlight.style.height = rect.height + "px";
+        spotlight.style.transform =
+            `translate(${rect.left + window.scrollX}px, ${rect.top + window.scrollY}px)`;
+    }
+
+    function moveTooltip(rect) {
+
+        const NAVBAR_HEIGHT = 90;
+        const PADDING = 16;
+        const GAP = 18;
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        const tooltipWidth = tooltipRect.width || 320;
+        const tooltipHeight = tooltipRect.height || 180;
+
+        /* =========================
+           DEFAULT POSITION
+           BELOW + CENTERED
+        ========================= */
+
+        let left =
+            rect.left +
+            (rect.width / 2) -
+            (tooltipWidth / 2);
+
+        let top =
+            rect.bottom + GAP;
+
+        let position = "bottom";
+
+        /* =========================
+           IF TOO LOW -> PLACE ABOVE
+        ========================= */
+
+        if (
+            top + tooltipHeight >
+            window.innerHeight - PADDING
+        ) {
+
+            top =
+                rect.top -
+                tooltipHeight -
+                GAP;
+
+            position = "top";
+        }
+
+        /* =========================
+           NAVBAR COLLISION
+        ========================= */
+
+        if (top < NAVBAR_HEIGHT) {
+
+            top = NAVBAR_HEIGHT + 12;
+
+            position = "bottom";
+        }
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadFavoritesFromServer();
-});
-    </script>
+        /* =========================
+           LEFT EDGE
+        ========================= */
+
+        if (left < PADDING) {
+            left = PADDING;
+        }
+
+        /* =========================
+           RIGHT EDGE
+        ========================= */
+
+        if (
+            left + tooltipWidth >
+            window.innerWidth - PADDING
+        ) {
+
+            left =
+                window.innerWidth -
+                tooltipWidth -
+                PADDING;
+        }
+
+        /* =========================
+           MOBILE MODE
+        ========================= */
+
+        if (window.innerWidth < 768) {
+
+            left = 16;
+            top = window.innerHeight - tooltipHeight - 28;
+
+            tooltip.style.width =
+                "calc(100vw - 32px)";
+        } else {
+
+            tooltip.style.width = "";
+        }
+
+        /* =========================
+           APPLY
+        ========================= */
+
+        top = Math.max(
+            12,
+            Math.min(
+                top,
+                window.innerHeight - tooltipRect.height - 12
+            )
+        );
+
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
+
+        tooltip.dataset.position = position;
+    };
+
+    /* =========================================================
+       REOPEN DIRECTIONS
+    ========================================================= */
+    DOM.reopenDirections.onclick = () => {
+
+        if (state.lastRoute) {
+
+            restoreLastRoute();
+
+        } else if (
+            state.currentTargetFridge &&
+            state.userLat &&
+            state.userLng
+        ) {
+
+            window.routeToFridge(
+                state.currentTargetFridge.lat,
+                state.currentTargetFridge.lng
+            );
+        }
+
+        if (isMobile()) {
+
+            show(DOM.directionsModal);
+
+        } else {
+
+            openSidebar();
+        }
+
+        hide(DOM.reopenDirections);
+
+        setTimeout(() => {
+            safeMapResize();
+        }, 250);
+    };
+
+    window.closeDirectionsModal = function () {
+        hide(DOM.directionsModal);
+
+        // show compact reopen button like "CLEAR"
+        if (state.lastRoute || state.currentTargetFridge) {
+            show(DOM.reopenDirections);
+        }
+    };
+
+    window.startMapTutorial = function () {
+
+        if (!window.driver?.js?.driver) {
+            console.error("Driver.js not loaded");
+            return;
+        }
+
+        let fridgeClicked = false;
+
+        const driver = window.driver.js.driver({
+
+                showProgress: true,
+    allowClose: true,
+    animate: true,
+    opacity: 0.6,
+    stagePadding: 6,
+
+            onHighlightStarted: (element) => {
+                element?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            },
+
+            steps: [
+
+                {
+                    element: "#map",
+                    popover: {
+                        title: "Interactive Map",
+                        description:
+                            "Fridges appear on this map. Tap any fridge marker to interact with it."
+                    }
+                },
+
+                {
+                    element: "#sidebar-toggle",
+                    popover: {
+                        title: "Fridge Browser",
+                        description:
+                            "Browse nearby community fridges from the sidebar."
+                    }
+                },
+
+                {
+                    element: "#fridge-search",
+                    popover: {
+                        title: "Search",
+                        description:
+                            "Search for fridges by name."
+                    }
+                },
+
+                {
+                    element: "#transport-controls",
+                    popover: {
+                        title: "Travel Modes",
+                        description:
+                            "Switch between walking, biking, and driving directions."
+                    }
+                },
+
+                {
+                    element: "#map",
+                    popover: {
+                        title: "Your Turn",
+                        description:
+                            "Next: click any fridge marker on the map to continue the tutorial.",
+                        showButtons: []
+                    },
+
+                    onHighlightStarted: () => {
+
+                        fridgeClicked = false;
+
+                        const cleanup = [];
+
+                        state.markerMap.forEach((marker) => {
+
+                            const handler = () => {
+
+                                if (fridgeClicked) return;
+
+                                fridgeClicked = true;
+
+                                cleanup.forEach(fn => fn());
+
+                                setTimeout(() => {
+                                    driver.moveNext();
+                                }, 500);
+                            };
+
+                            marker.once("click", handler);
+
+                            cleanup.push(() => {
+                                marker.off("click", handler);
+                            });
+                        });
+                    }
+                },
+
+                {
+                    element: "#fridge-sheet",
+                    popover: {
+                        title: "Fridge Details",
+                        description:
+                            "This panel shows fridge information and quick actions."
+                    }
+                },
+
+                {
+                    element: "#favorites-list",
+                    popover: {
+                        title: "Favorites",
+                        description:
+                            "Save your favorite fridges for quick access later."
+                    }
+                },
+
+                {
+                    element: "#recent-list",
+                    popover: {
+                        title: "Recently Viewed",
+                        description:
+                            "Your recently opened fridges appear here."
+                    }
+                },
+
+                {
+                    element: "#routing-directions",
+                    popover: {
+                        title: "Directions",
+                        description:
+                            "Step-by-step route guidance appears here after choosing directions."
+                    }
+                },
+
+                {
+                    element: "#fridge-list",
+                    popover: {
+                        title: "You're Ready",
+                        description:
+                            "Explore the map and help support your local community."
+                    }
+                }
+            ]
+        });
+
+        window.mapTour = driver;
+
+        driver.drive();
+    };
+
+
+    window.restartMapTutorial = function () {
+
+        // destroy previous instance safely
+        if (window.mapTour) {
+            try {
+                window.mapTour.destroy();
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+
+        // restart tutorial
+        window.startMapTutorial();
+    };
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadFavoritesFromServer();
+    });
+</script>
+
 </html>
