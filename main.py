@@ -1188,32 +1188,39 @@ def about():
 
     if user_lat and user_lng:
         # Distance-aware query (10-mile radius)
-        fow_query = """
-            SELECT f.*, COUNT(fs.ID) as activity_count,
-            (3959 * acos(cos(radians(%s)) * cos(radians(f.Latitude)) * cos(radians(f.Longitude) - radians(%s)) + sin(radians(%s)) * sin(radians(f.Latitude)))) AS distance
-            FROM Fridge f
-            LEFT JOIN Fridge_status fs ON f.ID = fs.FridgeID
-            WHERE fs.Last_updated >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-            GROUP BY f.ID
-            HAVING distance < 10
-            ORDER BY activity_count DESC, distance ASC
-            LIMIT 1
-        """
+        # Define fow_query above if you're using it
+     fow_query = """
+        SELECT f.*, COUNT(fs.ID) as activity_count,
+        (3959 * acos(
+            cos(radians(%s)) * cos(radians(f.Latitude)) *
+            cos(radians(f.Longitude) - radians(%s)) +
+            sin(radians(%s)) * sin(radians(f.Latitude))
+        )) AS distance
+        FROM Fridge f
+        LEFT JOIN Fridge_status fs ON f.ID = fs.FridgeID
+        WHERE fs.Last_updated >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        GROUP BY f.ID
+        HAVING distance < 10
+        ORDER BY activity_count DESC, distance ASC
+        LIMIT 1
+    """
+
+    if user_lat and user_lng:
         cursor.execute(fow_query, (user_lat, user_lng, user_lat))
+        fridge_of_week = cursor.fetchone()
+
     else:
-        # Fallback: Just the most active fridge globally
         query = """
         SELECT f.ID, f.Name, f.Image, f.Address, COUNT(r.ID) as activity_count
         FROM Fridge f
-        LEFT JOIN Reviews r ON f.ID = r.FridgeID 
-            -- Only count reviews/updates from the last 7 days
-            AND r.Timestamp >= NOW() - INTERVAL 7 DAY 
+        LEFT JOIN Reviews r ON f.ID = r.FridgeID
+            AND r.Timestamp >= NOW() - INTERVAL 7 DAY
         GROUP BY f.ID
         ORDER BY activity_count DESC, f.ID ASC
         LIMIT 1;
-    """
-    cursor.execute(query)
-    fridge_of_week = cursor.fetchone()
+        """
+        cursor.execute(query)
+        fridge_of_week = cursor.fetchone()
 
     connection.close()
 
