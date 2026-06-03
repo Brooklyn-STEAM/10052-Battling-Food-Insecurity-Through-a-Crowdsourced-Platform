@@ -55,84 +55,158 @@
 
   {% include "components/navbar.html.jinja" %}
 
-  <main class="flex-1 relative overflow-hidden py-16 px-6">
-    <div class="absolute top-1/4 -left-20 w-72 h-72 bg-green-300/20 dark:bg-purple-900/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-1/4 -right-20 w-82 h-82 bg-yellow-300/20 dark:bg-indigo-900/10 rounded-full blur-3xl pointer-events-none"></div>
+  <main class="flex-1 relative overflow-hidden py-20 px-6">
 
-    <section class="max-w-4xl mx-auto text-center relative z-10 mb-20">
-      <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-purple-900/30 text-green-600 dark:text-purple-300 rounded-full shadow-inner mb-8 transform hover:scale-110 transition-transform duration-300">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+  <!-- Background Glow Effects -->
+  <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-green-300/20 dark:bg-purple-700/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-yellow-300/20 dark:bg-indigo-700/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Floating Decorative Icons -->
+  <div class="absolute top-28 left-10 text-5xl opacity-20 animate-bounce">🥦</div>
+  <div class="absolute bottom-24 right-12 text-6xl opacity-20 animate-pulse">💚</div>
+  <div class="absolute top-1/2 right-20 text-5xl opacity-20 animate-bounce delay-300">🧊</div>
+
+  <section class="max-w-5xl mx-auto relative z-10">
+
+    <!-- Main Card -->
+    <div class="relative overflow-hidden rounded-[40px]
+                bg-white/80 dark:bg-white/5
+                backdrop-blur-2xl
+                border border-white/30 dark:border-white/10
+                shadow-[0_20px_80px_rgba(0,0,0,0.08)]
+                dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]
+                p-8 md:p-14">
+
+      <!-- Top Gradient Accent -->
+      <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-green-500 via-emerald-400 to-yellow-400 dark:from-purple-500 dark:via-indigo-500 dark:to-fuchsia-500"></div>
+
+      <!-- Success Badge -->
+      <div class="flex justify-center mb-10">
+        <div class="relative">
+          <div class="absolute inset-0 bg-green-400 dark:bg-purple-500 blur-2xl opacity-30 rounded-full"></div>
+
+          <div class="relative inline-flex items-center justify-center
+                      w-24 h-24 rounded-full
+                      bg-gradient-to-br from-green-100 to-green-50
+                      dark:from-purple-700/40 dark:to-indigo-700/40
+                      border border-green-200 dark:border-purple-500/30
+                      shadow-xl">
+
+            <svg class="w-12 h-12 text-green-600 dark:text-purple-300"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2.5"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
       </div>
 
-      <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tight
-                 bg-gradient-to-r from-green-700 to-emerald-500 
-                 dark:from-purple-300 dark:to-indigo-400 
-                 bg-clip-text text-transparent">
-        Thank You!
-      </h1>
+      <!-- Heading -->
+      <div class="text-center">
+        <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-tight
+                   bg-gradient-to-r from-green-700 via-emerald-500 to-green-400
+                   dark:from-purple-300 dark:via-indigo-300 dark:to-fuchsia-300
+                   bg-clip-text text-transparent mb-6">
+          Thank You!
+        </h1>
 
-      <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed font-medium">
-        You save lives and reduce waste by donating to a community fridge. We deeply appreciate your generosity and
-        commitment to building a stronger, more connected community. Your contribution helps ensure fresh food is 
-        always localized.
-      </p>
+        <p class="max-w-3xl mx-auto text-lg md:text-xl
+                  text-gray-600 dark:text-gray-300
+                  leading-relaxed font-medium">
+          Your donation helps feed families, reduce food waste, and strengthen
+          communities. Every contribution makes a real impact and helps keep
+          community fridges stocked for neighbors in need.
+        </p>
+      </div>
 
-      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <!-- Impact Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-14">
+
+        <div class="rounded-3xl p-6 bg-green-50 dark:bg-[#1b1730]
+                    border border-green-100 dark:border-[#40376E]
+                    text-center shadow-sm">
+          <div class="text-4xl mb-3">🥗</div>
+          <h3 class="text-3xl font-black text-green-600 dark:text-green-400">
+            {{ total_meals or "25+" }}
+          </h3>
+          <p class="text-gray-500 dark:text-purple-300/70 text-sm mt-1">
+            Meals Supported
+          </p>
+        </div>
+
+        <div class="rounded-3xl p-6 bg-green-50 dark:bg-[#1b1730]
+                    border border-green-100 dark:border-[#40376E]
+                    text-center shadow-sm">
+          <div class="text-4xl mb-3">🌍</div>
+          <h3 class="text-3xl font-black text-green-600 dark:text-green-400">
+            Community
+          </h3>
+          <p class="text-gray-500 dark:text-purple-300/70 text-sm mt-1">
+            Helping Local Families
+          </p>
+        </div>
+
+        <div class="rounded-3xl p-6 bg-green-50 dark:bg-[#1b1730]
+                    border border-green-100 dark:border-[#40376E]
+                    text-center shadow-sm">
+          <div class="text-4xl mb-3">♻️</div>
+          <h3 class="text-3xl font-black text-green-600 dark:text-green-400">
+            Less Waste
+          </h3>
+          <p class="text-gray-500 dark:text-purple-300/70 text-sm mt-1">
+            Food Saved From Disposal
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-14">
+
         <a href="{{ url_for('index') }}"
-          class="w-full sm:w-auto inline-flex items-center justify-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black py-4 px-8 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
-          Return Home
+          class="group relative overflow-hidden
+                 w-full sm:w-auto inline-flex items-center justify-center
+                 bg-gray-900 dark:bg-white
+                 text-white dark:text-gray-900
+                 font-black py-4 px-9 rounded-2xl
+                 shadow-2xl transition-all duration-300
+                 hover:scale-105 active:scale-95">
+
+          <span class="relative z-10">Return Home</span>
         </a>
 
         <a href="/restaurant-dashboard"
-          class="w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-green-600 to-emerald-500 dark:from-purple-600 dark:to-indigo-600 text-white font-black py-4 px-8 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
-          My Donations
+          class="group relative overflow-hidden
+                 w-full sm:w-auto inline-flex items-center justify-center
+                 bg-gradient-to-r from-green-600 to-emerald-500
+                 dark:from-purple-600 dark:to-indigo-600
+                 text-white font-black
+                 py-4 px-9 rounded-2xl
+                 shadow-2xl transition-all duration-300
+                 hover:scale-105 active:scale-95">
+
+          <span class="relative z-10 flex items-center gap-2">
+            My Donations
+            <svg class="w-5 h-5"
+                 fill="none"
+                 stroke="currentColor"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </span>
         </a>
       </div>
-    </section>
 
-    <section class="max-w-5xl mx-auto relative z-10">
-      <div class="text-center mb-12">
-        <span class="text-xs font-black uppercase tracking-widest text-green-600 dark:text-purple-400 bg-green-100 dark:bg-purple-900/30 px-3 py-1 rounded-full">
-          Real Impact
-        </span>
-        <h2 class="text-3xl font-black text-gray-900 dark:text-white mt-3">What Your Action Means</h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="group p-8 rounded-3xl backdrop-blur-md bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div class="text-3xl mb-4 bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-2xl flex items-center justify-center text-green-600 dark:text-green-400">🍂</div>
-            <h3 class="text-xl font-black mb-3 text-gray-900 dark:text-white">Reduce Waste</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              Every item uploaded prevents food from going directly to local landfills while completely balancing local production excess.
-            </p>
-          </div>
-        </div>
-
-        <div class="group p-8 rounded-3xl backdrop-blur-md bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div class="text-3xl mb-4 bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-2xl flex items-center justify-center text-green-600 dark:text-green-400">🤝</div>
-            <h3 class="text-xl font-black mb-3 text-gray-900 dark:text-white">Support Neighbors</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              Your contribution guarantees healthy resources stay open and transparent for anyone looking to optimize family distributions.
-            </p>
-          </div>
-        </div>
-
-        <div class="group p-8 rounded-3xl backdrop-blur-md bg-white/60 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div class="text-3xl mb-4 bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-2xl flex items-center justify-center text-green-600 dark:text-green-400">⚡</div>
-            <h3 class="text-xl font-black mb-3 text-gray-900 dark:text-white">Expand the Network</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              Active lines prove the system works. Your data maps out strong points that help volunteers handle logistic routines.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
+    </div>
+  </section>
+</main>
 
   {% include "components/footer.html.jinja" %}
 

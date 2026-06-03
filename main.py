@@ -1155,17 +1155,14 @@ def about():
     connection = connect_db()
     cursor = connection.cursor(pymysql.cursors.DictCursor)  
 
-   
     # TOTAL USERS
     cursor.execute("SELECT COUNT(*) AS total_users FROM User")
     users = cursor.fetchone()["total_users"]
 
- 
     # TOTAL FRIDGES
     cursor.execute("SELECT COUNT(*) AS total_fridges FROM Fridge")
     fridges = cursor.fetchone()["total_fridges"]
 
-    
     # TOTAL DONATIONS
     cursor.execute("SELECT COUNT(*) AS total_donations FROM Donations")
     meals = cursor.fetchone()["total_donations"]
@@ -1178,7 +1175,6 @@ def about():
     """)
     food_saved = cursor.fetchone()["total_food"]
 
-    
     # MONEY DONATIONS
     cursor.execute("""
         SELECT COALESCE(SUM(Quantity), 0) AS total_money
@@ -1187,9 +1183,10 @@ def about():
     """)
     money = cursor.fetchone()["total_money"]
 
+    # --- FIXED IF/ELSE BLOCK ---
     if user_lat and user_lng:
-        # Distance-aware query (10-mile radius)
-        fow_query = """
+        # Distance-aware query (10-mile radius) - Renamed to 'query'
+        query = """
             SELECT f.*, COUNT(fs.ID) as activity_count,
             (3959 * acos(cos(radians(%s)) * cos(radians(f.Latitude)) * cos(radians(f.Longitude) - radians(%s)) + sin(radians(%s)) * sin(radians(f.Latitude)))) AS distance
             FROM Fridge f
@@ -1200,22 +1197,21 @@ def about():
             ORDER BY activity_count DESC, distance ASC
             LIMIT 1
         """
-        cursor.execute(fow_query, (user_lat, user_lng, user_lat))
+        cursor.execute(query, (user_lat, user_lng, user_lat))
     else:
         # Fallback: Just the most active fridge globally
         query = """
-        SELECT f.ID, f.Name, f.Image, f.Address, COUNT(r.ID) as activity_count
-        FROM Fridge f
-        LEFT JOIN Reviews r ON f.ID = r.FridgeID 
-            -- Only count reviews/updates from the last 7 days
-            AND r.Timestamp >= NOW() - INTERVAL 7 DAY 
-        GROUP BY f.ID
-        ORDER BY activity_count DESC, f.ID ASC
-        LIMIT 1;
-    """
-    cursor.execute(query)
+            SELECT f.ID, f.Name, f.Image, f.Address, COUNT(r.ID) as activity_count
+            FROM Fridge f
+            LEFT JOIN Reviews r ON f.ID = r.FridgeID 
+                AND r.Timestamp >= NOW() - INTERVAL 7 DAY 
+            GROUP BY f.ID
+            ORDER BY activity_count DESC, f.ID ASC
+            LIMIT 1;
+        """
+        cursor.execute(query) # Moved inside the else block where it belongs
+        
     fridge_of_week = cursor.fetchone()
-
     connection.close()
 
     stats = {
