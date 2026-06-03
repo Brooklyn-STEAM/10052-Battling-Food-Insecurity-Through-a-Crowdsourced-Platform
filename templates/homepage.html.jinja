@@ -1008,8 +1008,7 @@
       switchTab("neighbor");
 
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
-      const isLoggedIn = {{ 'true' if current_user.is_authenticated else 'false' }
-    };
+      const isLoggedIn = {{ 'true' if current_user.is_authenticated else 'false' }};
 
     const driver = window.driver.js.driver;
     window.isTourActive = false;
