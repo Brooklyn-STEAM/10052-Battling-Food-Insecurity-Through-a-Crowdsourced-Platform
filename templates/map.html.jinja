@@ -192,15 +192,16 @@
             border: 1px solid #40376E;
         }
 
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    position: relative;
+}
 
-        /* =========================================================
-   PAGE LAYOUT
-========================================================= */
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
 .fade-out {
     opacity: 0;
     transform: translateY(10px);
@@ -213,11 +214,6 @@
                 color 0.3s ease;
         }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden; /* 🔒 kills the big green scrollbar */
-}
 
         nav {
             position: relative;
@@ -474,16 +470,30 @@ html, body {
             z-index: 10;
         }
 
-        /* Directions reopen fade animation */
-        .fade-out-directions {
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-            pointer-events: none;
+.fade-out {
+    animation: reopenFadeOut 0.6s ease forwards;
+    pointer-events: none;
+}
 
-            transition:
-                opacity 0.4s ease,
-                transform 0.4s ease;
-        }
+@keyframes reopenFadeOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+    }
+
+    60% {
+        opacity: 0.4;
+        transform: translateY(6px) scale(0.96);
+        filter: blur(0.5px);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(14px) scale(0.9);
+        filter: blur(2px);
+    }
+}
 
         /* =========================
    CLEAN LEAFLET POPUP FIX
@@ -578,96 +588,62 @@ html, body {
                 padding: 7px 9px;
             }
         }
-
-        #tutorial-tooltip::before {
-            content: "";
-
-            position: absolute;
-
-            width: 12px;
-            height: 12px;
-
-            background: inherit;
-
-            transform: rotate(45deg);
-
-            left: 32px;
-
-            border-left: 1px solid rgba(0, 0, 0, 0.08);
-            border-top: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
-        /* tooltip BELOW target */
-        #tutorial-tooltip[data-position="bottom"]::before {
-            top: -6px;
-        }
-
-        /* tooltip ABOVE target */
-        #tutorial-tooltip[data-position="top"]::before {
-            bottom: -6px;
-            top: auto;
-
-            transform: rotate(225deg);
-        }
-
-        .dark #tutorial-tooltip::before {
-            border-color: rgba(168, 85, 247, 0.25);
-        }
-        .paused-animations * {
-    animation-play-state: paused !important;
-}
 /* =========================================
    DRIVER.JS TUTORIAL STYLING
 ========================================= */
 
 .driver-popover {
-    background: linear-gradient(135deg, #ffffff, #f8fafc) !important;
-    border: 1px solid rgba(34, 197, 94, 0.18) !important;
-    border-radius: 24px !important;
+    background: #fff !important;
+
+    border-radius: 20px !important;
+
+    border: 1px solid rgba(16,185,129,.15) !important;
+
     box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.18),
-        0 0 0 1px rgba(34, 197, 94, 0.06) !important;
-    padding: 0 !important;
+        0 4px 10px rgba(0,0,0,.08),
+        0 0 0 1px rgba(255,255,255,.05) inset !important;
+
+    padding: 10px !important;
+
     overflow: hidden;
     max-width: 340px !important;
 }
 
 .dark .driver-popover {
-    background: linear-gradient(
-        135deg,
-        #1f1a3a,
-        #2a2545
-    ) !important;
+    background:
+        linear-gradient(
+            135deg,
+            #2a2545 0%,
+            #1b1730 100%
+        ) !important;
 
-    border: 1px solid #40376E !important;
+    border: 1px solid rgba(139,92,246,.25) !important;
 
     box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.45),
-        0 0 24px rgba(168, 85, 247, 0.18) !important;
+        0 10px 25px rgba(0,0,0,.25),
+        0 0 10px rgba(139,92,246,.08) !important;
 }
 
 /* Header */
 .driver-popover-title {
-    font-size: 1rem !important;
+    font-size: 1.1rem !important;
     font-weight: 800 !important;
-    padding: 1rem 1.25rem 0.5rem !important;
     color: #166534 !important;
+    margin-bottom: 8px !important;
 }
 
 .dark .driver-popover-title {
     color: #c4b5fd !important;
 }
 
-/* Body */
 .driver-popover-description {
-    padding: 0 1.25rem 1rem !important;
-    color: #475569 !important;
-    font-size: 0.9rem !important;
-    line-height: 1.55 !important;
+    color: #4b5563 !important;
+    line-height: 1.6 !important;
+    font-size: .95rem !important;
 }
 
 .dark .driver-popover-description {
-    color: #d1d5db !important;
+    color: rgba(243,244,246,.82) !important;
 }
 
 /* Footer */
@@ -680,54 +656,66 @@ html, body {
     border-top: 1px solid rgba(168,85,247,0.15);
 }
 
-/* Buttons */
 .driver-popover-next-btn,
 .driver-popover-prev-btn {
+    background:
+        linear-gradient(
+            135deg,
+            #16a34a,
+            #22c55e
+        ) !important;
+
+    color: white !important;
+
     border: none !important;
     border-radius: 12px !important;
+
+    padding: 8px 14px !important;
+
     font-weight: 700 !important;
-    padding: 0.65rem 1rem !important;
-    transition: all 0.2s ease !important;
-    text-shadow: none !important;
+
+    transition: all .25s ease !important;
 }
 
-.driver-popover-next-btn {
-    background: #16a34a !important;
-    color: white !important;
-}
-
-.driver-popover-next-btn:hover {
-    background: #15803d !important;
-    transform: translateY(-1px);
-}
-
-.dark .driver-popover-next-btn {
-    background: #7c3aed !important;
-}
-
-.dark .driver-popover-next-btn:hover {
-    background: #6d28d9 !important;
-}
-
-.driver-popover-prev-btn {
-    background: #f1f5f9 !important;
-    color: #334155 !important;
-}
-
+.dark .driver-popover-next-btn,
 .dark .driver-popover-prev-btn {
-    background: #31264f !important;
-    color: white !important;
+    background:
+        linear-gradient(
+            135deg,
+            #7b2cbf,
+            #9d4edd
+        ) !important;
 }
 
-/* Close button */
+.driver-popover-next-btn:hover,
+.driver-popover-prev-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
 .driver-popover-close-btn {
-    color: #64748b !important;
-    top: 12px !important;
-    right: 12px !important;
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+
+    font-size: 0 !important;
 }
 
-.dark .driver-popover-close-btn {
-    color: #c4b5fd !important;
+.driver-popover-close-btn::after {
+    content: "Skip";
+
+    font-size: .82rem;
+    font-weight: 600;
+
+    color: #6b7280;
+}
+
+.dark .driver-popover-close-btn::after {
+    color: rgba(255,255,255,.75);
+}
+
+.driver-popover-close-btn:hover::after {
+    color: #ef4444;
 }
 
 /* Progress indicator */
@@ -740,19 +728,157 @@ html, body {
     color: #a78bfa !important;
 }
 
-/* Highlighted element */
+
+html,
+body,
+#map {
+    overflow: clip;
+}
+/* =========================================
+   MAP TOUR (Homepage Style)
+========================================= */
+
+/* Overlay */
+.driver-overlay {
+    background: rgba(0,0,0,0) !important;
+    backdrop-filter: none !important;
+}
+
+/* Spotlight */
+.driver-stage::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(255,255,255,0) 0%,
+            rgba(0,0,0,0.35) 70%,
+            rgba(0,0,0,0.6) 100%
+        );
+
+    opacity: .8;
+}
+
+/* Smooth transitions */
+.driver-stage {
+    transition:
+        all .42s cubic-bezier(.22,1,.36,1) !important;
+}
+
+/* Highlight */
 .driver-highlighted-element {
-    border-radius: 18px !important;
     box-shadow:
-        0 0 0 6px rgba(34,197,94,0.18),
-        0 0 40px rgba(34,197,94,0.30) !important;
+        0 0 0 4px rgba(34,197,94,.10),
+        0 2px 6px rgba(0,0,0,.10),
+        0 0 12px rgba(34,197,94,.15) !important;
 }
 
 .dark .driver-highlighted-element {
     box-shadow:
-        0 0 0 6px rgba(168,85,247,0.25),
-        0 0 40px rgba(168,85,247,0.45) !important;
+        0 0 0 4px rgba(168,85,247,.15),
+        0 8px 20px rgba(0,0,0,.30),
+        0 0 12px rgba(168,85,247,.20) !important;
 }
+
+
+
+@keyframes mapTourPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34,197,94,.45);
+    }
+    70% {
+    box-shadow: 0 0 0 6px rgba(34,197,94,0);
+}
+    100% {
+        box-shadow: 0 0 0 0 rgba(34,197,94,0);
+    }
+}
+
+.dark .driver-active-element {
+    animation:
+        mapTourPulseDark 2s infinite,
+        mapTourFloat 3s ease-in-out infinite;
+}
+
+@keyframes mapTourPulseDark {
+    0% {
+        box-shadow: 0 0 0 0 rgba(168,85,247,.45);
+    }
+    70% {
+    box-shadow: 0 0 0 6px rgba(168,85,247,0);
+}
+    100% {
+        box-shadow: 0 0 0 0 rgba(168,85,247,0);
+    }
+}
+
+@keyframes mapTourFloat {
+    0%,100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+}
+.driver-popover:not(.driver-fading-out) {
+    animation:
+        mapTourFadeIn .42s cubic-bezier(.22,1,.36,1) forwards,
+        mapTourPopupFloat 3s ease-in-out infinite .45s;
+}
+
+@keyframes mapTourFadeIn {
+    from {
+        opacity: 0;
+        transform:
+            translateY(12px)
+            scale(.96);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+@keyframes mapTourPopupFloat {
+    0%,100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+@media (max-width: 768px) {
+
+    .driver-popover {
+        width: calc(100vw - 32px) !important;
+        max-width: 340px !important;
+        border-radius: 18px !important;
+        padding: 14px !important;
+    }
+
+    .driver-popover-title {
+        font-size: 1rem !important;
+    }
+
+    .driver-popover-description {
+        font-size: .88rem !important;
+    }
+
+    .driver-popover-next-btn,
+    .driver-popover-prev-btn {
+        flex: 1;
+        min-height: 42px;
+        font-size: .82rem !important;
+    }
+}
+
     </style>
     <script>
         tailwind.config = {
@@ -953,7 +1079,7 @@ touch-pan-y
                 <!-- =====================================================
          ROUTE BOX (NO STICKY HEADER, SIMPLE FLOW)
     ====================================================== -->
-                <div id="routing-directions" class=" mb-6 p-4 rounded-2xl border
+                <div id="routing-directions" class="hidden mb-6 p-4 rounded-2xl border
         bg-gradient-to-br from-green-50 to-white
         dark:from-[#241a3a] dark:to-[#1b1730]
         border-green-200 dark:border-[#40376E]
@@ -1230,13 +1356,16 @@ window.isMapTourActive = false;
         let resizeRAF = null;
 
         function safeMapResize() {
+
     if (resizeRAF) return;
 
     resizeRAF = requestAnimationFrame(() => {
+
+        map.invalidateSize(true);
+
         resizeRAF = null;
     });
 }
-       
         /* =========================================================
            API HELPERS
         ========================================================= */
@@ -1938,13 +2067,24 @@ window.isMapTourActive = false;
 
             state.currentTargetFridge = null;
 
-            // fade in reopen button
-            DOM.reopenDirections.classList.remove("hidden");
+           // show button
+DOM.reopenDirections.classList.remove("hidden");
 
-            requestAnimationFrame(() => {
-                DOM.reopenDirections.style.opacity = "1";
-                DOM.reopenDirections.style.transform = "translateY(0)";
-            });
+// reset state
+DOM.reopenDirections.classList.remove("fade-out");
+DOM.reopenDirections.style.opacity = "1";
+DOM.reopenDirections.style.transform = "translateY(0)";
+
+// after 3 seconds → fade out
+setTimeout(() => {
+    DOM.reopenDirections.classList.add("fade-out");
+
+    setTimeout(() => {
+        DOM.reopenDirections.classList.add("hidden");
+        DOM.reopenDirections.classList.remove("fade-out");
+    }, 600); // match animation duration
+
+}, 3000);
         };
         function restoreLastRoute() {
             if (!state.lastRoute) return;
@@ -2835,19 +2975,10 @@ navigator.geolocation.getCurrentPosition(
                     );
                 }
 
-            } catch (err) {
-
-                console.error(err);
-
-                const style = window.getComputedStyle(el);
-
-                const hidden =
-                    style.display === "none" ||
-                    style.visibility === "hidden";
-
-                if (!hidden) return el;
-            }
-
+            } 
+            catch (err) {
+    console.error("Failed to geocode address:", err);
+}
             return null;
         }
 
@@ -3028,10 +3159,16 @@ window.startMapTutorial = function () {
     
 
     const driver = window.driver.js.driver({
+        stagePadding: 0.1,
+        stageRadius: 4,
+        
 
         showProgress: true,
         allowClose: true,
         animate: true,
+
+        popoverClass: "my-custom-popover",
+
 
         onHighlightStarted: (element) => {
             element?.scrollIntoView({
@@ -3049,6 +3186,7 @@ window.startMapTutorial = function () {
                     description:
                         "Fridges appear on this map. Tap any fridge marker to interact with it."
                 }
+                
             },
 
             {
@@ -3170,7 +3308,37 @@ window.startMapTutorial = function () {
     }
 },
 
-            {
+{
+    element: "#map",
+
+    popover: {
+        title: "Get Directions",
+        description:
+            "Now click a Directions button on any fridge to generate a route.",
+        showButtons: []
+    },
+
+    onHighlightStarted: () => {
+
+        let directionsClicked = false;
+
+        const originalRouteToFridge = window.routeToFridge;
+
+        window.routeToFridge = async function (...args) {
+
+            if (!directionsClicked) {
+                directionsClicked = true;
+
+                setTimeout(() => {
+                    driver.moveNext();
+                }, 500);
+            }
+
+            return originalRouteToFridge.apply(this, args);
+        };
+    }
+},
+{
     element: "#routing-directions",
 
     onHighlightStarted: () => {
@@ -3178,9 +3346,9 @@ window.startMapTutorial = function () {
     },
 
     popover: {
-        title: "Directions",
+        title: "Directions Panel",
         description:
-            "Step-by-step route guidance appears here after choosing directions."
+            "Your route and turn-by-turn instructions appear here."
     }
 },
 
