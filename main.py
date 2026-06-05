@@ -342,6 +342,8 @@ def signup():
     # 8. GET request
     max_birthdate = f"{datetime.utcnow().year - 18}-12-31"
     return render_template("signup.html.jinja", max_birthdate=max_birthdate)
+
+
 # -----------------------
 # DONATE PAGES
 # -----------------------
